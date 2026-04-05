@@ -1,0 +1,59 @@
+@model List<BaoCaoTonKho>
+@{ ViewData["Title"] = "Báo cáo Tồn kho"; }
+
+<h4 class="section-title"><i class="fas fa-warehouse me-2"></i>Báo Cáo Tồn Kho</h4>
+
+<div class="card card-fc">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-fc table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>Mã SP</th><th>Tên sản phẩm</th><th>Đơn vị</th>
+                        <th>Danh mục</th><th>Tổng tồn</th><th>Số lô</th><th>Chi tiết</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var sp in Model)
+                    {
+                        <tr>
+                            <td><strong>SP-@sp.MaSP.ToString("D3")</strong></td>
+                            <td>@sp.TenSP</td>
+                            <td><span class="badge bg-info">@sp.DonViTinh</span></td>
+                            <td>@sp.TenDanhMuc</td>
+                            <td><strong class="text-primary">@sp.TongTon.ToString("N2") @sp.DonViTinh</strong></td>
+                            <td>@sp.SoLo</td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-primary" data-bs-toggle="collapse" data-bs-target="#chiTiet_@sp.MaSP">
+                                    <i class="fas fa-eye me-1"></i>Xem lô
+                                </button>
+                            </td>
+                        </tr>
+                        <tr class="collapse" id="chiTiet_@sp.MaSP">
+                            <td colspan="7" class="bg-light p-3">
+                                <table class="table table-sm table-bordered mb-0">
+                                    <thead class="table-secondary">
+                                        <tr><th>Mã Lô</th><th>Tồn</th><th>NSX</th><th>HSD</th><th>Ngày còn lại</th><th>Trạng thái</th></tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var lo in sp.ChiTietLo)
+                                        {
+                                            <tr>
+                                                <td>LO-@lo.MaLo.ToString("D4")</td>
+                                                <td>@lo.SoLuongTon.ToString("N2")</td>
+                                                <td>@lo.NgaySanXuat.ToString("dd/MM/yyyy")</td>
+                                                <td>@lo.HanSuDung.ToString("dd/MM/yyyy")</td>
+                                                <td>@lo.SoNgayConLai ngày</td>
+                                                <td><span class="badge bg-@lo.MauCanhBao">@lo.TrangThai</span></td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

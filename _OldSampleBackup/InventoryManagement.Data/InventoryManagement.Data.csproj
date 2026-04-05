@@ -1,0 +1,68 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="Migrations\20200426022816_SeedInstitution.cs" />
+    <Compile Remove="Migrations\20200426022816_SeedInstitution.Designer.cs" />
+    <Compile Remove="Migrations\20200426025034_SeedAdminUser1.cs" />
+    <Compile Remove="Migrations\20200426025034_SeedAdminUser1.Designer.cs" />
+    <Compile Remove="Migrations\20200427021212_SeedSubAdminLink.cs" />
+    <Compile Remove="Migrations\20200427021212_SeedSubAdminLink.Designer.cs" />
+    <Compile Remove="Migrations\20200429015711_AddCustomerPhoneTable.cs" />
+    <Compile Remove="Migrations\20200429015711_AddCustomerPhoneTable.Designer.cs" />
+    <Compile Remove="Migrations\20200429021013_test.cs" />
+    <Compile Remove="Migrations\20200429021013_test.Designer.cs" />
+    <Compile Remove="Migrations\20200615054436_Delete_PurchaseAdjustment.cs" />
+    <Compile Remove="Migrations\20200615054436_Delete_PurchaseAdjustment.Designer.cs" />
+    <Compile Remove="Migrations\20200703063203_AddNewColumnToCustomerTable.cs" />
+    <Compile Remove="Migrations\20200703063203_AddNewColumnToCustomerTable.Designer.cs" />
+    <Compile Remove="Migrations\20200715065755_test.cs" />
+    <Compile Remove="Migrations\20200715065755_test.Designer.cs" />
+    <Compile Remove="Migrations\20201004082911_LastUpdateDateAddToSellingTable.cs" />
+    <Compile Remove="Migrations\20201004082911_LastUpdateDateAddToSellingTable.Designer.cs" />
+    <Compile Remove="Migrations\20210114165324_AddExpenseTransportationTable.cs" />
+    <Compile Remove="Migrations\20210114165324_AddExpenseTransportationTable.Designer.cs" />
+    <Compile Remove="Migrations\20210305114837_AddAccountTablesUpdatesSellingTable.cs" />
+    <Compile Remove="Migrations\20210305114837_AddAccountTablesUpdatesSellingTable.Designer.cs" />
+    <Compile Remove="Migrations\20210313064513_ConvertDoubleToDecimal.cs" />
+    <Compile Remove="Migrations\20210313064513_ConvertDoubleToDecimal.Designer.cs" />
+    <Compile Remove="Migrations\20210313081927_ConvertDoubleToDecimal.cs" />
+    <Compile Remove="Migrations\20210313081927_ConvertDoubleToDecimal.Designer.cs" />
+    <Compile Remove="Migrations\20210313082922_ConvertDoubleToDecimal.cs" />
+    <Compile Remove="Migrations\20210313082922_ConvertDoubleToDecimal.Designer.cs" />
+    <Compile Remove="Migrations\20210313083146_ConvertDoubleToDecimal.cs" />
+    <Compile Remove="Migrations\20210313083146_ConvertDoubleToDecimal.Designer.cs" />
+    <Compile Remove="Migrations\20210313083554_ConvertDoubleToDecimal.cs" />
+    <Compile Remove="Migrations\20210313083554_ConvertDoubleToDecimal.Designer.cs" />
+    <Compile Remove="Migrations\20210313091211_ConvertDoubleToDecimal.cs" />
+    <Compile Remove="Migrations\20210313091211_ConvertDoubleToDecimal.Designer.cs" />
+    <Compile Remove="Migrations\20210313091919_ConvertDoubleToDecimal.cs" />
+    <Compile Remove="Migrations\20210313091919_ConvertDoubleToDecimal.Designer.cs" />
+    <Compile Remove="Migrations\20210313092503_ConvertDoubleToDecimal.cs" />
+    <Compile Remove="Migrations\20210313092503_ConvertDoubleToDecimal.Designer.cs" />
+    <Compile Remove="Migrations\20210313093606_computedColumnDone.cs" />
+    <Compile Remove="Migrations\20210313093606_computedColumnDone.Designer.cs" />
+    <Compile Remove="Migrations\20210313101706_SellingDiscountPercentageColumnType.cs" />
+    <Compile Remove="Migrations\20210313101706_SellingDiscountPercentageColumnType.Designer.cs" />
+    <Compile Remove="Migrations\20210317044945_SellingTabelChange.cs" />
+    <Compile Remove="Migrations\20210317044945_SellingTabelChange.Designer.cs" />
+    <Compile Remove="Migrations\20210418051928_AddRoleSalesPerson.cs" />
+    <Compile Remove="Migrations\20210418051928_AddRoleSalesPerson.Designer.cs" />
+    <Compile Remove="Migrations\20210509084453_AddSellingPurchaseInProductLog.cs" />
+    <Compile Remove="Migrations\20210509084453_AddSellingPurchaseInProductLog.Designer.cs" />
+    <Compile Remove="Migrations\20210712100200_AddSellingPromiseDateMissTable.cs" />
+    <Compile Remove="Migrations\20210712100200_AddSellingPromiseDateMissTable.Designer.cs" />
+    <Compile Remove="Migrations\20210712120501_test.cs" />
+    <Compile Remove="Migrations\20210712120501_test.Designer.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="EFCore.BulkExtensions" Version="3.6.1" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="3.1.3" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="3.1.3" />
+  </ItemGroup>
+
+</Project>

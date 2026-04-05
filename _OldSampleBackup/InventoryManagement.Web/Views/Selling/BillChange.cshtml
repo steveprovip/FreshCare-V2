@@ -1,0 +1,244 @@
+﻿@using InventoryManagement.Repository
+@model SellingUpdateGetModel
+@{
+    ViewData["Title"] = "Update Bill";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+@section Styles{
+    <style>
+        .code-removed { text-decoration: line-through; color: #ff0000 }
+        .remove-disable { pointer-events: none }
+
+        .remove { cursor: pointer }
+        .remove:hover { color: #ff0000 }
+        #formPayment { color: #4f4f4f; }
+        #formPayment ul { list-style-type: none; padding: 0; }
+        #formPayment ul li strong { font-weight: 500; }
+        .md-form textarea.md-textarea { padding: .5rem 0; }
+
+        table tbody tr .codeSpan span { margin-right: 5px; }
+        table tbody tr .codeSpan span:not(:last-child):after { content: ',' }
+        table tbody tr .codeSpan span:hover { cursor: pointer; color: #ff0000; text-decoration: line-through; }
+        .inputUnitPrice { min-width: 110px; text-align: center }
+        .disable-row { background-color: #dbdbdb }
+        .disable-row input { background-color: #dbdbdb; pointer-events: none }
+    </style>  
+}
+
+<div class="m-3">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-4">
+        <div>
+            <h4 class="mb-2 page-header d-print-none">Update Bill #@Model.SellingSn</h4>
+            <h5 class="mb-0">
+                <span class="badge badge-pill purple">@Model.CustomerInfo.Name</span>
+                <span class="badge badge-pill purple">@Model.CustomerInfo.CustomerPhone</span>
+            </h5>
+        </div>
+        <form id="formReceiptDelete">
+            <input type="submit" value="Delete Permanently" class="btn btn-rounded btn-danger" />
+            <label id="delete-error" class="field-validation-error d-block text-center"></label>
+        </form>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-9 mb-3">
+            <div class="card card-body mb-3">
+                <form id="formCode">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="md-form mt-0 mb-0 flex-1">
+                            <input id="inputBarCode" autocomplete="off" type="text" class="form-control" required />
+                            <label for="inputBarCode">Product code</label>
+                            <span id="codeExistError" class="field-validation-error"></span>
+                        </div>
+
+                        <button id="btnFind" type="submit" class="btn btn-sm purple-gradient">
+                            <i class="far fa-search text-white"></i>
+                            <i class="fas fa-circle-notch fa-spin" style="display: none"></i>
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="card card-body">
+                <div class="table-responsive">
+                    <form id="formTable">
+                        <table class="table">
+                            <thead class="text-muted">
+                                <tr>
+                                    <th>PRODUCT</th>
+                                    <th>DESCRIPTION</th>
+                                    <th>WARRANTY</th>
+                                    <th>QTY</th>
+                                    <th>U.PRICE</th>
+                                    <th>PRICE</th>
+                                </tr>
+                            </thead>
+                            <tbody id="t-body">
+                                @foreach (var item in Model.Products)
+                                {
+                                    <tr data-id="@item.ProductCatalogId" data-name="@item.ProductName" data-pprice="@item.PurchasePrice">
+                                        <td>@item.ProductCatalogName</td>
+                                        <td>
+                                            @item.ProductName,
+                                            @item.Description
+                                            @if (item.Note != null)
+                                            {
+                                                <span style="font-size: 12px;" class="badge badge-pill badge-secondary">@item.Note</span>
+                                            }
+                                            <span class="codeSpan">
+                                                @foreach (var code in item.ProductCodes)
+                                                {
+                                                    <span class="code">@code</span>
+                                                }
+                                            </span>
+                                        </td>
+                                        <td>@item.Warranty</td>
+                                        <td>@item.ProductCodes.Length</td>
+                                        <td><input type="number" required class="form-control inputUnitPrice" step="0.01" min="@item.PurchasePrice" value="@item.SellingPrice" /></td>
+                                        <td>@(item.SellingPrice * item.ProductCodes.Length)</td>
+                                    </tr>
+                                }
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <td class="text-right" colspan="6">
+                                        <strong id="productTotalPrice">
+                                            Total: @Model.SellingTotalPrice
+                                        </strong>
+                                    </td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                        <input id="btnProduct" type="submit" style="display: none" />
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-3">
+            <form id="formPayment">
+                <div class="card card-body mb-3">
+                    <ul class="mb-0">
+                        @if (Model.AccountTransactionCharge > 0)
+                        {
+                            <li class="text-muted d-flex justify-content-between align-items-center mb-2">
+                                <span>Prev. Trans./Transport Cost</span>
+                                <strong><span id="prevTransactionCost">@Model.AccountTransactionCharge</span> /-</strong>
+                            </li>
+                        }
+                        <li class="d-flex justify-content-between align-items-center">
+                            <strong>Total Amount</strong>
+                            <strong><span id="totalPrice">@(Model.SellingTotalPrice + Model.ServiceCharge + Model.AccountTransactionCharge)</span>/-</strong>
+                        </li>
+
+                        <li class="md-form mt-4">
+                            <label for="inputDiscount">Discount</label>
+                            <input id="inputDiscount" step="0.01" type="number" min="0" class="form-control" value="@Model.SellingDiscountAmount">
+                        </li>
+                        <li class="d-flex justify-content-between align-items-center text-success pb-4">
+                            <strong>Prev. Paid Amount</strong>
+                            <strong><span id="totalPrevPaid">@Model.SellingPaidAmount</span>/-</strong>
+                        </li>
+                        <li class="d-flex justify-content-between align-items-center text-danger">
+                            <strong>Total Due</strong>
+                            <strong><span id="totalDue">@Model.SellingDueAmount</span>/-</strong>
+                        </li>
+                        <li class="md-form mt-4">
+                            <label for="inputReturnAmount">Return Amount</label>
+                            <input id="inputReturnAmount" value="@Model.SellingReturnAmount" step="0.01" type="number" min="0" class="form-control">
+                        </li>
+
+                        <li class="md-form mb-4">
+                            <label for="inputPaid">Paid Amount</label>
+                            <input id="inputPaid" @(Model.SellingDueAmount > 0 ? "" : "disabled") type="number" step="0.01" min="0" class="form-control">
+                        </li>
+                        <li class="md-form">
+                            <select id="selectPaymentMethod" asp-items="ViewBag.Account" class="mdb-select" style="position: absolute; top: 1rem; left: 0; height: 0; width: 0; opacity: 0; padding: 0; pointer-events: none; display: inline !important;">
+                                <option value="" selected>[ Payment Method ]</option>
+                            </select>
+                        </li>
+                        <li class="md-form">
+                            <input id="inputAccountTransactionCharge" type="number" step="0.01" min="0" class="form-control">
+                            <label for="inputAccountTransactionCharge">Transaction/Transport Cost</label>
+                        </li>
+                        <li class="md-form mt-4">
+                            <input id="inputPromisedDate" value="@Model.PromisedPaymentDate?.ToString("dd-MMMM-yyyy")" type="text" class="form-control datepicker">
+                            <label for="inputPromisedDate">Promised Payment Date</label>
+                        </li>
+                        <li class="md-form">
+                            <textarea id="inputNotes" rows="1" class="md-textarea form-control">@Model.SellingNotes</textarea>
+                            <label for="inputNotes">Notes</label>
+                        </li>
+                    </ul>   
+                    
+                    <div class="text-center">
+                        <i id="customer-error" class="mt-2 text-center red-text"></i>
+                        <input type="hidden" id="hiddenSellingId" value="@Model.SellingId" />
+                        <button type="submit" id="btnSelling" class="btn purple-gradient btn-rounded btn-block mt-0">UPDATE BILL</button>
+                    </div>
+                </div>
+
+                <div class="card card-body mb-3">
+                    <ul class="mb-0">
+                        <li class="md-form">
+                            <input id="inputServiceCharge" step="0.01" type="number" min="0" value="@Model.ServiceCharge" class="form-control">
+                            <label for="inputServiceCharge">Service Charge</label>
+                        </li>
+                        
+                        <li class="md-form">
+                            <textarea id="inputServiceChargeDescription" rows="1" class="md-textarea form-control">@Model.ServiceChargeDescription</textarea>
+                            <label for="inputServiceChargeDescription">Service Charge Description</label>
+                        </li>
+                        <li class="md-form">
+                            <input id="inputServiceCost" step="0.01" value="@Model.ServiceCost" type="number" min="0" class="form-control">
+                            <label for="inputServiceCost">Service Cost</label>
+                        </li>
+                        <li class="d-flex justify-content-between align-items-center">
+                            <strong>Total Expense <a href="/Selling/SellingReceipt/@Model.SellingId"><i class="fas fa-plus-circle"></i></a></strong>
+                            <strong>@Model.ExpenseTotal/-</strong>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="card card-body mb-3">
+                    <input id="hiddenPurchaseId" type="hidden" value="@Model.PurchaseId">
+                    <ul class="mb-0">
+                        <li class="md-form input-group">
+                            <input id="inputPurchaseBillNo" value="@Model.PurchaseSn" type="text" class="form-control">
+                            <div class="input-group-append">
+                                <button id="findPurchaseBill" class="btn btn-md btn-secondary m-0 px-3" type="button">find</button>
+                            </div>
+                            <label for="inputPurchaseBillNo">Purchase Bill No</label>
+                        </li>
+                        <li class="md-form">
+                            <label for="inputPurchaseAmount">Purchase Paid Amount</label>
+                            <input id="inputPurchaseAmount" value="@Model.PurchaseAdjustedAmount" type="number" step="0.01" min="0" class="form-control">
+                        </li>
+                        <li class="md-form">
+                            <label for="inputPurchaseDescription">Purchase Description</label>
+                            <textarea id="inputPurchaseDescription" rows="1" class="md-textarea form-control">@Model.PurchaseDescription</textarea>
+                        </li>
+                    </ul>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts{
+    <script src="~/page-js/bill-change.js"></script>
+    <script>
+        //save previous data
+        cartProducts = @Html.Raw(Json.Serialize(Model.Products));
+        cartProducts.forEach(function(obj, i) {
+            obj.codes = [];
+            obj.RemainCodes = [];
+            obj.sellingQuantity = obj.ProductCodes.length;
+
+            obj.ProductCodes.forEach(code => {
+                obj.codes.push({ code, isRemove: false });
+            })
+        });
+    </script>
+}

@@ -1,0 +1,207 @@
+﻿@model InventoryManagement.Repository.AccountCrudModel
+@{
+    ViewData["Title"] = "Deposit to: " + Model.AccountName;
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+@section Styles{
+    <style>
+        .table tr td i { cursor: pointer }
+        .table tr td i.delete { color: red }
+    </style>
+}
+
+<div class="m-md-3">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h4 class="page-header">Deposit <small>@Model.AccountName</small></h4>
+            <a href="/Transaction/AddAccount"><i class="fal fa-long-arrow-left mr-1"></i>Back to Account</a>
+        </div>
+
+        <h5 class="font-weight-bold">Balance ৳@Model.Balance</h5>
+    </div>
+
+    <div class="card card-body">
+        <form id="formAdd">
+            <input type="hidden" name="AccountId" value="@Model.AccountId" />
+            <div class="row">
+                <div class="col-xl-3">
+                    <div class="md-form">
+                        <label for="inputDepositAmount">Amount</label>
+                        <input id="inputDepositAmount" type="number" step="0.01" min="0" name="DepositAmount" class="form-control" required>
+                    </div>
+                </div>
+                <div class="col-xl-3">
+                    <div class="md-form">
+                        <label for="inputDescription">Description</label>
+                        <input id="inputDescription" type="text" name="Description" class="form-control">
+                    </div>
+                </div>
+                <div class="col-xl-3">
+                    <div class="md-form">
+                        <label for="inputDepositDateUtc">Deposit Date</label>
+                        <input id="inputDepositDateUtc" name="DepositDateUtc" type="text" class="form-control datepicker" required>
+                    </div>
+                </div>
+                <div class="col-xl-3">
+                    <div class="md-form">
+                        <input id="btnSubmit" type="submit" value="Deposit" class="btn btn-deep-orange btn-md" />
+                    </div>
+                </div>
+            </div>
+        </form>
+
+        <table id="table-data" class="table">
+            <thead>
+                <tr>
+                    <th><strong>Amount</strong></th>
+                    <th><strong>Description</strong></th>
+                    <th><strong>Date</strong></th>
+                    <th class="text-center"><strong>Delete</strong></th>
+                </tr>
+            </thead>
+            <tbody id="tBody"></tbody>
+        </table>
+    </div>
+</div>
+
+@section Scripts{
+    <script>
+        $(function() {
+            $('.datepicker').pickadate({
+                format: 'd-mmmm-yyyy'
+            });
+
+            dataTable.getData();
+        });
+
+        //private method
+        (function() {
+            const serializeForm = function(form) {
+                const obj = {};
+                const formData = new FormData(form);
+                for (let key of formData.keys()) {
+                    obj[key] = formData.get(key);
+                }
+                return obj;
+            };
+
+            //submit form
+            const formAdd = document.getElementById("formAdd");
+            formAdd.addEventListener("submit",
+                function(evt) {
+                    evt.preventDefault();
+
+                    disableBtn(this.btnSubmit, true);
+
+                    const body = serializeForm(this);
+                    $.ajax({
+                        url: '/Transaction/AddDeposit',
+                        type: "POST",
+                        data: body,
+                        success: response => {
+                            $.notify(response.Message, response.IsSuccess ? "success" : "error");
+
+                            if (response.IsSuccess)
+                                location.reload();
+
+                            disableBtn(this.btnSubmit, false);
+                        },
+                        error: error => {
+                            console.log(error);
+                            disableBtn(this.btnSubmit, false);
+                        }
+                    });
+                });
+
+            //on edit/delete
+            const tBody = document.getElementById("tBody");
+            tBody.addEventListener("click",
+                function(evt) {
+                    const element = evt.target;
+                    const onDelete = element.classList.contains("delete");
+                    const id = element.id;
+
+                    if (onDelete) {
+                        $.ajax({
+                            url: '/Transaction/DeleteDeposit',
+                            type: "POST",
+                            data: { id },
+                            success: response => {
+                                $.notify(response.Message, response.IsSuccess ? "success" : "error");
+
+                                if (response.IsSuccess) {
+                                    location.reload();
+                                }
+                            },
+                            error: error => {
+                                console.log(error);
+                            }
+                        });
+                    }
+                })
+
+            //disable btn on submitting
+            function disableBtn(btn, isDisable) {
+                btn.disabled = isDisable;
+            }
+        })();
+
+        //data table
+        const dataTable = {
+            table: null,
+            filter: null,
+            init: function() {
+                dataTable.table = $("#table-data").DataTable({
+                    processing: true,
+                    serverSide: true,
+                    ajax: {
+                        url: "/Transaction/GetDepositData",
+                        type: "POST",
+                        data: function(d) {
+                            d.filters = dataTable.filter;
+                        }
+                    },
+                    columns:
+                    [
+                        { data: "DepositAmount", "render": dataTable.addSign },
+                        { data: "Description" },
+                        {
+                            data: "DepositDateUtc",
+                            "render": function(data) { return moment(data).format('DD MMM YYYY') }
+                        },
+                        {
+                            data: "AccountDepositId",
+                            "render": function(data, type, row, meta) {
+                                return `<a id=${data} class="delete red-text fas fa-trash-alt"></a>`;
+                            }
+                        }
+                    ],
+                    columnDefs: [
+                        { 'searchable': false, 'targets': [3] },
+                        { 'sortable': false, 'targets': [3] },
+                        { 'className': "text-center", "targets": [3] }
+                        //{ 'className': "text-left", "targets": [1] }
+                    ]
+                });
+            },
+            operand: {
+                Equal: 0,
+                NotEqual: 1,
+                GreaterThan: 2,
+                LessThan: 3,
+                GreaterThanOrEqual: 4,
+                LessThanOrEqual: 5,
+                Contains: 6,
+                StartsWith: 7,
+                EndsWith: 8
+            },
+            getData: function() {
+                dataTable.filter = [];
+                dataTable.filter.push({ Field: "AccountId", Value: '@Model.AccountId', Operand: dataTable.operand.Equal });
+                dataTable.table ? dataTable.table.ajax.reload() : dataTable.init();
+            },
+            addSign: function(data) { return `${data}/-` }
+        }
+    </script>
+}

@@ -1,0 +1,44 @@
+@model List<NhanVien>
+@{ ViewData["Title"] = "Quản lý Nhân viên"; }
+
+<h4 class="section-title"><i class="fas fa-users-cog me-2"></i>Quản Lý Tài Khoản Nhân Viên</h4>
+
+<div class="card card-fc">
+    <div class="card-body p-0">
+        <table class="table table-fc table-hover mb-0">
+            <thead>
+                <tr><th>Mã NV</th><th>Họ tên</th><th>Tên đăng nhập</th><th>Vai trò</th><th>Trạng thái</th></tr>
+            </thead>
+            <tbody>
+                @foreach (var nv in Model)
+                {
+                    <tr>
+                        <td><strong>NV-@nv.MaNV.ToString("D3")</strong></td>
+                        <td>@nv.HoTen</td>
+                        <td><code>@nv.TenDangNhap</code></td>
+                        <td>
+                            @if (nv.VaiTro == "Admin")
+                            {
+                                <span class="badge bg-primary"><i class="fas fa-crown me-1"></i>Admin</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary">Nhân viên</span>
+                            }
+                        </td>
+                        <td>
+                            @if (nv.TrangThai == "HoatDong")
+                            {
+                                <span class="badge bg-success">Hoạt động</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-danger">Đã khóa</span>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

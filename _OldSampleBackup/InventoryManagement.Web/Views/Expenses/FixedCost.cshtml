@@ -1,0 +1,138 @@
+﻿@using InventoryManagement.Repository
+@model IEnumerable<ExpenseFixedViewModel>
+@{
+    ViewData["Title"] = "Fixed Cost";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+@section Styles{
+    <style>
+        .delete { cursor: pointer; color: red; }
+    </style>
+}
+<div class="container">
+    <h4 class="page-header mb-3">Fixed Cost</h4>
+
+    <div class="card card-body">
+        <form id="formAdd">
+            <div class="form-row mt-3">
+                <div class="col-lg-4">
+                    <div class="form-group">
+                        <label>Expense Name</label>
+                        <input name="Name" type="text" class="form-control" required />
+                    </div>
+                </div>
+                <div class="col-lg-4">
+                    <div class="form-group">
+                        <label>Total Cost</label>
+                        <input name="Amount" step="0.01" type="number" class="form-control" required />
+                    </div>
+                </div>
+                <div class="col-lg-4">
+                    <div class="form-group">
+                        <label>Interval (days)</label>
+                        <div class="input-group align-items-center">
+                            <input name="IntervalDays" type="number" class="form-control" required />
+                            <div class="input-group-append">
+                                <button type="submit" class="btn peach-gradient btn-md my-0">Add</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+
+        <table class="table table-sm">
+            <thead>
+                <tr>
+                    <th><strong>Expense Name</strong></th>
+                    <th><strong>Total Cost</strong></th>
+                    <th><strong>Interval</strong></th>
+                    <th><strong>Avg. Cost</strong></th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody id="tbody">
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td>@item.Name</td>
+                        <td>৳@item.Amount</td>
+                        <td>@item.IntervalDays</td>
+                        <td>৳@item.CostPerDay.ToString("#.00")</td>
+                        <td><i id="@item.ExpenseFixedId" class="delete fas fa-trash"></i></td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@section Scripts{
+    <script>
+        (function () {
+            const serializeForm = function (form) {
+                const obj = {};
+
+                const formData = new FormData(form);
+                for (let key of formData.keys()) {
+                    obj[key] = formData.get(key);
+                }
+                return obj;
+            };
+
+            const formAdd = document.getElementById("formAdd");
+            const tBody = document.getElementById("tbody");
+
+            //add to list
+            formAdd.addEventListener("submit", function (evt) {
+                evt.preventDefault();
+                const model = serializeForm(this);
+
+                $.ajax({
+                    type: "POST",
+                    url: `/Expenses/PostFixedCost`,
+                    data: model,
+                    success: res => {
+                        console.log(res)
+                        $.notify(res.Message, res.IsSuccess ? "success" : "error");
+
+                        if (res.IsSuccess) {
+                            showTable(res.Data);
+                            this.reset();
+                        }
+                    },
+                    error: function (response) {
+                        console.log(response);
+                    }
+                });
+            });
+
+            function showTable(item) {
+                const tr = document.createElement("tr");
+                tr.innerHTML = `<td>${item.Name}</td><td>৳${item.Amount}</td><td>${item.IntervalDays}</td><td>৳${item.CostPerDay.toFixed(2)}</td><td><i id="${item.ExpenseFixedId}" class="delete fas fa-trash"></i></td>`;
+                tBody.append(tr);
+            }
+
+            //delete
+            tBody.addEventListener("click", function (evt) {
+                const onDelete = evt.target.classList.contains("delete");
+                if (!onDelete) return;
+
+                const id = +evt.target.id;
+                $.ajax({
+                    url: `/Expenses/DeleteFixedCost`,
+                    data: { id },
+                    success: res => {
+                        $.notify(res.Message, res.IsSuccess ? "success" : "error");
+
+                        if (res.IsSuccess)
+                            evt.target.parentElement.parentElement.remove();
+                    },
+                    error: function (response) {
+                        console.log(response);
+                    }
+                });
+            });
+        }());
+    </script>
+}

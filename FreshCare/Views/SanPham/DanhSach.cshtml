@@ -1,0 +1,105 @@
+@model List<SanPham>
+@{ ViewData["Title"] = "Danh sách Sản phẩm"; }
+
+<h4 class="section-title"><i class="fas fa-box me-2"></i>Quản Lý Sản Phẩm</h4>
+
+<!-- Nút thêm sản phẩm -->
+<button class="btn btn-fc-primary mb-3" data-bs-toggle="modal" data-bs-target="#modalThemSP">
+    <i class="fas fa-plus me-1"></i>Thêm sản phẩm mới
+</button>
+
+<div class="card card-fc">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-fc table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>Mã SP</th><th>Tên sản phẩm</th><th>Đơn vị tính</th>
+                        <th>Giá bán</th><th>Danh mục</th><th>Mã vạch</th><th>Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var sp in Model)
+                    {
+                        <tr>
+                            <td><strong>SP-@sp.MaSP.ToString("D3")</strong></td>
+                            <td>@sp.TenSP</td>
+                            <td><span class="badge bg-info">@sp.DonViTinh</span></td>
+                            <td>@sp.GiaBan.ToString("N0")đ</td>
+                            <td>@sp.TenDanhMuc</td>
+                            <td>@(sp.MaVach ?? "—")</td>
+                            <td>
+                                <form asp-action="XoaSanPham" method="post" class="d-inline"
+                                      onsubmit="return confirm('Xác nhận xóa sản phẩm @sp.TenSP?')">
+                                    <input type="hidden" name="maSP" value="@sp.MaSP" />
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Thêm Sản Phẩm -->
+<div class="modal fade" id="modalThemSP" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content" style="border-radius:16px;">
+            <div class="modal-header" style="background:var(--fc-primary);color:#fff;border-radius:16px 16px 0 0;">
+                <h5 class="modal-title"><i class="fas fa-plus-circle me-2"></i>Thêm sản phẩm mới</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form asp-action="ThemSanPham" method="post">
+                @Html.AntiForgeryToken()
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Tên sản phẩm <span class="text-danger">*</span></label>
+                        <input name="tenSP" class="form-control" required />
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-semibold">Đơn vị tính <span class="text-danger">*</span></label>
+                            <select name="donViTinh" class="form-select" required>
+                                <option value="Kg">Kg</option>
+                                <option value="Bó">Bó</option>
+                                <option value="Hộp">Hộp</option>
+                                <option value="Khay">Khay</option>
+                                <option value="Chai">Chai</option>
+                                <option value="Gói">Gói</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-semibold">Giá bán (VNĐ) <span class="text-danger">*</span></label>
+                            <input name="giaBan" type="number" step="100" class="form-control" required />
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Danh mục <span class="text-danger">*</span></label>
+                        <select name="maDanhMuc" class="form-select" required>
+                            @foreach (DanhMuc dm in ViewBag.DanhMucs)
+                            {
+                                <option value="@dm.MaDanhMuc">@dm.TenDanhMuc (Sale @dm.PhanTramSale%)</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Mã vạch (Barcode)</label>
+                        <input name="maVach" class="form-control" placeholder="Quét hoặc nhập mã vạch" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Mô tả</label>
+                        <textarea name="moTa" class="form-control" rows="2"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                    <button type="submit" class="btn btn-fc-primary"><i class="fas fa-save me-1"></i>Lưu sản phẩm</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

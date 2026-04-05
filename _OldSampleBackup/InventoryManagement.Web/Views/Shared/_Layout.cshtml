@@ -1,0 +1,83 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewBag.Title - IMS</title>
+    <link href="/images/fabIco.png" rel="icon" />
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://pro.fontawesome.com/releases/v5.8.2/css/all.css" />
+    <!-- Bootstrap core CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet" />
+    <!-- Material Design Bootstrap -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/mdbootstrap/4.8.2/css/mdb.min.css" rel="stylesheet" />
+    <!-- custom -->
+    <link href="~/css/custom-public.css?v=1.0.0" rel="stylesheet" />
+    @await RenderSectionAsync("Styles", false)
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark peach-gradient">
+        <div class="container">
+            <a class="navbar-brand"><span>IMS</span> App</a>
+            <ul class="navbar-nav ml-auto nav-flex-icons">
+                <partial name="_LoginPartial" />
+                <li class="nav-item">
+                    <a class="nav-link waves-effect waves-light">
+                        <i class="fab fa-facebook-f"></i>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link waves-effect waves-light">
+                        <i class="fab fa-twitter"></i>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <main style="min-height:822px">
+        @RenderBody()
+    </main>
+
+    <footer class="page-footer font-small wow fadeIn peach-gradient">
+        <div class="footer-copyright text-center py-3">
+            © @DateTime.Now.Year Copyright: <a href="#">www.datacraft.com.np</a>
+        </div>
+    </footer>
+
+
+    <!-- JQuery -->
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <!-- Bootstrap tooltips -->
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.4/umd/popper.min.js"></script>
+    <!-- Bootstrap core JavaScript -->
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.3.1/js/bootstrap.min.js"></script>
+    <!-- MDB core JavaScript -->
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mdbootstrap/4.8.2/js/mdb.min.js"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+
+<script type="text/javascript">
+    $(function () {
+        //Back to top
+        $('body').append('<div id="toTop" class="btn orange darken-4 text-white">TOP</div>');
+        $(window).scroll(function () {
+            if ($(this).scrollTop() != 0) {
+                $('#toTop').fadeIn();
+            } else {
+                $('#toTop').fadeOut();
+            }
+        });
+
+        $('#toTop').click(function () {
+            $("html, body").animate({ scrollTop: 0 }, 600);
+            return false;
+        });
+    });
+
+
+    // Animations initialization
+    new WOW().init();
+</script>
+</body>
+</html>

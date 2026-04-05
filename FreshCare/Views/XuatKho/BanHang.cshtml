@@ -1,0 +1,100 @@
+@model XuatKhoViewModel
+@{ ViewData["Title"] = "Xuất kho - Bán hàng"; }
+
+<h4 class="section-title"><i class="fas fa-upload me-2"></i>Xuất Kho — Bán Hàng (FEFO)</h4>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card card-fc">
+            <div class="card-body">
+                <form asp-action="ThanhToan" method="post">
+                    @Html.AntiForgeryToken()
+
+                    <div class="row g-3">
+                        <div class="col-md-8">
+                            <label class="form-label fw-semibold"><i class="fas fa-box me-1"></i>Sản phẩm <span class="text-danger">*</span></label>
+                            <select asp-for="MaSP" class="form-select" id="ddlSanPhamXuat" required>
+                                <option value="">-- Chọn sản phẩm --</option>
+                                @foreach (var sp in Model.DanhSachSanPham)
+                                {
+                                    <option value="@sp.MaSP">@sp.TenSP (@sp.DonViTinh) - @sp.GiaBan.ToString("N0")đ</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold"><i class="fas fa-weight-hanging me-1"></i>Số lượng <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <input asp-for="SoLuong" type="number" step="0.01" min="0.01" class="form-control" id="txtSoLuongXuat" required />
+                                <span class="input-group-text" id="lblDVTXuat">---</span>
+                            </div>
+                            <small class="text-muted">Tồn kho: <span id="lblTonKho" class="fw-bold text-success">--</span></small>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-semibold"><i class="fas fa-sticky-note me-1"></i>Ghi chú</label>
+                            <textarea asp-for="GhiChu" class="form-control" rows="2" placeholder="Ghi chú hóa đơn (không bắt buộc)"></textarea>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 d-flex gap-2">
+                        <button type="submit" class="btn btn-fc-primary btn-lg">
+                            <i class="fas fa-cash-register me-2"></i>Thanh Toán
+                        </button>
+                        <a href="/Home/Index" class="btn btn-outline-secondary btn-lg">
+                            <i class="fas fa-arrow-left me-1"></i>Quay lại
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card card-fc bg-light">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="fas fa-cogs me-2 text-primary"></i>Thuật toán FEFO</h6>
+            </div>
+            <div class="card-body">
+                <p class="small mb-2"><strong>First Expired, First Out</strong></p>
+                <ol class="small mb-0">
+                    <li>Tìm các lô hàng còn tồn (chưa quá hạn)</li>
+                    <li>Sắp xếp theo HSD tăng dần</li>
+                    <li>Trừ từ lô sắp hết hạn nhất</li>
+                    <li>Nếu không đủ → trừ lô kế tiếp</li>
+                    <li>Ghi nhận hóa đơn chi tiết</li>
+                </ol>
+                <hr/>
+                <p class="small text-muted mb-0">
+                    <i class="fas fa-shield-alt text-success me-1"></i>
+                    Hệ thống tự động chặn xuất hàng quá hạn và chặn xuất vượt tồn kho.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    // Luật #14: AJAX lấy tồn kho real-time
+    $('#ddlSanPhamXuat').on('change', function () {
+        var maSP = $(this).val();
+        if (!maSP) {
+            $('#lblDVTXuat').text('---');
+            $('#lblTonKho').text('--');
+            return;
+        }
+
+        $.get('/XuatKho/LayTonKho', { maSP: maSP }, function (data) {
+            if (data.success) {
+                $('#lblDVTXuat').text(data.donViTinh);
+                $('#lblTonKho').text(data.tongTon + ' ' + data.donViTinh);
+                // Luật #10: ràng buộc đơn vị
+                if (data.donViTinh === 'Kg') {
+                    $('#txtSoLuongXuat').attr('step', '0.01');
+                } else {
+                    $('#txtSoLuongXuat').attr('step', '1');
+                }
+            }
+        });
+    });
+</script>
+}

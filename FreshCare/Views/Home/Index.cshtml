@@ -1,0 +1,156 @@
+@model DashboardViewModel
+@{ ViewData["Title"] = "Dashboard - Cảnh báo Hạn sử dụng"; }
+
+<!-- Stat Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="stat-card bg-fc-info">
+            <h3>@Model.TongSanPham</h3>
+            <p>Tổng sản phẩm</p>
+            <i class="fas fa-box stat-icon"></i>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card bg-fc-success">
+            <h3>@Model.TongLoHang</h3>
+            <p>Tổng lô hàng</p>
+            <i class="fas fa-cubes stat-icon"></i>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card bg-fc-warning">
+            <h3>@Model.SoLoCanDate</h3>
+            <p>Lô cận date</p>
+            <i class="fas fa-clock stat-icon"></i>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card bg-fc-danger">
+            <h3>@Model.SoLoQuaHan</h3>
+            <p>Lô quá hạn</p>
+            <i class="fas fa-exclamation-triangle stat-icon"></i>
+        </div>
+    </div>
+</div>
+
+<!-- BẢNG ĐỎ: Lô hàng QUÁ HẠN -->
+@if (Model.LoHangQuaHan.Any())
+{
+    <div class="card card-fc mb-4 border-start border-danger border-4">
+        <div class="card-header bg-danger text-white">
+            <h5 class="mb-0"><i class="fas fa-skull-crossbones me-2"></i>LÔ HÀNG QUÁ HẠN — Cần xuất hủy ngay!</h5>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-fc table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>Mã Lô</th><th>Sản phẩm</th><th>Đơn vị</th><th>Tồn kho</th>
+                            <th>NSX</th><th>HSD</th><th>Ngày còn lại</th><th>Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var lo in Model.LoHangQuaHan)
+                        {
+                            <tr class="table-danger">
+                                <td><strong>LO-@lo.MaLo.ToString("D4")</strong></td>
+                                <td>@lo.TenSP</td>
+                                <td>@lo.DonViTinh</td>
+                                <td><strong>@lo.SoLuongTon.ToString("N2")</strong></td>
+                                <td>@lo.NgaySanXuat.ToString("dd/MM/yyyy")</td>
+                                <td>@lo.HanSuDung.ToString("dd/MM/yyyy")</td>
+                                <td><span class="badge bg-danger">@lo.SoNgayConLai ngày</span></td>
+                                <td>
+                                    <form asp-controller="XuatKho" asp-action="HuyHang" method="post"
+                                          onsubmit="return confirm('Xác nhận xuất hủy lô LO-@lo.MaLo.ToString("D4")?')">
+                                        <input type="hidden" name="maLo" value="@lo.MaLo" />
+                                        <button type="submit" class="btn btn-sm btn-fc-danger">
+                                            <i class="fas fa-trash-alt me-1"></i>Xuất Hủy
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- BẢNG CAM: Lô hàng CẬN DATE -->
+@if (Model.LoHangCanDate.Any())
+{
+    <div class="card card-fc mb-4 border-start border-warning border-4">
+        <div class="card-header" style="background: linear-gradient(135deg, #f4a261, #e76f51); color: #fff;">
+            <h5 class="mb-0"><i class="fas fa-exclamation-circle me-2"></i>LÔ HÀNG CẬN DATE (&lt; 30 ngày) — Gợi ý giảm giá!</h5>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-fc table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>Mã Lô</th><th>Sản phẩm</th><th>Đơn vị</th><th>Tồn kho</th>
+                            <th>HSD</th><th>Ngày còn lại</th><th>Giá gốc</th><th>Giá Sale</th><th>Giảm</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var lo in Model.LoHangCanDate)
+                        {
+                            <tr class="table-warning">
+                                <td><strong>LO-@lo.MaLo.ToString("D4")</strong></td>
+                                <td>@lo.TenSP</td>
+                                <td>@lo.DonViTinh</td>
+                                <td><strong>@lo.SoLuongTon.ToString("N2")</strong></td>
+                                <td>@lo.HanSuDung.ToString("dd/MM/yyyy")</td>
+                                <td><span class="badge badge-can-date">@lo.SoNgayConLai ngày</span></td>
+                                <td><span class="gia-goc">@lo.GiaBanGoc.ToString("N0")đ</span></td>
+                                <td><span class="gia-sale">@lo.GiaThucTe.ToString("N0")đ</span></td>
+                                <td><span class="badge bg-danger">-@lo.PhanTramSale%</span></td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- BẢNG XANH: Lô hàng AN TOÀN -->
+<div class="card card-fc mb-4 border-start border-success border-4">
+    <div class="card-header" style="background: linear-gradient(135deg, #2a9d8f, #2d6a4f); color: #fff;">
+        <h5 class="mb-0"><i class="fas fa-check-circle me-2"></i>LÔ HÀNG AN TOÀN (@Model.LoHangAnToan.Count lô)</h5>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-fc table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>Mã Lô</th><th>Sản phẩm</th><th>Danh mục</th><th>Đơn vị</th>
+                        <th>Tồn kho</th><th>NSX</th><th>HSD</th><th>Ngày còn lại</th><th>Giá bán</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.LoHangAnToan.Any())
+                    {
+                        <tr><td colspan="9" class="text-center text-muted py-4"><i class="fas fa-inbox me-2"></i>Không có lô hàng an toàn trong kho</td></tr>
+                    }
+                    @foreach (var lo in Model.LoHangAnToan)
+                    {
+                        <tr>
+                            <td><strong>LO-@lo.MaLo.ToString("D4")</strong></td>
+                            <td>@lo.TenSP</td>
+                            <td><span class="badge bg-light text-dark">@lo.TenDanhMuc</span></td>
+                            <td>@lo.DonViTinh</td>
+                            <td><strong>@lo.SoLuongTon.ToString("N2")</strong></td>
+                            <td>@lo.NgaySanXuat.ToString("dd/MM/yyyy")</td>
+                            <td>@lo.HanSuDung.ToString("dd/MM/yyyy")</td>
+                            <td><span class="badge badge-an-toan">@lo.SoNgayConLai ngày</span></td>
+                            <td>@lo.GiaBanGoc.ToString("N0")đ</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

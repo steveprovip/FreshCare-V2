@@ -1,0 +1,309 @@
+﻿@using InventoryManagement.Repository
+@model SellingReceiptViewModel
+@{
+    ViewData["Title"] = "Due Collection";
+    var isSalesmen = User.IsInRole("SalesPerson");
+    Layout = isSalesmen ? "_SalesmanLayout" : "_AdminLayout";
+}
+
+@section Styles{
+    <style>
+        #receipt .table th { text-align: center }
+        .product-tb h5 { font-weight: 400; font-size: 15px; }
+        .product-tb h5 strong { margin-left: 5px; }
+
+        #amount-word { font-style: italic; font-size: 15px; }
+
+        .paid-record fieldset { border: 1px solid #ddd; }
+        .paid-record fieldset legend { width: auto !important; padding: 0 8px; margin-bottom: 0; font-size: 16px; font-weight: bold; }
+    </style>
+}
+<div class="container" id="receipt">
+    <div class="card card-body">
+        <section class="my-4 d-print-none">
+            <div class="d-flex justify-content-between align-items-center">
+                <a href="/Customer/Details/@Model.CustomerInfo.CustomerId" class="blue-text">
+                    <i class="fas fa-long-arrow-alt-left"></i>
+                    Back to previous
+                </a>
+                <h5 class="mb-0">Due Collection</h5>
+                @if (!isSalesmen)
+                {
+                    <a class="btn btn-success btn-rounded" href="/Selling/Selling"><i class="fal fa-cart-plus mr-1"></i>Selling</a>
+                }
+            </div>
+        </section>
+
+        <table class="table table-sm table-bordered">
+            <tbody>
+                <tr>
+                    <td class="text-right" style="width: 50px"><strong>Name</strong></td>
+                    <td>@Model.CustomerInfo.Name</td>
+                    <td class="text-right" style="width: 50px"><strong>Bill&nbsp;No</strong></td>
+                    <td style="width: 90px">
+                        <a class="blue-text" href="/Selling/SellingReceipt/@Model.SellingId">@Model.SellingSn</a>   
+                    </td>
+                </tr>
+                <tr>
+                    <td class="text-right"><strong>Address</strong></td>
+                    <td>@Model.CustomerInfo.CustomerAddress</td>
+                    <td class="text-right"><strong>Date</strong></td>
+                    <td>@Model.SellingDate.ToString("d MMM yyyy")</td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td></td>
+                    <td class="text-right"><strong>Cell</strong></td>
+                    <td>@Model.CustomerInfo.CustomerPhone</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <table class="product-tb table table-sm table-bordered mt-5">
+            <thead>
+                <tr>
+                    <th><strong>SL.</strong></th>
+                    <th><strong>Product</strong></th>
+                    <th><strong>Description</strong></th>
+                    <th><strong>Warranty</strong></th>
+                    <th><strong>Qty.</strong></th>
+                    <th><strong>U.Price</strong></th>
+                    <th><strong>Price</strong></th>
+                </tr>
+            </thead>
+            <tbody>
+                @{
+                    var index = 1;
+                    @if (Model.ServiceCharge > 0)
+                    {
+                        <tr>
+                            <td class="text-center">@index</td>
+                            <td>Service</td>
+                            <td colspan="4">@Model.ServiceChargeDescription</td>
+                            <td class="text-right">৳@Model.ServiceCharge</td>
+                        </tr>
+                        index++;
+                    }
+
+                    foreach (var item in Model.Products)
+                    {
+                        <tr>
+                            <td class="text-center">@index</td>
+                            <td>@item.ProductCatalogName</td>
+                            <td>
+                                @item.ProductName,
+                                @if (item.Description != null)
+                                {
+                                    <span>@item.Description,</span>
+                                }
+
+                                @foreach (var code in item.ProductCodes)
+                                {
+                                    <span>@code</span>
+                                }
+                            </td>
+                            <td class="text-center">@item.Warranty</td>
+                            <td class="text-center">@item.ProductCodes.Length</td>
+                            <td class="text-right">৳@item.SellingPrice</td>
+                            <td class="text-right">৳@(item.SellingPrice * item.ProductCodes.Length)</td>
+                        </tr>
+                        index++;
+                    }
+                }
+
+                <tr>
+                    <td colspan="6" class="text-center">
+                        <span id="amount-word"></span>
+                    </td>
+                    <td class="text-right">
+                        @{
+                            var totalAmount = Model.SellingTotalPrice + Model.ServiceCharge+ Model.AccountTransactionCharge;
+                        }
+                        <h5>Total&nbspAmount:<strong>৳@totalAmount</strong></h5>
+
+                        @* @if (Model.AccountTransactionCharge > 0) *@
+                        @* { *@
+                        @*     <h5>Transaction Charge:<strong>৳@Model.AccountTransactionCharge</strong></h5> *@
+                        @* } *@
+
+                        @if (Model.SellingDiscountAmount > 0)
+                        {
+                            <h5 class="border-bottom border-dark pb-1">Discount:<strong>৳@Model.SellingDiscountAmount</strong></h5>
+                            <h5 class="mt-1">Net Payable Amount:<strong>৳@(totalAmount - Model.SellingDiscountAmount)</strong></h5>
+                        }
+                        <h5>Cash&nbspPaid:<strong>৳@Model.SellingPaidAmount</strong></h5>
+                        @if (Model.SellingReturnAmount > 0)
+                        {
+                            <h5>Return&nbspAmount:<strong>৳@Model.SellingReturnAmount</strong></h5>
+                        }
+                        <h5>Due Amount:<strong>৳@Model.SellingDueAmount</strong></h5>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="paid-record row">
+            <div class="col">
+                @if (Model.Payments.Count > 0)
+                {
+                    <fieldset class="p-2">
+                        <legend>Payment Record</legend>
+
+                        @foreach (var item in Model.Payments)
+                        {
+                            <ul class="list-group list-group-flush black-text">
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <span>৳@item.PaidAmount/- <small>@item.PaymentMethod</small></span>
+                                    <small>@item.PaidDate.ToString("d MMM yyyy")</small>
+                                </li>
+                            </ul>
+                        }
+                    </fieldset>
+                }
+                
+                @if (Model.MissDates.Length > 0)
+                {
+                    <fieldset class="p-2 mt-4 d-print-none">
+                        <legend class="red-text">Missed Payment Promise Date</legend>
+
+                        @foreach (var item in Model.MissDates)
+                        {
+                            <ul class="list-group list-group-flush black-text">
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <small class="red-text">@item.ToString("d MMM yyyy")</small>
+                                </li>
+                            </ul>
+                        }
+                    </fieldset>
+                }
+            </div>
+
+            <div class="col">
+                <form id="formPayment">
+                    <h5>Total Due: <strong id="totalDues">@Model.SellingDueAmount</strong>/-</h5>
+                    @if (Model.AccountTransactionCharge > 0)
+                    {
+                        <small class="text-success">Prev. Transaction Charge:<strong>৳@Model.AccountTransactionCharge</strong></small>
+                    }
+
+                    <div class="md-form">
+                        <input id="inputAccountTransactionCharge" type="number" step="0.01" min="0" class="form-control">
+                        <label for="inputAccountTransactionCharge">Transaction Charge</label>
+                    </div>
+                    <div class="md-form">
+                        <label for="inputDiscount">Discount</label>
+                        <input type="number" id="inputDiscount" step="0.01" value="@Model.SellingDiscountAmount" min="0" max="@(Model.SellingDiscountAmount + Model.SellingDueAmount)" class="form-control">
+                    </div>
+
+                    <div class="md-form">
+                        <label for="inputPaid">Paid Amount</label>
+                        <input type="number" step="0.01" id="inputPaid" min="0" required class="form-control">
+                    </div>
+                    <div class="md-form">
+                        <select id="selectPaymentMethod" asp-items="ViewBag.Account" class="mdb-select" style="position: absolute; top: 1rem; left: 0; height: 0; width: 0; opacity: 0; padding: 0; pointer-events: none; display: inline !important;">
+                            <option value="" selected>[ Payment Method ]</option>
+                        </select>
+                    </div>
+
+                    <input id="btnSubmit" type="submit" value="Submit" class="btn btn-deep-orange" @(Model.SellingDueAmount > 0 ? "" : "disabled")>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section scripts{
+    <script src="~/js/amount-in-word.js"></script>
+    <script>
+        $(function() {
+            $("#amount-word").text(`Taka(in words): ${number2text(@totalAmount)}`);
+
+            // material select initialization
+            $('.mdb-select').materialSelect();
+        });
+
+        const formPayment = document.getElementById('formPayment');
+        const totalDues = document.getElementById('totalDues');
+        const payableContainer = document.getElementById('payable-container');
+        const remainDue = document.getElementById('remainDue');
+        const inputPaid = formPayment.inputPaid;
+        const inputTransactionCharge = formPayment.inputAccountTransactionCharge;
+        const inputDiscount = formPayment.inputDiscount;
+
+        //input discount amount
+        const onInputDiscount = function() {
+            const dues = @(Model.SellingDueAmount + Model.SellingDiscountAmount);
+            const discount = +this.value;
+
+            totalDues.innerText = dues - discount;
+
+            if ((dues - discount) > 0)
+                inputPaid.removeAttribute('disabled');
+            else
+                inputPaid.setAttribute('disabled', 'disabled');
+
+
+            const paid = +inputPaid.value;
+            paid ? selectPaymentMethod.setAttribute('required', true) : selectPaymentMethod.removeAttribute('required');
+
+            if (inputPaid.value) {
+                inputPaid.value = '';
+                inputPaid.previousElementSibling.classList.remove('active');
+            }
+        }
+
+        //input paid amount
+        const onInputPaid = function() {
+            const payable = +totalDues.textContent + +inputTransactionCharge.value;
+            const paid = +this.value;
+
+            paid ? selectPaymentMethod.setAttribute('required', true) : selectPaymentMethod.removeAttribute('required');
+            this.setAttribute('max', payable);
+        }
+
+        //onInputTransactionCharge
+        const onInputTransactionCharge = function() {
+            inputPaid.value = ""
+        }
+
+        //event listener
+        inputDiscount.addEventListener('input', onInputDiscount);
+        inputPaid.addEventListener('input', onInputPaid);
+        inputTransactionCharge.addEventListener('input', onInputTransactionCharge);
+
+        //submit paid
+        formPayment.addEventListener('submit', function (evt) {
+            evt.preventDefault();
+
+            const body = {
+                SellingId: @Model.SellingId,
+                CustomerId: @Model.CustomerInfo.CustomerId,
+                PaidAmount: +inputPaid.value,
+                AccountId: inputPaid.value ? selectPaymentMethod.value : '',
+                AccountTransactionCharge: +inputTransactionCharge.value,
+                SellingDiscountAmount: +inputDiscount.value,
+                PaidDate: new Date()
+            }
+
+            this.btnSubmit.disabled = true;
+            $.ajax({
+                url: '/Selling/DueCollection',
+                type: "POST",
+                data: body,
+                success: response=> {
+                    $.notify(response.Message, response.IsSuccess?"success":"error");
+
+                    if (response.IsSuccess) {
+                        location.href = "/Customer/Details/@Model.CustomerInfo.CustomerId";
+                    }
+
+                    this.btnSubmit.disabled = false;
+                },
+                error: error=> {
+                    console.log(error);
+                    this.btnSubmit.disabled = false;
+                }
+            });
+        });
+    </script>
+}

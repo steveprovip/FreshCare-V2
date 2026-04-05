@@ -1,0 +1,27 @@
+@model List<PhieuNhapKho>
+@{ ViewData["Title"] = "Lịch sử Nhập kho"; }
+
+<h4 class="section-title"><i class="fas fa-file-import me-2"></i>Lịch Sử Phiếu Nhập Kho</h4>
+
+<div class="card card-fc">
+    <div class="card-body p-0">
+        <table class="table table-fc table-hover mb-0">
+            <thead><tr><th>Mã Phiếu</th><th>Ngày nhập</th><th>Nhân viên</th><th>Ghi chú</th></tr></thead>
+            <tbody>
+                @foreach (var p in Model)
+                {
+                    <tr>
+                        <td><strong>PN-@p.MaPhieuNhap.ToString("D4")</strong></td>
+                        <td>@p.NgayNhap.ToString("dd/MM/yyyy HH:mm")</td>
+                        <td>@p.TenNhanVien</td>
+                        <td>@(p.GhiChu ?? "—")</td>
+                    </tr>
+                }
+                @if (!Model.Any())
+                {
+                    <tr><td colspan="4" class="text-center text-muted py-4">Chưa có phiếu nhập nào</td></tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

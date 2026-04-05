@@ -1,0 +1,156 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewBag.Title - IMS</title>
+    <link href="/images/fabIco.png" rel="icon" />
+
+    <!-- Font Awesome -->
+    <link href="https://pro.fontawesome.com/releases/v5.11.0/css/all.css" rel="stylesheet" />
+    <!-- Bootstrap core CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet" />
+    <!-- data-tables -->
+    <link href="https://cdn.datatables.net/v/bs4/dt-1.10.18/datatables.min.css" rel="stylesheet" />
+    <!-- data-tables responsive -->
+    <link href="https://cdn.datatables.net/responsive/2.2.3/css/responsive.bootstrap4.min.css" rel="stylesheet" />
+    <!-- MDB -->
+    <link href="~/mdb/css/mdb-admin.min.css?v=1.0.1" rel="stylesheet" />
+    <!-- Sidebar -->
+    <link href="~/css/side-navbar.css" rel="stylesheet" />
+    <!-- Image crop-er -->
+    <link href="~/css/croper.css" rel="stylesheet" />
+    <!-- custom -->
+    <link href="~/css/custom-admin.css?v=1.0.0" rel="stylesheet" />
+
+    @await RenderSectionAsync("Styles", false)
+</head>
+<body>
+    <div id="header">
+        <nav class="m-0 navbar navbar-expand-lg navbar-dark peach-gradient">
+            <div class="container-fluid">
+                <div>
+                    <a class="sidedrawer-toggle d-md-none js-show-sidedrawer d-print-none"><i class="fas fa-bars"></i></a>
+                    <a class="sidedrawer-toggle d-none d-md-inline-block js-hide-sidedrawer d-print-none"><i class="fas fa-bars"></i></a>
+                    <a class="navbar-brand ml-1"><span>IMS</span> APP</a>
+                </div>
+            </div>
+        </nav>
+    </div>
+
+    <div id="sidedrawer" class="d-print-none z-depth-1">
+        <Partial Name="_AdminLoginPartial" />
+        <ul id="menuItem"></ul>
+    </div>
+
+    <main id="content-wrapper" style="min-height:801px">
+        <div class="container-fluid">
+            @RenderBody()
+        </div>
+    </main>
+
+    <footer class="page-footer font-small wow fadeIn peach-gradient mt-4">
+        <div class="footer-copyright text-center py-3">
+            © @DateTime.Now.Year Copyright: <a href="#">www.datacraft.com.np</a>
+        </div>
+    </footer>
+
+    <!-- jQuery -->
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <!-- bootstrap tooltips -->
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.4/umd/popper.min.js"></script>
+    <!-- bootstrap core javaScript -->
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.3.1/js/bootstrap.min.js"></script>
+    <!-- data-tables -->
+    <script type="text/javascript" src="https://cdn.datatables.net/v/bs4/dt-1.10.18/datatables.min.js"></script>
+    <!-- data-tables responsive -->
+    <script type="text/javascript" src="https://cdn.datatables.net/responsive/2.2.3/js/dataTables.responsive.min.js"></script>
+    <!-- data-tables button -->
+    <script type="text/javascript" src="https://cdn.datatables.net/buttons/1.6.1/js/dataTables.buttons.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/buttons/1.6.1/js/buttons.print.min.js"></script>
+    <!-- image crop-er -->
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/croppie/2.6.4/croppie.min.js"></script>
+    <!--scroll-->
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery.nicescroll/3.7.6/jquery.nicescroll.min.js"></script>
+    <!-- axios -->
+    <script type="text/javascript" src="~/lib/axios.min.js"></script>
+    <!-- autocomplete -->
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-3-typeahead/4.0.2/bootstrap3-typeahead.min.js"></script>
+    <!-- MDB core javaScript -->
+    <script src="~/mdb/js/mdb-admin.min.js"></script>
+    <!-- notify js-->
+    <script src="~/js/notify.min.js"></script>
+    <!-- moment js-->
+    <script src="~/js/moment.js"></script>
+    <!-- custom date format-->
+    <script src="~/js/customDateFormat.js"></script>
+    <!-- sidebar-->
+    <script src="https://cdn.muicss.com/mui-latest/js/mui.min.js"></script>
+    <!-- menu-links -->
+    <script src="~/js/menu-links.js"></script>
+    <script src="~/js/sidedrawer-show-hide.js"></script>
+
+@await RenderSectionAsync("Scripts", required: false)
+
+<script type="text/javascript">
+    $(function () {
+            //tooltip
+            $('[data-toggle="tooltip"]').tooltip();
+
+            //User login Info
+            const url = "@Url.Action($"GetUserLoggedInInfo", $"Dashboard")";
+            $.get(url, response => {
+                const data = JSON.parse(response);
+                if (!data) return;
+
+                if (data.Image)
+                    $("#loginUserPhoto").attr("src", `data:image/png;base64,${data.Image}`);
+
+                $("#loginUserName").html(`<strong class="p-0"><i class="fas fa-user"></i> ${data.Name}</strong>`);
+            });
+
+
+            //Back to top
+            $('body').append('<div id="toTop" class="btn orange darken-4 text-white d-print-none">TOP</div>');
+            $(window).scroll(function () {
+                if ($(this).scrollTop() !== 0)
+                    $('#toTop').fadeIn();
+                else
+                    $('#toTop').fadeOut();
+            });
+
+            $('#toTop').click(function () {
+                $("html, body").animate({ scrollTop: 0 }, 600);
+                return false;
+            });
+
+
+            // animations initialization
+            new WOW().init();
+
+            //nice scroll
+            $("#sidedrawer").niceScroll({
+                cursorcolor: "#a4a4a4", // change cursor color in hex
+                cursorwidth: "7px", // cursor width in pixel (you can also write "5px")
+                cursorborder: "1px solid #a4a4a4", // css definition for cursor border
+                cursorborderradius: "3px", // border radius in pixel for cursor
+                emulatetouch: true // enable cursor-drag scrolling like touch devices in desktop computer
+            });
+
+            $("#sidedrawer").mouseover(function () {
+                $("#sidedrawer").getNiceScroll().resize();
+            });
+        });
+
+        //disable wheel in number type input
+        document.addEventListener("wheel", () => {
+            if (document.activeElement.type === "number")
+                document.activeElement.blur();
+        });
+
+        //select-picker error
+        if ($.fn.selectpicker)
+            $.fn.selectpicker.Constructor.BootstrapVersion = '4';
+</script>  
+</body>
+</html>

@@ -1,0 +1,238 @@
+﻿
+@{
+    ViewData["Title"] = "Today’s Collection";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+@section styles{
+    <style>
+        #accountSummary { margin-bottom: 2rem }
+        #accountSummary .account-name { background-color: #fbfafa; border: 1px solid #ddd; padding: .5rem .9rem; flex: 1; margin-right: .7rem; margin-bottom: .7rem; border-radius: 5px; text-align: center; }
+        #accountSummary .account-name:last-child { margin-right: 0}
+        #accountSummary .account-name h4, p { margin-bottom: 0 }
+    </style>
+}
+
+<div class="m-md-3">
+    <h4 class="page-header mb-3">Today’s Collection</h4>
+
+    <div class="card card-body">
+        <div class="d-flex justify-content-between align-items-center mb-5">
+            <form id="formPost">
+                <div class="d-flex align-items-center">
+                    <div class="md-form m-0">
+                        <label for="inputFromDate">From Date</label>
+                        <input type="text" id="inputFromDate" class="form-control datepicker m-0">
+                    </div>
+                    <div class="md-form m-0 ml-3">
+                        <label for="inputToDate">To Date</label>
+                        <input type="text" id="inputToDate" class="form-control datepicker m-0">
+                    </div>
+                    <button type="submit" class="btn btn-indigo py-2"><i class="fal fa-search"></i></button>
+                </div>
+            </form>
+            <h5 id="totalAmount" class="mb-0 font-weight-bold"></h5>
+        </div>
+
+        <div id="accountSummary" class="d-flex justify-content-between align-items-center flex-wrap"></div>
+
+        <table id="data-table" class="table table-sm table-bordered">
+            <thead>
+                <tr>
+                    <th>#Bill No</th>
+                    <th>Customer Name</th>
+                    <th>Paid</th>
+                    <th>P.Method</th>
+                    <th>Paid Date</th>
+                    <th>Collected By</th>
+                </tr>
+            </thead>
+        </table>
+    </div>
+</div>
+
+
+@section scripts{
+    <script>
+        $(function() {
+            $('.datepicker').pickadate({
+                format: 'd-mmmm-yyyy'
+            });
+
+            const date = '@Context.Request.RouteValues["id"]';
+
+            if (date !== "") {
+                const from = document.querySelector("#inputFromDate");
+                const to = document.querySelector("#inputToDate");
+
+                from.value = date;
+                from.previousElementSibling.classList.add("active");
+
+                to.value = date;
+                to.previousElementSibling.classList.add("active");
+
+                dataTable.filter = [];
+                dataTable.filter.push({ Field: "PaidDate", Value: date, Operand: dataTable.operand.GreaterThanOrEqual });
+                dataTable.filter.push({ Field: "PaidDate", Value: date, Operand: dataTable.operand.LessThanOrEqual });
+
+                getAmountSummery({ fromDate: date, toDate: date });
+            } else {
+                //get amount
+                getAmountSummery();
+            }
+
+            //get data-table
+            dataTable.getData();
+        });
+
+        //get data
+        const dataTable = {
+            table: null,
+            filter: null,
+            init: function() {
+                dataTable.table = $("#data-table").DataTable({
+                    processing: true,
+                    serverSide: true,
+                    dom: '<"row"<"col-sm-6"Bl><"col-sm-6"f>><"row"<"col-sm-12"<tr>>><"row"<"col-sm-5"i><"col-sm-7"p>>',
+                    buttons: dataTable.button,
+                    language: { infoFiltered: "" },
+                    ajax: {
+                        url: "/Selling/CashCollectionData",
+                        type: "POST",
+                        data: function(d) {
+                            d.filters = dataTable.filter;
+                        }
+                    },
+                    columns:
+                    [
+                        {
+                            data: "SellingSn",
+                            "render": function(data, type, row, meta) {
+                                return `<a class="blue-text" href="/Selling/SellingReceipt/${row.SellingId}">${data}</a>`;
+                            }
+                        },
+                        { data: "CustomerName" },
+                        { data: "PaidAmount", "render": dataTable.addSign },
+                        { data: "PaymentMethod" },
+                        { data: "PaidDate", "render": function(data) { return moment(data).format('DD MMM YYYY') } },
+                        { data: "CollectBy" }
+                    ],
+                    columnDefs: [
+                        { 'className': "text-right", "targets": [2] },
+                        { 'className': "text-left", "targets": [1] }
+                    ]
+                });
+            },
+            operand: {
+                Equal: 0,
+                NotEqual: 1,
+                GreaterThan: 2,
+                LessThan: 3,
+                GreaterThanOrEqual: 4,
+                LessThanOrEqual: 5,
+                Contains: 6,
+                StartsWith: 7,
+                EndsWith: 8
+            },
+            getData: function() {
+                dataTable.table ? dataTable.table.ajax.reload() : dataTable.init();
+            },
+            addSign: function(data) { return `${data}/-` },
+            button: {
+                buttons: [
+                    {
+                        extend: 'print',
+                        text: '<i class="fa fa-print"></i> Print',
+                        title: '',
+                        exportOptions: {
+                            //columns: [0,1] //Column value those print
+                                                                                                                                                                                                         
+                        },
+                        customize: function(win) {
+                            $(win.document.body).prepend(`<nav class="mb-3 navbar peach-gradient"><a class="navbar-brand ml-1"><span>Zephyr</span> IT</a></nav><h3 class="h3-responsive">${$('h4').text()}</h3>`);
+                        },
+                        autoPrint: true
+                    }
+                ],
+                dom: {
+                    button: {
+                        className: 'btn btn-dark btn-rounded btn-sm my-0'
+                    }
+                }
+            }
+        }
+
+        //selectors
+        const formPost = document.getElementById("formPost");
+
+        formPost.addEventListener('submit',
+            function(evt) {
+                evt.preventDefault();
+
+                const inputFromDate = formPost.inputFromDate.value;
+                const inputToDate = formPost.inputToDate.value;
+
+                dataTable.filter = [];
+
+                if (inputFromDate)
+                    dataTable.filter.push({ Field: "PaidDate", Value: inputFromDate, Operand: dataTable.operand.GreaterThanOrEqual });
+
+                if (inputToDate)
+                    dataTable.filter.push({ Field: "PaidDate", Value: inputToDate, Operand: dataTable.operand.LessThanOrEqual });
+
+                dataTable.getData();
+
+                const data = {
+                    fromDate: inputFromDate,
+                    toDate: inputToDate
+                };
+
+                getAmountSummery(data);
+            });
+
+        function getAmountSummery(dates) {
+            //for get and set total amount
+            const totalAmount = document.getElementById('totalAmount');
+
+            $.ajax({
+                type: "POST",
+                url: "/Selling/GetCollectionByDate",
+                data: dates,
+                success: function(cash) {
+                    $.ajax({
+                        type: "POST",
+                        url: "/Selling/GetCapitalByDate",
+                        data: dates,
+                        success: function(capital) {
+                            totalAmount.textContent = `Capital: ৳${capital} of Collection: ৳${cash}`;
+
+                            //get account summary
+                            $.ajax({
+                                type: "POST",
+                                url: "/Selling/GetCollectionAccountSummary",
+                                data: dates,
+                                success: function(response) {
+                                    console.log(response)
+                                    renderAccountSummary(response)
+                                }
+                            });
+                        }
+                    });
+                }
+            });
+        }
+
+        //set account summary
+        function renderAccountSummary(accounts) {
+            const accountSummary = document.getElementById("accountSummary");
+            accountSummary.innerHTML = "";
+
+            accounts.forEach(account => {
+                const div = document.createElement("div");
+                div.classList.add("account-name");
+                div.innerHTML = `<h4>${account.AccountName ? account.AccountName :"No Account"}</h4><p>৳${account.Amount}</p>`;
+                accountSummary.appendChild(div);
+            });
+        }
+    </script>
+}

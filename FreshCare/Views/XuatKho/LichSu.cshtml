@@ -1,0 +1,39 @@
+@model List<PhieuXuat>
+@{ ViewData["Title"] = "Lịch sử Xuất kho"; }
+
+<h4 class="section-title"><i class="fas fa-file-export me-2"></i>Lịch Sử Phiếu Xuất Kho</h4>
+
+<div class="card card-fc">
+    <div class="card-body p-0">
+        <table class="table table-fc table-hover mb-0">
+            <thead><tr><th>Mã Phiếu</th><th>Ngày xuất</th><th>Loại phiếu</th><th>Nhân viên</th><th>Tổng tiền</th><th>Ghi chú</th></tr></thead>
+            <tbody>
+                @foreach (var p in Model)
+                {
+                    string rowClass = p.LoaiPhieu == "Hủy Hàng" ? "table-danger" : "";
+                    <tr class="@rowClass">
+                        <td><strong>PX-@p.MaPhieuXuat.ToString("D4")</strong></td>
+                        <td>@p.NgayXuat.ToString("dd/MM/yyyy HH:mm")</td>
+                        <td>
+                            @if (p.LoaiPhieu == "Bán Hàng")
+                            {
+                                <span class="badge bg-success">@p.LoaiPhieu</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-danger">@p.LoaiPhieu</span>
+                            }
+                        </td>
+                        <td>@p.TenNhanVien</td>
+                        <td><strong>@p.TongTien.ToString("N0")đ</strong></td>
+                        <td>@(p.GhiChu ?? "—")</td>
+                    </tr>
+                }
+                @if (!Model.Any())
+                {
+                    <tr><td colspan="6" class="text-center text-muted py-4">Chưa có phiếu xuất nào</td></tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

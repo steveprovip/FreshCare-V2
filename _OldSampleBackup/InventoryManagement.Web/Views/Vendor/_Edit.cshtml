@@ -1,0 +1,62 @@
+﻿@using InventoryManagement.Repository
+@model VendorViewModel
+@{
+    Layout = null;
+}
+
+    <div class="modal-dialog cascading-modal" role="document">
+        <div class="modal-content">
+            <div class="modal-header peach-gradient white-text">
+                <h4 class="m-0"><i class="fas fa-plus-circle"></i> Update Vendor</h4>
+                <button type="button" class="close waves-effect waves-light" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">×</span>
+                </button>
+            </div>
+
+            <div class="modal-body">
+                <form data-ajax-update="#UpdateModal" data-ajax="true" data-ajax-url="/Vendor/Edit" data-ajax-method="post" data-ajax-success="onUpdateSuccess">
+                    <input asp-for="VendorId" type="hidden" />
+
+                    <div class="form-row">
+                        <div class="col-7">
+                            <div class="md-form">
+                                <input asp-for="VendorCompanyName" class="form-control" required />
+                                <label for="VendorCompanyName" class="active">Company Name</label>
+                                <span asp-validation-for="VendorCompanyName"></span>
+                            </div>
+                        </div>
+                        <div class="col-5">
+                            <div class="md-form">
+                                <input asp-for="VendorName" class="form-control" />
+                                <label for="VendorName" class="active">Name</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="col-4">
+                            <div class="md-form">
+                                <input asp-for="VendorPhone" class="form-control" required type="number" />
+                                <label for="VendorPhone" class="active">Phone</label>
+                                <span asp-validation-for="VendorPhone"></span>
+                            </div>
+                        </div>
+                        <div class="col-8">
+                            <div class="md-form">
+                                <input asp-for="VendorAddress" class="form-control" />
+                                <label for="VendorAddress" class="active">Address</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="md-form">
+                        <input asp-for="Description" class="form-control" />
+                        <label for="Description" class="active">Description</label>
+                    </div>
+                    <div class="text-center mt-1-half">
+                        <button type="submit" class="btn peach-gradient mb-1 waves-effect waves-light">Save <i class="fas fa-check ml-1"></i></button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>    

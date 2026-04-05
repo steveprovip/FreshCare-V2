@@ -1,0 +1,162 @@
+﻿
+@{
+    ViewData["Title"] = "Purchase Invoices";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+@section Styles
+{
+    <style>
+        .memo{ cursor: pointer }
+        .memo:hover{color: #4992df; }
+        .memo i { pointer-events: none; color: #8a8a8a; }
+
+        .inputMemo { border: 1px solid #B6B4B4; border-radius: 3px; padding: 6px; text-align: center; box-shadow: 1px 0 7px rgba(0, 0, 0, 0.2); width: 100% }
+        .inputMemo:focus { border: 1px solid #00bfff }
+    </style>  
+}
+
+<div class="m-md-3">
+        <h4 class="mb-3 page-header">Purchase Invoice</h4>
+        <div class="card card-body">
+            <table id="data-table" class="table table-sm table-bordered">
+                <thead>
+                    <tr>
+                        <th>SN</th>
+                        <th>#Memo No.</th>
+                        <th>Vendor</th>
+                        <th>Amount</th>
+                        <th>Paid</th>
+                        <th>Due</th>
+                        <th>Date</th>
+                        <th>Update</th>
+                    </tr>
+                </thead>
+            </table>
+        </div>
+    </div>
+
+@section scripts{
+    <script>
+        $(function() {
+            dataTable.getData();
+        });
+
+        //get data
+        var dataTable = {
+            table: null,
+            init: function() {
+                dataTable.table = $("#data-table").DataTable({
+                    processing: true,
+                    serverSide: true,
+                    buttons: dataTable.button,
+                    dom: '<"row"<"col-sm-6"Bl><"col-sm-6"f>><"row"<"col-sm-12"<tr>>><"row"<"col-sm-5"i><"col-sm-7"p>>',
+                    ajax: {
+                        url: "/Purchase/PurchaseRecordsData",
+                        type: "POST"
+                    },
+                    columns:
+                    [
+                        {
+                            data: "PurchaseSn",
+                            "render": function(data, type, row, meta) {
+                                return `<a class="blue-text" href="/Purchase/PurchaseReceipt/${row.PurchaseId}">${data}</a>`;
+                            }
+                        },
+                        {
+                            data: "MemoNumber",
+                            "render": function(data, type, row, meta) {
+                                return `<div class="memo" data-old="${data}" data-id="${row.PurchaseId}">${data} <i class="fal fa-edit"></i></div>`;
+                            }
+                        },
+                        {
+                            data: "VendorCompanyName",
+                            "render": function(data, type, row, meta) {
+                                return `<a class="blue-text" href="/Vendor/Details/${row.VendorId}">${data}</a>`;
+                            }
+                        },
+                        { data: "PurchaseAmount", "render": dataTable.addSign },
+                        { data: "PurchasePaidAmount", "render": dataTable.addSign },
+                        {
+                            data: "PurchaseDueAmount",
+                            "render": function(data, type, row, meta) {
+                                return data > 0 ? `<a class="blue-text" href="/Purchase/PayDue/${row.PurchaseId}">${data}/-</a>` : data;
+                            }
+                        },
+                        { data: "PurchaseDate", "render": function(data) { return moment(data).format('DD MMM YYYY') } },
+                        { data: "PurchaseId", "render": function(data) { return `<a href="/Purchase/UpdatePurchaseBill/${data}" class="blue-text">Update</a>` } }
+                    ],
+                    columnDefs: [
+                        { searchable: false, 'targets': [3, 4, 5] },
+                        { className: "text-right", "targets": [3, 4, 5] },
+                        { className: "text-left", "targets": [1, 2] }
+                    ],
+                    order: [[0, 'desc']]
+                });
+            },
+            getData: function() {
+                dataTable.table ? dataTable.table.ajax.reload() : dataTable.init();
+            },
+            addSign: function(data) { return `${data}/-` },
+            button: {
+                buttons: [
+                    {
+                        extend: 'print',
+                        text: '<i class="fa fa-print"></i> Print',
+                        title: '',
+                        exportOptions: { /*columns: [0,1] //Column value those print*/  },
+                        autoPrint: true,
+                        customize: function(win) {
+                            $(win.document.body).prepend(`<nav class="mb-3 navbar peach-gradient"><a class="navbar-brand ml-1"><span>Zephyr</span> IT</a></nav><h3 class="h3-responsive">${$('h4').text()}</h3>`);
+                        }
+                    }
+                ],
+                dom: {
+                    button: { className: 'btn btn-dark btn-rounded btn-sm my-0' }
+                }
+            }
+        }
+
+        //edit on click
+        const tBody = document.getElementById('data-table');
+        tBody.addEventListener('click',
+            function(evt) {
+                const element = evt.target;
+
+                const onMemo = element.classList.contains('memo');
+                if (!onMemo) return;
+                const old = element.getAttribute('data-old');
+
+                const html = `<form onsubmit="return updateMemo(this)">
+                <input name="inputMemo" value="${old}" class="inputMemo" type="text" />
+            </form>`;
+
+                element.innerHTML = html;
+            });
+
+        //post on enter
+        function updateMemo(form) {
+            const id = form.parentElement.getAttribute('data-id');
+            const newValue = form.inputMemo.value;
+
+            if (!newValue) return;
+
+            $.post({
+                type: 'GET',
+                url: '/Purchase/MemoUpdate',
+                contentType: 'application/json; charset=utf-8',
+                data: { id: id, newMemoNo: newValue },
+                success: function(response) {
+                    if (response.IsSuccess) {
+                        form.parentElement.innerHTML = `${newValue} <i class="fal fa-edit"></i>`;
+                        form.remove();
+                    }
+                }
+            });
+
+            return false;
+        }
+    </script>
+}
+
+

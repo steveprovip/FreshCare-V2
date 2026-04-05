@@ -1,0 +1,158 @@
+﻿@using InventoryManagement.Repository
+@model PurchaseReceiptViewModel
+@{
+    ViewData["Title"] = "Purchase Receipt";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+@section Styles{
+    <link href="/css/purchase-receipt.css" rel="stylesheet" />
+}
+
+<section class="d-flex justify-content-between my-4 d-print-none">
+    <div>
+        <a class="btn btn-success btn-rounded" href="/Purchase/PayDue/@Model.PurchaseId"><i class="fas fa-money-bill-alt mr-1"></i>Pay Due</a>
+        <a class="btn btn-brown btn-rounded" href="/Purchase/UpdatePurchaseBill/@Model.PurchaseId"><i class="fas fa-pen mr-1"></i>Update</a>
+    </div>
+    
+    <div>
+        <a class="btn btn-elegant btn-rounded" href="/Purchase/Purchase"><i class="fas fa-shopping-cart mr-1"></i>Purchase</a>
+        <button class="btn btn-amber btn-rounded" onclick="print()"><i class="fas fa-print mr-1"></i>Print</button>
+    </div>
+</section>   
+
+<div id="main-page">
+    <div id="institution-info" class="mb-4 text-center">
+        <h3 class="mb-2">@Model.InstitutionInfo.InstitutionName</h3>
+        <p><i class="fas fa-map-marker-alt mr-1"></i>@Model.InstitutionInfo.Address</p>
+        <p><i class="fas fa-globe mr-1"></i>@Model.InstitutionInfo.Website, <i class="fas fa-at mr-1"></i>@Model.InstitutionInfo.Email</p>
+        <p><i class="fas fa-phone mr-1"></i>@Model.InstitutionInfo.Phone</p>
+    </div>
+
+    <div class="row mb-4 receipt-date">
+        <div class="col pt-3">
+            Memo Number# @Model.MemoNumber
+        </div>
+        <div class="col text-center">
+            <h5>INVOICE - @Model.PurchaseSn</h5>
+        </div>
+        <div class="col text-right col pt-3">
+            Purchase Date: @Model.PurchaseDate.ToString("d MMM yyyy")
+        </div>
+    </div>
+
+    <div id="vendor-area" class="row">
+        <div class="col">
+            <h5>Company: <strong>@Model.VendorInfo.VendorCompanyName</strong></h5>
+            <h5>Name: <strong>@Model.VendorInfo.VendorName</strong></h5>
+        </div>
+        <div class="col text-right">
+            <h5>Phone: <strong>@Model.VendorInfo.VendorPhone</strong></h5>
+            <h5>Address: <strong>@Model.VendorInfo.VendorAddress</strong></h5>
+        </div>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th style="width: 30px"><strong>No.</strong></th>
+                <th><strong>Product&nbsp;Category</strong></th>
+                <th><strong>Brand & Model</strong></th>
+                <th><strong>Purchase&nbsp;Price</strong></th>
+                <th><strong>Stocks</strong></th>
+                <th><strong>Product&nbsp;Code</strong></th>
+                <th><strong>Warranty</strong></th>
+                <th><strong>Description</strong></th>
+            </tr>
+        </thead>
+        <tbody>
+            @{
+                var index = 0;
+                foreach (var item in Model.Products)
+                {
+                    index++;
+                    <tr>
+                        <td>@index</td>
+                        <td>@item.ProductCatalogName</td>
+                        <td>@item.ProductName</td>
+                        <td>@item.PurchasePrice</td>
+                        <td>@item.ProductStocks.Count</td>
+                        <td class="codeSpan">
+                            @foreach (var stock in item.ProductStocks)
+                            {
+                                <span>@stock.ProductCode</span>
+                            }
+                        </td> 
+                        <td>@item.Warranty</td>
+                        <td>@item.Description</td>
+                    </tr>
+                }
+            }
+            <tr>
+                <td colspan="7">
+                    <span id="amount-word"></span>
+                </td>
+                <td>
+                    <div class="text-right">
+                        <h5>Total: <strong>@Model.PurchaseTotalPrice/-</strong></h5>
+                        @{
+                            var discount = Model.PurchaseDiscountAmount;
+
+                            if (discount > 0)
+                            {
+                                <h5>Discount: <strong>@Model.PurchaseDiscountAmount/-</strong></h5>
+                            }
+                        }
+
+                        <h5>Paid: <strong> @Model.PurchasePaidAmount/-</strong></h5>
+                        @if (Model.PurchaseReturnAmount > 0)
+                        {
+                            <h5>Return Amount: <strong>@Model.PurchaseReturnAmount/-</strong></h5>
+                        }
+                        <h5>Due: <strong>@Model.PurchaseDueAmount/-</strong></h5>
+                    </div> 
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+
+    @{
+        var paymentRecord = Model.Payments;
+
+        if (paymentRecord.Count > 0)
+        {
+            <h5 class="mt-4">PAYMENT RECORD</h5>
+            <table>
+                <thead>
+                    <tr>
+                        <th><strong>Paid Date</strong></th>
+                        <th><strong>Paid Amount</strong></th>
+                        <th><strong>Payment Method</strong></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in paymentRecord)
+                    {
+                        <tr>
+                            <td>@item.PaidDate.ToString("d MMM yyyy")</td>
+                            <td class="text-right">@item.PaidAmount/-</td>
+                            <td class="text-center">@item.PaymentMethod</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+    }
+</div>
+
+
+@section scripts{
+    <script src="~/js/amount-in-word.js"></script>
+    <script>
+        $(function() {
+            $("#amount-word").text(`Taka (in words): ${number2text(@Model.PurchaseTotalPrice).toLowerCase()}`);
+        });
+    </script>
+}
+

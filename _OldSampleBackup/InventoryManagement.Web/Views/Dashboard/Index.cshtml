@@ -1,0 +1,777 @@
+﻿@using InventoryManagement.Repository
+@model DashboardViewModel
+@{
+    ViewData["Title"] = "Dashboard";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+@section Styles{
+    <style>
+        #business-status h4 { font-size: 1.2rem; }
+        #daily-report p { font-weight: 400; color: #212121; font-size: 1rem }
+        #daily-report p a { font-weight: 400; color: #212121; font-size: 1rem }
+
+        .active-cyan-2 input.form-control[type=text]:focus:not([readonly]) { border-bottom: 1px solid #3fa3e2; box-shadow: 0 1px 0 0 #3fa3e2; }
+        .active-cyan-2 .fas { color: #3144a2; }
+
+        .fa-spinner { pointer-events: none }
+        .past-row-color td { color: #ff1818; }
+        .today-row-color td { color: #00b107; }
+        .on-edit form { display: flex }
+        .on-edit input { border: 1px solid #B6B4B4; padding: 6px; text-align: center; box-shadow: 1px 0 7px rgba(0, 0, 0, 0.2); width: 100% }
+        .on-edit input:focus { border: 1px solid #00bfff }
+        .on-edit form > button { border: none; background-color: #324ca7; color: #fff; padding: 0 10px; }
+
+        /* hide search input datalist table */
+        #table-customer_filter { display: none }
+    </style>
+}
+
+@{
+    var totalCapital = ViewBag.Capital;
+
+    var currentMonthProfit = Model.CapitalReport.NetProfit;
+    var profitWarning = currentMonthProfit < 0 ? "text-danger" : "text-success";
+
+    var businessStatus = totalCapital + (currentMonthProfit < 0 ? currentMonthProfit : 0);
+    var businessWarning = totalCapital > businessStatus ? "text-danger" : "text-success";
+
+    var totalStockAmount = Model.StockProductPurchaseValue + Model.CustomerDue + Model.CapitalReport.LiquidAmount;
+    var extraInvest = totalStockAmount - totalCapital;
+}
+
+<div class="container-fluid">
+    @if (User.IsInRole("admin"))
+    {
+        <section id="business-status" class="mt-4">
+            <div class="row">
+                <div class="col-xl-3 col-lg-6 mb-4">
+                    <div class="card">
+                        <div class="row mt-4 mb-3">
+                            <div class="col-md-3 col-3 text-left pl-3">
+                                <div class="m-2 fa-lg">
+                                    <i class="fas fa-hand-holding-usd fa-2x indigo-text"></i>
+                                </div>
+                            </div>
+                            <div class="col-md-9 col-9 text-right pr-4">
+                              
+                                <h4 class="ml-1 font-weight-bold h4-responsive">
+                                    <a href="/Transaction/Capital">Capital:</a> ৳@totalCapital
+                                </h4>
+                                <h4 class="ml-1 font-weight-bold h4-responsive" title="Product Purchase Value + CustomerDue + LiquidAmount">
+                                    ৳@totalStockAmount
+                                </h4>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-xl-3 col-lg-6 mb-4">
+                    <div class="card">
+                        <div class="row mt-4 mb-3">
+                            <div class="col-md-3 col-3 text-left pl-3">
+                                <div class="m-2 fa-lg">
+                                    <i class="far fa-business-time fa-2x @businessWarning"></i>
+                                </div>
+                            </div>
+                            <div class="col-md-9 col-9 text-right pr-4">
+                                <p class="text-dark mb-2">
+                                    Business Status
+                                    <small data-toggle="tooltip"
+                                           title="Capital - Current Month Profit"
+                                           class="far fa-question-circle text-muted ml-2"></small>
+                                </p>
+                                <h4 class="ml-1 font-weight-bold h4-responsive @businessWarning">
+                                    ৳@businessStatus
+                                </h4>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-xl-3 col-lg-6 mb-4">
+                    <div class="card">
+                        <div class="row mt-4 mb-3">
+                            <div class="col-md-3 col-3 text-left pl-3">
+                                <div class="m-2 fa-lg">
+                                    <i class="fas fa-funnel-dollar fa-2x deep-orange-text"></i>
+                                </div>
+                            </div>
+                            <div class="col-md-9 col-9 text-right pr-4">
+                                <p class="text-dark mb-2">
+                                    Extra Invest
+                                    <small data-toggle="tooltip"
+                                           title="(Product Price + Customer Due + Liquid Amount) - Capital"
+                                           class="far fa-question-circle text-muted ml-2"></small>
+                                </p>
+                                <h4 class="ml-4 font-weight-bold h4-responsive">৳@(extraInvest > 0 ? extraInvest: 0)</h4>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-xl-3 col-lg-6 mb-4">
+                    <div class="card">
+                        <div class="row mt-4 mb-3">
+                            <div class="col-md-3 col-3 text-left pl-3">
+                                <div class="m-2 fa-lg">
+                                    <i class="fas fa-analytics fa-2x blue-text"></i>
+                                </div>
+                            </div>
+                            <div class="col-md-9 col-9 text-right pr-4">
+                                <p class="text-dark mb-2">Market Due</p>
+                                <h4 class="ml-1 font-weight-bold h4-responsive">৳@Model.MarketDue</h4>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-xl-3 col-lg-6 mb-4">
+                    <div class="card">
+                        <div class="row mt-4 mb-3">
+                            <div class="col-md-3 col-3 text-left pl-3">
+                                <div class="m-2 fa-lg">
+                                    <i class="far fa-shopping-bag fa-2x orange-text"></i>
+                                </div>
+                            </div>
+                            <div class="col-md-9 col-9 text-right pr-4">
+                                <a href="/Purchase/StockReport">
+                                    <p class="text-dark mb-2">Product(taka)</p>
+                                    <h4 class="ml-1 font-weight-bold h4-responsive">৳@Model.StockProductPurchaseValue</h4>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-xl-3 col-lg-6 mb-4">
+                    <div class="card">
+                        <div class="row mt-4 mb-3">
+                            <div class="col-md-3 col-3 text-left pl-3">
+                                <div class="m-2 fa-lg">
+                                    <i class="far fa-user-chart fa-2x green-text"></i>
+                                </div>
+                            </div>
+                            <div class="col-md-9 col-9 text-right pr-4">
+                                <p class="text-dark mb-2">Customer Due</p>
+                                <h4 class="ml-1 font-weight-bold h4-responsive">৳@Model.CustomerDue</h4>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-xl-3 col-lg-6 mb-4">
+                    <div class="card">
+                        <div class="row mt-4 mb-3">
+                            <div class="col-md-3 col-3 text-left pl-3">
+                                <div class="m-2 fa-lg">
+                                    <i class="fas fa-wallet fa-2x blue-text"></i>
+                                </div>
+                            </div>
+                            <div class="col-md-9 col-9 text-right pr-4">
+                                <p class="text-dark mb-2">Liquid Amount</p>
+                                <h4 class="ml-1 font-weight-bold h4-responsive">৳@Model.CapitalReport.LiquidAmount</h4>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-xl-3 col-lg-6 mb-4">
+                    <div class="card">
+                        <div class="row mt-4 mb-3">
+                            <div class="col-md-3 col-3 text-left pl-3">
+                                <div class="m-2 fa-lg">
+                                    <i class="fas fa-wallet fa-2x @profitWarning"></i>
+                                </div>
+                            </div>
+                            <div class="col-md-9 col-9 text-right pr-4">
+                                <p class="text-dark mb-2">Current Month Profit</p>
+                                <h4 class="ml-1 font-weight-bold h4-responsive @profitWarning">৳@Model.CapitalReport.NetProfit</h4>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="daily-report" class="mb-4 mt-1">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="mb-0">Daily Report<small data-toggle="modal" data-target="#helpModal" class="far fa-question-circle text-muted ml-1"></small></h5>
+                <form id="findForm">
+                    <div class="input-group">
+                        <input id="inputFindDate" class="form-control my-0 py-1 datepicker" type="text" placeholder="Search By Date">
+                        <div class="input-group-append">
+                            <button id="btnFind" type="submit" class="btn btn-md btn-grey m-0 py-2 px-3">
+                                <i id="icoFind" class="fas fa-search text-grey"></i>
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <div class="row">
+                <div class="col-lg-4 col-md-6 mb-4">
+                    <div class="media white z-depth-1 rounded">
+                        <i class="fas fa-tags fa-2x light-blue darken-3 z-depth-1 p-4 rounded-left text-white mr-3"></i>
+                        <div class="media-body mt-3">
+                            <p class="mb-0">
+                                <a id="linkSales">Total Sale</a>
+                            </p>
+                            <h5 class="font-weight-bold mb-0">
+                                ৳<span id="totalSale"></span>
+                            </h5>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6 mb-4">
+                    <div class="media white z-depth-1 rounded">
+                        <i class="fas fa-shopping-bag fa-2x primary-color-dark z-depth-1 p-4 rounded-left text-white mr-3"></i>
+                        <div class="media-body mt-3">
+                            <p class="mb-0">
+                                <a id="linkSold">Today’s Sold Products</a>
+                            </p>
+                            <h5 class="font-weight-bold mb-0">
+                                ৳<span id="totalProductSold"></span>
+                            </h5>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6 mb-4">
+                    <div class="media white z-depth-1 rounded">
+                        <i class="fas fa-wallet fa-2x green darken-1 z-depth-1 p-4 rounded-left text-white mr-3"></i>
+                        <div class="media-body mt-3">
+                            <p class="mb-0">
+                                <a id="linkCash">Today’s Collection</a>
+                            </p>
+                            <h5 class="font-weight-bold mb-0">
+                                ৳<span id="totalCashCollection"></span>
+                            </h5>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-lg-4 col-md-6 mb-4">
+                    <div class="media white z-depth-1 rounded">
+                        <i class="fas fa-chart-pie fa-2x pink z-depth-1 p-4 rounded-left text-white mr-3"></i>
+                        <div class="media-body mt-3">
+                            <p class="mb-0">Expense</p>
+                            <h5 class="font-weight-bold mb-0">
+                                ৳<span id="totalExpense"></span>
+                            </h5>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6 mb-4">
+                    <div class="media white z-depth-1 rounded">
+                        <i class="fas fa-chart-line fa-2x deep-purple darken-3 z-depth-1 p-4 rounded-left text-white mr-3"></i>
+                        <div class="media-body mt-3">
+                            <p class="mb-0">Profit</p>
+                            <h5 class="font-weight-bold mb-0">
+                                ৳<span id="totalProfit"></span>
+                            </h5>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6 mb-4">
+                    <div class="media white z-depth-1 rounded">
+                        <i class="far fa-chart-bar fa-2x brown darken-2 z-depth-1 p-4 rounded-left text-white mr-3"></i>
+                        <div class="media-body mt-3">
+                            <p class="mb-0">Net</p>
+                            <h5 class="font-weight-bold mb-0">
+                                ৳<span id="totalNetProfit"></span>
+                            </h5>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    }
+
+    <section>
+        <div class="row">
+            <div class="col-xl-5 mb-3">
+                <div class="card card-cascade narrower">
+                    <div class="view view-cascade gradient-card-header blue-gradient p-3">
+                        <div class="md-form m-0">
+                            <h3 class="h3-responsive mb-0 p-1 font-weight-light">
+                                Due Customers
+                            </h3>
+                        </div>
+                    </div>
+                    <div class="card-body card-body-cascade pt-0 pb-2 mb-1">
+                        <div class="form-inline d-flex justify-content-center align-items-center md-form form-sm active-cyan-2 mb-0 mt-2">
+                            <input id="input-find" class="form-control form-control-sm mb-0 w-75" type="text" placeholder="Search">
+                            <i class="fas fa-search" aria-hidden="true"></i>
+                        </div>
+
+                        <table id="table-customer" class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th><strong>#Bill No</strong></th>
+                                    <th><strong>Name</strong></th>
+                                    <th><strong>Due</strong></th>
+                                    <th style="width: 150px"><strong>PPD</strong></th>
+                                </tr>
+                            </thead>
+                            <tfoot>
+                                <tr>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            @if (User.IsInRole("admin"))
+            {
+                <div class="col-xl-7">
+                    <div class="card card-body pb-0 mb-4">
+                        <table class="table mb-0">
+                            <thead>
+                                <tr>
+                                    <th class="font-weight-bold dark-grey-text"><strong>Month</strong></th>
+                                    <th class="font-weight-bold dark-grey-text"><strong>Sales</strong></th>
+                                    <th class="font-weight-bold dark-grey-text"><strong>Purchase</strong></th>
+                                    <th class="font-weight-bold dark-grey-text"><strong>Expense</strong></th>
+                                    <th class="font-weight-bold dark-grey-text">
+                                        <strong>
+                                            Profit<small data-toggle="tooltip"
+                                                         title="Grand profit - (Genuine Expense + Damage)"
+                                                         class="far fa-question-circle text-muted ml-1">
+                                            </small>
+                                        </strong>
+                                    </th>
+                                    <th class="font-weight-bold dark-grey-text">
+                                        <strong>
+                                            Avg. Profit<small data-toggle="tooltip"
+                                                              title="Monthly profit/26"
+                                                              class="far fa-question-circle text-muted ml-1">
+                                            </small>
+                                        </strong>
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in Model.MonthlySummary)
+                                {
+                                    <tr>
+                                        <td>@item.Month.Month</td>
+                                        <td>@item.MonthlySale</td>
+                                        <td>@item.MonthlyNewPurchase</td>
+                                        <td>@item.MonthlyExpense</td>
+                                        <td>@item.MonthlyProfit</td>
+                                        <td>@item.DailyAverageProfit</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            }
+        </div>
+    </section>
+
+    @if (User.IsInRole("admin"))
+    {
+        <section class="row mb-5">
+            <div class="col-xl-5 col-lg-5 mb-3">
+                <div class="card card-cascade narrower">
+                    <div class="view view-cascade gradient-card-header blue-gradient lighten-1 p-3">
+                        <h3 class="h3-responsive mb-0 p-1 font-weight-light">Due Vendors</h3>
+                    </div>
+
+                    <div class="card-body card-body-cascade">
+                        <div class="form-inline d-flex justify-content-center align-items-center md-form form-sm active-cyan-2 mb-0 mt-2">
+                            <input id="vendor-input-find" class="form-control form-control-sm mb-0 w-75" type="text" placeholder="Search">
+                            <i class="fas fa-search" aria-hidden="true"></i>
+                        </div>
+
+                        <table id="table-vendor" class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th><strong>Company</strong></th>
+                                    <th><strong>Amount</strong></th>
+                                    <th><strong>Paid</strong></th>
+                                    <th><strong>Due</strong></th>
+                                </tr>
+                            </thead>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-xl-7 col-lg-7">
+                <div class="card card-cascade narrower">
+                    <div class="view view-cascade gradient-card-header blue-gradient mb-3">
+                        <canvas id="lineChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+    }
+</div>
+
+
+<!--report help Modal -->
+<div class="modal fade" id="helpModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-body">
+                <ul class="list-group list-group-flush mb-4">
+                    <li class="list-group-item">
+                        <strong>Product profit =</strong> Selling price - (Purchase Price - Discount)
+                    </li>
+                    <li class="list-group-item">
+                        <strong>Product net profit =</strong> Product profit - (Bill Expense + Selling Account Cost)
+                    </li>
+                    <li class="list-group-item">
+                        <strong>Service profit =</strong> Service Charge - Service cost
+                    </li>
+                    <li class="list-group-item">
+                        <strong>Grand profit =</strong> (Product net profit + Service profit) - Discount
+                    </li>
+                    <li class="list-group-item">
+                        <strong>Genuine expense =</strong> Inputted Expense
+                    </li>
+                    <li class="list-group-item">
+                        <strong>Net profit =</strong> Grand profit - Genuine expense
+                    </li>
+                </ul>
+
+                <h5 class="font-weight-bold m-3">Daily Report</h5>
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item">
+                        <strong>Daily Expense =</strong> Genuine expense + Fixed Cost
+                    </li>
+                    <li class="list-group-item">
+                        <strong>Daily profit =</strong> Grand profit - Daily Expense
+                    </li>
+                    <li class="list-group-item">
+                        <strong>Daily Net =</strong> Grand profit - Genuine expense
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@section Scripts {
+    <script>
+        $(function() {
+            //date picker
+            $('.datepicker').pickadate({
+                format: 'd-mmmm-yyyy'
+            }).val(moment(new Date()).format('DD-MMMM-YYYY'));
+
+            const customerTable = $('#table-customer').DataTable({
+                processing: true,
+                serverSide: true,
+                pageLength: 12,
+                lengthChange: false,
+                //searching: false,
+                ajax: {
+                    url: "/Dashboard/GetPromiseDateData",
+                    type: "POST"
+                },
+                columns:
+                [
+                    {
+                        data: "SellingSn",
+                        "render": function(data, type, row, meta) {
+                            return `<a class="blue-text" href="/Selling/DueCollection/${row.SellingId}">${data}</a>`;
+                        }
+                    },
+                    {
+                        data: "CustomerName",
+                        "render": function(data, type, row, meta) {
+                            return `<a class="blue-text" href="/Selling/MultipleDueCollection/${row.CustomerId}">${data}</a>`;
+                        }
+                    },
+                    {
+                        data: "SellingDueAmount",
+                        "render": function(data) {
+                            return `${data}/-`
+                        }
+                    },
+                    {
+                        data: "PromisedPaymentDate",
+                        "render": function (data, type, row, meta) {
+                            const date = data ? moment(data).format('DD MMM YYYY') : "";
+                            return `<a title="click on date to update" class="on-edit" data-old="${date}" data-id="${row.SellingId}">${date}</a>`
+                        }
+                    }
+                ],
+                columnDefs: [
+                    { 'searchable': false, 'targets': [3] },
+                    { 'className': "text-right", "targets": [2] }
+                ],
+                order: [[3, 'desc']],
+                rowCallback: function(row, data, index) {
+                    const date = moment(data["PromisedPaymentDate"]);
+                    const now = moment();
+
+                    if (now > date) {
+                        $(row).addClass("past-row-color");
+                    }
+
+                    if (moment(date).isSame(moment(), 'day')) {
+                        $(row).addClass("today-row-color");
+                    }
+                }
+            });
+
+            //on search input
+            $('#input-find').on("input", function() {
+                customerTable.search($(this).val()).draw();
+            });
+
+            //vendor data-table
+            const vendorTable = $('#table-vendor').DataTable({
+                processing: true,
+                serverSide: true,
+                pageLength: 6,
+                dom: 't',
+                ajax: {
+                    url: "/Dashboard/TopDueVendor",
+                    type: "POST"
+                },
+                columns:
+                [
+                    {
+                        data: "VendorCompanyName", render: function(data, type, row, meta) {
+                            return `<a class="blue-text" href="/Purchase/PayDueMultiple/${row.VendorId}">${data}</a>`
+                        }
+                    },
+                    { data: "TotalAmount" },
+                    { data: "VendorPaid" },
+                    { data: "VendorDue" }
+                ]
+            });
+
+            //on search input
+            $('#vendor-input-find').on("input",function() {
+                vendorTable.search($(this).val()).draw();
+            })
+        });
+
+        let months = [];
+        let profit = [];
+        let expense = [];
+
+        @foreach (var item in Model.MonthlySummary)
+        {
+            @:months.push("@item.Month.Month");
+            @:profit.push(@(item.MonthlyProfit + item.MonthlyExpense));
+            @:expense.push(@item.MonthlyExpense);
+        }
+
+        // Line chart
+        const ctxL = document.getElementById("lineChart").getContext('2d');
+        const myLineChart = new Chart(ctxL,
+            {
+                type: 'line',
+                data: {
+                    labels: months,
+                    datasets: [
+                        {
+                            label: "GRAND PROFIT",
+                            fillColor: "#fff",
+                            borderColor: 'rgba(76, 175, 80, 0.8)',
+                            data: profit,
+                            borderWidth: 3
+                        },
+                        {
+                            label: "GENUINE EXPENSE",
+                            fillColor: "#fff",
+                            borderColor: 'rgba(244, 67, 54, 0.8)',
+                            data: expense,
+                            borderWidth: 3
+                        }
+                    ]
+                },
+                options: {
+                    legend: {
+                        labels: { fontColor: "#fff" }
+                    },
+                    scales: {
+                        xAxes: [
+                            {
+                                gridLines: {
+                                    display: true,
+                                    color: "rgba(255,255,255,.25)"
+                                },
+                                ticks: { fontColor: "#fff" }
+                            }
+                        ],
+                        yAxes: [
+                            {
+                                display: true,
+                                gridLines: {
+                                    display: true,
+                                    color: "rgba(255,255,255,.25)"
+                                },
+                                ticks: { fontColor: "#fff" }
+                            }
+                        ]
+                    }
+                }
+            });
+
+        //on find click
+        const findForm = document.getElementById("findForm");
+
+        //add date to link
+        const defaultDate = moment(new Date()).format('DD-MMMM-YYYY');
+
+        const linkSales = document.querySelector("#linkSales");
+        const linkCash = document.querySelector("#linkCash");
+        const linkSold = document.querySelector("#linkSold");
+
+        linkSales.setAttribute("href", `/Selling/SalesReport/${defaultDate}`);
+        linkCash.setAttribute("href", `/Selling/CashCollection/${defaultDate}`);
+        linkSold.setAttribute("href", `/Selling/ProductSoldReport/${defaultDate}`);
+
+        //find btn click
+        findForm.addEventListener("submit",
+            function(evt) {
+                evt.preventDefault();
+
+                const date = findForm.inputFindDate.value;
+                getDailyData(date)
+            });
+
+        //get data on load
+        getDailyData(defaultDate);
+
+        //bind daily data
+        function getDailyData(date) {
+            const totalSale = document.querySelector("#totalSale");
+            const totalCashCollection = document.querySelector("#totalCashCollection");
+            const totalProductSold = document.querySelector("#totalProductSold");
+            const totalExpense = document.querySelector("#totalExpense");
+            const totalProfit = document.querySelector("#totalProfit");
+            const totalNetProfit = document.querySelector("#totalNetProfit");
+            const icoFind = findForm.querySelector("#icoFind");
+
+            //add date to link
+            linkSales.setAttribute("href", `/Selling/SalesReport/${date}`);
+            linkCash.setAttribute("href", `/Selling/CashCollection/${date}`);
+            linkSold.setAttribute("href", `/Selling/ProductSoldReport/${date}`);
+
+            //show loading
+            showSpinner(icoFind, true);
+
+            $.ajax({
+                type: "POST",
+                url: "/Dashboard/DailyReport",
+                data: { date },
+                success: function(response) {
+                    const { TotalSale, ProductSold, CashCollection, Expense, Profit, NetProfit } = response;
+                    totalSale.textContent = TotalSale.toFixed(2);
+                    totalCashCollection.textContent = CashCollection.toFixed(2);
+                    totalProductSold.textContent = ProductSold.toFixed(2);
+                    totalExpense.textContent = Expense.toFixed(2);
+
+                    const sumProfit = (Profit - Expense);
+                    totalProfit.textContent = sumProfit.toFixed(2);
+                    totalNetProfit.textContent = NetProfit.toFixed(2);
+
+                    if (NetProfit > 0) {
+                        totalNetProfit.parentElement.classList.add("text-success");
+                        totalNetProfit.parentElement.classList.remove("text-danger");
+                    } else {
+                        totalNetProfit.parentElement.classList.remove("text-success");
+                        totalNetProfit.parentElement.classList.add("text-danger");
+                    }
+
+                    if (sumProfit > 0) {
+                        totalProfit.parentElement.classList.add("text-success");
+                        totalProfit.parentElement.classList.remove("text-danger");
+                    } else {
+                        totalProfit.parentElement.classList.remove("text-success");
+                        totalProfit.parentElement.classList.add("text-danger");
+                    }
+
+                    //hide loading
+                    showSpinner(icoFind, false);
+                },
+                error: function(err) {
+                    console.log(err)
+                }
+            });
+        }
+
+        //show spinner
+        function showSpinner(element, isShow) {
+            if (isShow) {
+                findForm.btnFind.disabled = true;
+                element.classList.remove("fa-search");
+                element.classList.add("fa-spinner", "fa-spin");
+            } else {
+                findForm.btnFind.disabled = false;
+                element.classList.remove("fa-spinner", "fa-spin");
+                element.classList.add("fa-search");
+            }
+        }
+
+
+        //edit on click
+        const tBody = document.getElementById('table-customer');
+        tBody.addEventListener('click',
+            function(evt) {
+                const element = evt.target;
+
+                const onEdit = element.classList.contains('on-edit');
+                if (!onEdit) return;
+                const old = element.getAttribute('data-old');
+
+                const html = `<form onsubmit="return postUpdate(this)">
+                  <input name="inputDate" class="datepicker2" value="${old}" type="text" />
+                  <button type="submit"><i class="fas fa-check"></i></button>
+                </form>`;
+
+                element.innerHTML = html;
+
+                $('.datepicker2').pickadate({ format: 'dd mmm yyyy' });
+            });
+
+
+        //post on enter
+        function postUpdate(form) {
+            const id = form.parentElement.getAttribute('data-id');
+            const newValue = form.inputDate.value;
+
+            if (!newValue) return false;
+
+
+            $.ajax({
+                url: '/Dashboard/PromiseDateUpdate',
+                type: "POST",
+                data: { id:id, newDate: newValue },
+                success: function(response) {
+                    if (response.IsSuccess) {
+                        form.parentElement.innerHTML = `${newValue}`;
+                        form.remove();
+                    }
+
+                    $.notify(response.Message, response.IsSuccess ? "success" : "error");
+                },
+                error: function(error) {
+                    console.log(error);
+                }
+            });
+
+            return false;
+        }
+    </script>
+}
