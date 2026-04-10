@@ -103,3 +103,91 @@
         </div>
     </div>
 </div>
+
+<!-- Modal cập nhật Sản Phẩm -->
+<div class="modal fade" id="modalSuaSP" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content" style="border-radius:16px;">
+            
+            <div class="modal-header" style="background:orange;color:#fff;border-radius:16px 16px 0 0;">
+                <h5 class="modal-title"><i class="fas fa-edit me-2"></i>Cập nhật sản phẩm</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+
+            <form action="/SanPham/CapNhatSanPham" method="post">
+                @Html.AntiForgeryToken()
+
+                <div class="modal-body">
+
+                    <!-- ID ẩn -->
+                    <input type="hidden" name="MaSanPham" id="editMaSP" />
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Tên sản phẩm</label>
+                        <input id="editTenSP" name="tenSP" class="form-control" required />
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-semibold">Đơn vị tính</label>
+                            <select id="editDonViTinh" name="donViTinh" class="form-select">
+                                <option value="Kg">Kg</option>
+                                <option value="Bó">Bó</option>
+                                <option value="Hộp">Hộp</option>
+                                <option value="Khay">Khay</option>
+                                <option value="Chai">Chai</option>
+                                <option value="Gói">Gói</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-semibold">Giá bán</label>
+                            <input id="editGiaBan" name="giaBan" type="number" class="form-control" />
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Danh mục</label>
+                        <select id="editDanhMuc" name="maDanhMuc" class="form-select">
+                            @foreach (DanhMuc dm in ViewBag.DanhMucs)
+                            {
+                                <option value="@dm.MaDanhMuc">@dm.TenDanhMuc</option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Mã vạch</label>
+                        <input id="editMaVach" name="maVach" class="form-control" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Mô tả</label>
+                        <textarea id="editMoTa" name="moTa" class="form-control"></textarea>
+                    </div>
+
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                    <button type="submit" class="btn btn-warning">
+                        <i class="fas fa-save me-1"></i>Cập nhật
+                    </button>
+                </div>
+            </form>
+
+        </div>
+    </div>
+</div>
+<!---->
+<script>
+    function setEditSP(id, ten, dvt, gia, madm, mavach, mota) {
+        document.getElementById("editMaSP").value = id;
+        document.getElementById("editTenSP").value = ten;
+        document.getElementById("editDonViTinh").value = dvt;
+        document.getElementById("editGiaBan").value = gia;
+        document.getElementById("editDanhMuc").value = madm;
+        document.getElementById("editMaVach").value = mavach;
+        document.getElementById("editMoTa").value = mota;
+    }
+</script>

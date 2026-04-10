@@ -410,5 +410,72 @@ namespace FreshCare.Controllers
             catch { }
             return list;
         }
+        //xem chi tiet hoa don
+        public IActionResult ChiTiet(int id)
+        {
+            var model = new ChiTietPhieuXuatViewModel();
+
+            try
+            {
+                using (var conn = DatabaseHelper.GetConnection(_connectionString))
+                {
+                    conn.Open();
+
+                    // 1. Lấy thông tin phiếu xuất
+                    string sqlPhieu = @"SELECT px.MaPhieuXuat, px.NgayXuat, px.LoaiPhieu, px.TongTien,
+                                       nv.HoTen
+                                FROM PhieuXuat px
+                                INNER JOIN NhanVien nv ON px.MaNV = nv.MaNV
+                                WHERE px.MaPhieuXuat = @Id";
+
+                    using (var cmd = new SqlCommand(sqlPhieu, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@Id", id);
+                        using (var reader = cmd.ExecuteReader())
+                        {
+                            if (reader.Read())
+                            {
+                                model.MaPhieuXuat = Convert.ToInt32(reader["MaPhieuXuat"]);
+                                model.NgayXuat = Convert.ToDateTime(reader["NgayXuat"]);
+                                model.LoaiPhieu = reader["LoaiPhieu"].ToString();
+                                model.TongTien = Convert.ToDecimal(reader["TongTien"]);
+                                model.TenNhanVien = reader["HoTen"].ToString();
+                            }
+                        }
+                    }
+
+                    // 2. Lấy chi tiết
+                    string sqlChiTiet = @"SELECT ct.MaLo, sp.TenSP, ct.SoLuong, ct.DonGia
+                                 FROM ChiTietXuat ct
+                                 INNER JOIN LoHang lh ON ct.MaLo = lh.MaLo
+                                 INNER JOIN SanPham sp ON lh.MaSP = sp.MaSP
+                                 WHERE ct.MaPhieuXuat = @Id";
+
+                    using (var cmd = new SqlCommand(sqlChiTiet, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@Id", id);
+                        using (var reader = cmd.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                model.DanhSachChiTiet.Add(new ChiTietItem
+                                {
+                                    MaLo = Convert.ToInt32(reader["MaLo"]),
+                                    TenSanPham = reader["TenSP"].ToString(),
+                                    SoLuong = Convert.ToDecimal(reader["SoLuong"]),
+                                    DonGia = Convert.ToDecimal(reader["DonGia"])
+                                });
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = ex.Message;
+            }
+
+            return View(model);
+        }
     }
 }

@@ -1,0 +1,32 @@
+﻿<h2>Chi tiết phiếu xuất</h2>
+
+<p>Mã phiếu: @Model.MaPhieuXuat</p>
+<p>Ngày: @Model.NgayXuat</p>
+<p>Loại: @Model.LoaiPhieu</p>
+<p>Nhân viên: @Model.TenNhanVien</p>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Lô</th>
+            <th>Sản phẩm</th>
+            <th>Số lượng</th>
+            <th>Đơn giá</th>
+            <th>Thành tiền</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model.DanhSachChiTiet)
+        {
+            <tr>
+                <td>@item.MaLo</td>
+                <td>@item.TenSanPham</td>
+                <td>@item.SoLuong</td>
+                <td>@item.DonGia</td>
+                <td>@(item.SoLuong* item.DonGia)</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<h3>Tổng tiền: @Model.TongTien</h3>

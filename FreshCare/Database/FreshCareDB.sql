@@ -216,6 +216,11 @@ INSERT INTO LoHang (MaSP, SoLuongNhap, SoLuongTon, NgaySanXuat, HanSuDung, Trang
 (17, 50, 42, '2026-04-01', '2026-04-20', N'An Toàn');
 GO
 
+
+--sua thong tin san pham va tao hoa don va xem hoa don
+INSERT INTO SanPham (TenSP, DonViTinh, GiaBan, TrangThai)
+VALUES (N'Sữa Vinamilk', N'Hộp', 10000, N'HoatDong');
+
 PRINT N'=== Tạo CSDL FreshCareDB thành công! ===';
 PRINT N'=== Tài khoản: admin / admin123 ===';
 PRINT N'=== Tổng: 6 danh mục, 18 sản phẩm, 13 lô hàng mẫu ===';

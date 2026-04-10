@@ -18,5 +18,7 @@ namespace FreshCare.Models
         // Navigation (không dùng EF, chỉ để hiển thị)
         public string? TenDanhMuc { get; set; }
         public decimal PhanTramSale { get; set; }
+
     }
+
 }

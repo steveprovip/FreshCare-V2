@@ -125,4 +125,33 @@ namespace FreshCare.Models.ViewModels
         public int SoLo { get; set; }
         public List<LoHang> ChiTietLo { get; set; } = new();
     }
+    //hien thi hoa don
+    public class HoaDonViewModel
+    {
+        public int HoaDonId { get; set; }
+        public DateTime NgayLap { get; set; }
+        public string? TenKhachHang { get; set; }
+
+        public List<ChiTietHoaDon>? ChiTiet { get; set; }
+
+        public decimal TongTien { get; set; }
+    }
+    public class ChiTietPhieuXuatViewModel
+    {
+        public int MaPhieuXuat { get; set; }
+        public DateTime NgayXuat { get; set; }
+        public string LoaiPhieu { get; set; }
+        public decimal TongTien { get; set; }
+        public string TenNhanVien { get; set; }
+
+        public List<ChiTietItem> DanhSachChiTiet { get; set; } = new List<ChiTietItem>();
+    }
+
+    public class ChiTietItem
+    {
+        public int MaLo { get; set; }
+        public string TenSanPham { get; set; }
+        public decimal SoLuong { get; set; }
+        public decimal DonGia { get; set; }
+    }
 }

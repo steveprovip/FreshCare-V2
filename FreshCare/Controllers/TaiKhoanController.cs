@@ -139,7 +139,98 @@ namespace FreshCare.Controllers
 
             return View(model);
         }
+        // them nhan vien moi
+        [HttpPost]
+        public IActionResult AddStaff(string Username, string Password, string ConfirmPassword)
+        {
+            if (string.IsNullOrEmpty(Username) || string.IsNullOrEmpty(Password))
+            {
+                TempData["Error"] = "Vui lòng nhập đầy đủ thông tin";
+                return RedirectToAction("QuanLy");
+            }
 
+            if (Password != ConfirmPassword)
+            {
+                TempData["Error"] = "Mật khẩu không khớp";
+                return RedirectToAction("QuanLy");
+            }
+
+            try
+            {
+                using (var conn = DatabaseHelper.GetConnection(_connectionString))
+                {
+                    conn.Open();
+
+                    // check trùng
+                    string checkSql = "SELECT COUNT(*) FROM NhanVien WHERE TenDangNhap = @Username";
+                    using (var checkCmd = new SqlCommand(checkSql, conn))
+                    {
+                        checkCmd.Parameters.AddWithValue("@Username", Username);
+                        int count = Convert.ToInt32(checkCmd.ExecuteScalar());
+
+                        if (count > 0)
+                        {
+                            TempData["Error"] = "Tài khoản đã tồn tại";
+                            return RedirectToAction("QuanLy");
+                        }
+                    }
+
+                    // insert
+                    string insertSql = @"INSERT INTO NhanVien (HoTen, TenDangNhap, MatKhau, VaiTro, TrangThai)
+                                 VALUES (@HoTen, @Username, @Password, N'NhanVien', N'HoatDong')";
+
+                    using (var cmd = new SqlCommand(insertSql, conn))
+                    {
+                        // ⚠️ sửa chỗ này (bạn đang để "Username" = chuỗi cứng)
+                        cmd.Parameters.AddWithValue("@HoTen", "admin");
+
+                        cmd.Parameters.AddWithValue("@Username", Username);
+                        cmd.Parameters.AddWithValue("@Password", DatabaseHelper.HashPassword(Password));
+
+                        cmd.ExecuteNonQuery();
+                    }
+                }
+
+                TempData["Success"] = "Thêm nhân viên thành công";
+                return RedirectToAction("QuanLy");
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = "Lỗi: " + ex.Message;
+                return RedirectToAction("QuanLy");
+            }
+        }
+        // xoa nhan vien
+
+        [HttpPost]
+        public IActionResult DeleteStaff(int id)
+        {
+            try
+            {
+                using (var conn = DatabaseHelper.GetConnection(_connectionString))
+                {
+                    conn.Open();
+
+                    // ✅ ĐÚNG: dùng MaNV (không phải Id)
+                    string sql = "DELETE FROM NhanVien WHERE MaNV = @Id";
+
+                    using (var cmd = new SqlCommand(sql, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@Id", id);
+                        cmd.ExecuteNonQuery();
+                    }
+                }
+
+                TempData["Success"] = "Xóa nhân viên thành công";
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = "Lỗi: " + ex.Message;
+            }
+
+            // ✅ quay về đúng trang danh sách
+            return RedirectToAction("QuanLy");
+        } 
         // POST: /TaiKhoan/DangXuat
         public IActionResult DangXuat()
         {
@@ -185,5 +276,8 @@ namespace FreshCare.Controllers
 
             return View(list);
         }
+        // thêm nhân viên mới
+
+        
     }
 }

@@ -1,7 +1,13 @@
 @model List<NhanVien>
 @{ ViewData["Title"] = "Quản lý Nhân viên"; }
 
-<h4 class="section-title"><i class="fas fa-users-cog me-2"></i>Quản Lý Tài Khoản Nhân Viên</h4>
+<div class="d-flex justify-content-between">
+    <h4 class="section-title"><i class="fas fa-users-cog me-2"></i>Quản Lý Tài Khoản Nhân Viên</h4>
+    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modal_add_staff">
+        Thêm nhân viên
+    </button>
+   
+</div>
 
 <div class="card card-fc">
     <div class="card-body p-0">
@@ -41,4 +47,109 @@
             </tbody>
         </table>
     </div>
+
+
+    
 </div>
+
+<div class="modal fade" id="modal_add_staff" tabindex="-1" aria-labelledby="testModal" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            
+            <div class="modal-header">
+                <h5 class="modal-title">Thêm nhân viên</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <form action="/TaiKhoan/AddStaff" method="post">
+                <div class="modal-body">
+                    <!-- ho ten -->
+                    <div class="mb-3">
+                        <label>Họ Tên</label>
+                        <input type="text" name="Username" class="form-control" required>
+                    </div>
+                    <!-- Tài khoản -->
+                    <div class="mb-3">
+                        <label>Tài khoản</label>
+                        <input type="text" name="Username" class="form-control" required>
+                    </div>
+
+                    <!-- Mật khẩu -->
+                    <div class="mb-3">
+                        <label>Mật khẩu</label>
+                        <input type="password" name="Password" class="form-control" required minlength="6">
+                    </div>
+
+                    <!-- Nhập lại mật khẩu -->
+                    <div class="mb-3">
+                        <label>Nhập lại mật khẩu</label>
+                        <input type="password" name="ConfirmPassword" class="form-control" required>
+                    </div>
+
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                    <button type="submit" class="btn btn-primary">Lưu</button>
+                </div>
+            </form>
+
+        </div>
+        // xoa 
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.TenDangNhap</td>
+                <td>
+                    <form action="/TaiKhoan/DeleteStaff" method="post">
+                        <input type="hidden" name="id" value="@item.MaNV" />
+                        <button class="btn btn-danger">Xóa</button>
+                    </form>
+                </td>
+            </tr>
+        }
+    </div>
+</div>
+//xoa
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success">@TempData["Success"]</div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger">@TempData["Error"]</div>
+}
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Mã NV</th>
+            <th>Tên đăng nhập</th>
+            <th>Hành động</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.MaNV</td>
+                <td>@item.TenDangNhap</td>
+                <td>
+                    <!-- ✅ FORM XÓA -->
+                    <form action="/TaiKhoan/DeleteStaff" method="post"
+                          onsubmit="return confirm('Bạn có chắc muốn xóa không?');">
+                        
+                        <!-- ✅ truyền đúng id -->
+                        <input type="hidden" name="id" value="@item.MaNV" />
+
+                        <button class="btn btn-danger">Xóa</button>
+                    </form>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+    </tbody>
+</table>

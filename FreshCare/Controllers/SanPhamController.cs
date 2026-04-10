@@ -333,5 +333,107 @@ namespace FreshCare.Controllers
         }
 
         #endregion
+
+
+        // sua thong tin san pham, danh muc, them moi san pham, danh muc, xoa san pham (cap nhat trang thai), tim san pham theo ma vach (ajax)
+        public IActionResult Edit(int id)
+        {
+            SanPham sp = null;
+
+            using (var conn = DatabaseHelper.GetConnection(_connectionString))
+            {
+                conn.Open();
+                string sql = "SELECT * FROM SanPham WHERE MaSP = @id";
+
+                using (var cmd = new SqlCommand(sql, conn))
+                {
+                    cmd.Parameters.AddWithValue("@id", id);
+                    using (var reader = cmd.ExecuteReader())
+                    {
+                        if (reader.Read())
+                        {
+                            sp = new SanPham
+                            {
+                                MaSP = (int)reader["MaSP"],
+                                TenSP = reader["TenSP"].ToString(),
+                                DonViTinh = reader["DonViTinh"].ToString(),
+                                GiaBan = (decimal)reader["GiaBan"]
+                            };
+                        }
+                    }
+                }
+            }
+
+            return View(sp);
+        }
+    
+    // POST: /SanPham/Edit
+    [HttpPost]
+        public IActionResult Edit(SanPham sp)
+        {
+            using (var conn = DatabaseHelper.GetConnection(_connectionString))
+            {
+                conn.Open();
+                string sql = @"UPDATE SanPham 
+                       SET TenSP = @TenSP,
+                           DonViTinh = @DonViTinh,
+                           GiaBan = @GiaBan
+                       WHERE MaSP = @MaSP";
+
+                using (var cmd = new SqlCommand(sql, conn))
+                {
+                    cmd.Parameters.AddWithValue("@TenSP", sp.TenSP);
+                    cmd.Parameters.AddWithValue("@DonViTinh", sp.DonViTinh);
+                    cmd.Parameters.AddWithValue("@GiaBan", sp.GiaBan);
+                    cmd.Parameters.AddWithValue("@MaSP", sp.MaSP);
+
+                    cmd.ExecuteNonQuery();
+                }
+            }
+
+            return RedirectToAction("Index");
+        }
+        // câp nhap thong tin san pham
+        [HttpPost]
+        public IActionResult CapNhatSanPham(int MaSanPham, string tenSP, string donViTinh, decimal giaBan, int maDanhMuc, string maVach, string moTa)
+        {
+            try
+            {
+                using (var conn = DatabaseHelper.GetConnection(_connectionString))
+                {
+                    conn.Open();
+
+                    string sql = @"UPDATE SanPham 
+                           SET TenSanPham = @TenSP,
+                               DonViTinh = @DonViTinh,
+                               GiaBan = @GiaBan,
+                               MaDanhMuc = @MaDanhMuc,
+                               MaVach = @MaVach,
+                               MoTa = @MoTa
+                           WHERE MaSanPham = @MaSP";
+
+                    using (var cmd = new SqlCommand(sql, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@TenSP", tenSP);
+                        cmd.Parameters.AddWithValue("@DonViTinh", donViTinh);
+                        cmd.Parameters.AddWithValue("@GiaBan", giaBan);
+                        cmd.Parameters.AddWithValue("@MaDanhMuc", maDanhMuc);
+                        cmd.Parameters.AddWithValue("@MaVach", (object?)maVach ?? DBNull.Value);
+                        cmd.Parameters.AddWithValue("@MoTa", (object?)moTa ?? DBNull.Value);
+                        cmd.Parameters.AddWithValue("@MaSP", MaSanPham);
+
+                        cmd.ExecuteNonQuery();
+                    }
+                }
+
+                TempData["Success"] = "Cập nhật sản phẩm thành công";
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = ex.Message;
+            }
+
+            return RedirectToAction("Index"); // hoặc trang danh sách SP
+        }
     }
 }
