@@ -26,7 +26,7 @@
                                 <option value="">-- Chọn sản phẩm --</option>
                                 @foreach (var sp in Model.DanhSachSanPham)
                                 {
-                                    <option value="@sp.MaSP" data-dvt="@sp.DonViTinh" data-gia="@sp.GiaBan">
+                                    <option value="@sp.MaSP" data-dvt="@sp.DonViTinh" data-gia="@sp.GiaNhap">
                                         @sp.TenSP (@sp.DonViTinh) - @sp.TenDanhMuc
                                     </option>
                                 }
@@ -42,14 +42,14 @@
 
                         <!-- Thông tin giá -->
                         <div class="col-md-6">
-                            <label class="form-label fw-semibold"><i class="fas fa-tag me-1"></i>Giá bán hiện tại</label>
+                            <label class="form-label fw-semibold"><i class="fas fa-tag me-1"></i>Giá nhập hiện tại</label>
                             <div class="input-group">
-                                <input type="text" id="txtGiaBan" class="form-control" readonly disabled />
+                                <input type="text" id="txtGiaNhap" class="form-control" readonly disabled />
                                 <span class="input-group-text">đ</span>
                             </div>
                             <small class="text-muted">
                                 <a href="/SanPham/DanhSach" target="_blank">
-                                    <i class="fas fa-edit me-1"></i>Thay đổi giá bán tại Quản lý SP
+                                    <i class="fas fa-edit me-1"></i>Thay đổi giá nhập tại Quản lý SP
                                 </a>
                             </small>
                         </div>
@@ -115,7 +115,7 @@
             <div class="card-body">
                 <p class="mb-1"><strong id="infoTenSP">---</strong></p>
                 <p class="mb-1 text-muted">Đơn vị: <span id="infoDVT">---</span></p>
-                <p class="mb-0">Giá bán: <span class="fw-bold text-success" id="infoGia">---</span></p>
+                <p class="mb-0">Giá nhập: <span class="fw-bold text-success" id="infoGia">---</span></p>
             </div>
         </div>
     </div>
@@ -130,7 +130,7 @@
 
         if (!maSP) {
             $('#lblDonViTinh').text('---');
-            $('#txtGiaBan').val('');
+            $('#txtGiaNhap').val('');
             $('#txtThanhTien').val('');
             $('#cardThongTinSP').addClass('d-none');
             return;
@@ -141,7 +141,7 @@
         var tenSP = selected.text().split('(')[0].trim();
 
         $('#lblDonViTinh').text(dvt);
-        $('#txtGiaBan').val(Number(gia).toLocaleString('vi-VN'));
+        $('#txtGiaNhap').val(Number(gia).toLocaleString('vi-VN'));
 
         // Luật #10: Bó/Hộp/Khay/Chai/Vỉ → số nguyên, Kg → thập phân
         if (dvt === 'Kg') {

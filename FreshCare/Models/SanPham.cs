@@ -9,6 +9,7 @@ namespace FreshCare.Models
         public int MaSP { get; set; }
         public string TenSP { get; set; } = string.Empty;
         public string DonViTinh { get; set; } = string.Empty; // Bó, Kg, Hộp, Khay...
+        public decimal GiaNhap { get; set; } // Giá nhập mới thêm
         public decimal GiaBan { get; set; }
         public int MaDanhMuc { get; set; }
         public string? MoTa { get; set; }

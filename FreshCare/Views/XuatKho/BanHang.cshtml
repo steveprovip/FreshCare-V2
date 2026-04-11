@@ -10,6 +10,15 @@
                 <form asp-action="ThanhToan" method="post">
                     @Html.AntiForgeryToken()
 
+                    <!-- Quét mã vạch nhanh -->
+                    <div class="mb-3 p-3 bg-light rounded">
+                        <label class="form-label fw-semibold"><i class="fas fa-barcode me-1 text-primary"></i>Quét mã vạch (tùy chọn)</label>
+                        <div class="input-group">
+                            <input type="text" id="txtMaVachXuat" class="form-control" placeholder="Quét hoặc nhập mã vạch sản phẩm..." />
+                            <button type="button" class="btn btn-outline-primary" id="btnQuetMaXuat"><i class="fas fa-search me-1"></i>Tìm</button>
+                        </div>
+                    </div>
+
                     <div class="row g-3">
                         <div class="col-md-8">
                             <label class="form-label fw-semibold"><i class="fas fa-box me-1"></i>Sản phẩm <span class="text-danger">*</span></label>
@@ -17,7 +26,9 @@
                                 <option value="">-- Chọn sản phẩm --</option>
                                 @foreach (var sp in Model.DanhSachSanPham)
                                 {
-                                    <option value="@sp.MaSP">@sp.TenSP (@sp.DonViTinh) - @sp.GiaBan.ToString("N0")đ</option>
+                                    <option value="@sp.MaSP" data-gianhap="@sp.GiaNhap" data-giaban="@sp.GiaBan" data-dvt="@sp.DonViTinh">
+                                        @sp.TenSP (@sp.DonViTinh) - Giá bán: @sp.GiaBan.ToString("N0")đ
+                                    </option>
                                 }
                             </select>
                         </div>
@@ -29,6 +40,23 @@
                             </div>
                             <small class="text-muted">Tồn kho: <span id="lblTonKho" class="fw-bold text-success">--</span></small>
                         </div>
+
+                        <!-- Hiển thị giá nhập và giá bán -->
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold"><i class="fas fa-tag me-1 text-danger"></i>Giá nhập</label>
+                            <div class="input-group">
+                                <input type="text" id="txtGiaNhapXuat" class="form-control" readonly disabled />
+                                <span class="input-group-text">đ</span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold"><i class="fas fa-tag me-1 text-success"></i>Giá bán</label>
+                            <div class="input-group">
+                                <input type="text" id="txtGiaBanXuat" class="form-control" readonly disabled />
+                                <span class="input-group-text">đ</span>
+                            </div>
+                        </div>
+
                         <div class="col-12">
                             <label class="form-label fw-semibold"><i class="fas fa-sticky-note me-1"></i>Ghi chú</label>
                             <textarea asp-for="GhiChu" class="form-control" rows="2" placeholder="Ghi chú hóa đơn (không bắt buộc)"></textarea>
@@ -69,6 +97,19 @@
                 </p>
             </div>
         </div>
+
+        <!-- Thông tin sản phẩm đã chọn -->
+        <div class="card card-fc mt-3 d-none" id="cardInfoXuat">
+            <div class="card-header bg-success text-white">
+                <h6 class="mb-0"><i class="fas fa-box-open me-2"></i>Sản phẩm đã chọn</h6>
+            </div>
+            <div class="card-body">
+                <p class="mb-1"><strong id="infoTenSPXuat">---</strong></p>
+                <p class="mb-1 text-muted">Đơn vị: <span id="infoDVTXuat">---</span></p>
+                <p class="mb-1">Giá nhập: <span class="fw-bold text-danger" id="infoGiaNhapXuat">---</span></p>
+                <p class="mb-0">Giá bán: <span class="fw-bold text-success" id="infoGiaBanXuat">---</span></p>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -77,11 +118,32 @@
     // Luật #14: AJAX lấy tồn kho real-time
     $('#ddlSanPhamXuat').on('change', function () {
         var maSP = $(this).val();
+        var selected = $(this).find('option:selected');
+
         if (!maSP) {
             $('#lblDVTXuat').text('---');
             $('#lblTonKho').text('--');
+            $('#txtGiaNhapXuat').val('');
+            $('#txtGiaBanXuat').val('');
+            $('#cardInfoXuat').addClass('d-none');
             return;
         }
+
+        var dvt = selected.data('dvt');
+        var giaNhap = selected.data('gianhap');
+        var giaBan = selected.data('giaban');
+        var tenSP = selected.text().split('(')[0].trim();
+
+        // Hiển thị giá nhập và giá bán
+        $('#txtGiaNhapXuat').val(Number(giaNhap).toLocaleString('vi-VN'));
+        $('#txtGiaBanXuat').val(Number(giaBan).toLocaleString('vi-VN'));
+
+        // Hiển thị info card
+        $('#infoTenSPXuat').text(tenSP);
+        $('#infoDVTXuat').text(dvt);
+        $('#infoGiaNhapXuat').text(Number(giaNhap).toLocaleString('vi-VN') + 'đ');
+        $('#infoGiaBanXuat').text(Number(giaBan).toLocaleString('vi-VN') + 'đ');
+        $('#cardInfoXuat').removeClass('d-none');
 
         $.get('/XuatKho/LayTonKho', { maSP: maSP }, function (data) {
             if (data.success) {
@@ -92,7 +154,6 @@
                     $('#txtSoLuongXuat').attr('step', '0.01').attr('min', '0.01');
                 } else {
                     $('#txtSoLuongXuat').attr('step', '1').attr('min', '1');
-                    // Nếu giá trị hiện tại là thập phân, làm tròn xuống
                     var val = $('#txtSoLuongXuat').val();
                     if (val && val % 1 !== 0) {
                         $('#txtSoLuongXuat').val(Math.floor(val));
@@ -100,6 +161,30 @@
                 }
             }
         });
+    });
+
+    // Quét mã vạch xuất kho
+    $('#btnQuetMaXuat').on('click', function () {
+        var maVach = $('#txtMaVachXuat').val().trim();
+        if (!maVach) return;
+
+        $.get('/SanPham/TimTheoMaVach', { maVach: maVach }, function (data) {
+            if (data.success) {
+                $('#ddlSanPhamXuat').val(data.maSP).trigger('change');
+                $('#txtMaVachXuat').val('').addClass('is-valid');
+                setTimeout(function() { $('#txtMaVachXuat').removeClass('is-valid'); }, 2000);
+            } else {
+                $('#txtMaVachXuat').addClass('is-invalid');
+                setTimeout(function() { $('#txtMaVachXuat').removeClass('is-invalid'); }, 2000);
+            }
+        });
+    });
+
+    $('#txtMaVachXuat').on('keypress', function (e) {
+        if (e.which === 13) {
+            e.preventDefault();
+            $('#btnQuetMaXuat').click();
+        }
     });
 
     // Validate form trước khi submit
@@ -127,3 +212,4 @@
     });
 </script>
 }
+

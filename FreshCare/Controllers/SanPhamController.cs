@@ -130,7 +130,7 @@ namespace FreshCare.Controllers
                 using (var conn = DatabaseHelper.GetConnection(_connectionString))
                 {
                     conn.Open();
-                    string sql = @"SELECT sp.MaSP, sp.TenSP, sp.DonViTinh, sp.GiaBan, sp.MaDanhMuc,
+                    string sql = @"SELECT sp.MaSP, sp.TenSP, sp.DonViTinh, sp.GiaNhap, sp.GiaBan, sp.MaDanhMuc,
                                           sp.MoTa, sp.MaVach, sp.TrangThai, dm.TenDanhMuc
                                    FROM SanPham sp
                                    INNER JOIN DanhMuc dm ON sp.MaDanhMuc = dm.MaDanhMuc
@@ -146,6 +146,7 @@ namespace FreshCare.Controllers
                                 MaSP = Convert.ToInt32(reader["MaSP"]),
                                 TenSP = reader["TenSP"].ToString()!,
                                 DonViTinh = reader["DonViTinh"].ToString()!,
+                                GiaNhap = Convert.ToDecimal(reader["GiaNhap"]),
                                 GiaBan = Convert.ToDecimal(reader["GiaBan"]),
                                 MaDanhMuc = Convert.ToInt32(reader["MaDanhMuc"]),
                                 MoTa = reader["MoTa"]?.ToString(),
@@ -170,19 +171,20 @@ namespace FreshCare.Controllers
         // POST: /SanPham/ThemSanPham
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult ThemSanPham(string tenSP, string donViTinh, decimal giaBan, int maDanhMuc, string? moTa, string? maVach)
+        public IActionResult ThemSanPham(string tenSP, string donViTinh, decimal giaNhap, decimal giaBan, int maDanhMuc, string? moTa, string? maVach)
         {
             try
             {
                 using (var conn = DatabaseHelper.GetConnection(_connectionString))
                 {
                     conn.Open();
-                    string sql = @"INSERT INTO SanPham (TenSP, DonViTinh, GiaBan, MaDanhMuc, MoTa, MaVach, TrangThai) 
-                                   VALUES (@TenSP, @DonViTinh, @GiaBan, @MaDanhMuc, @MoTa, @MaVach, N'HoatDong')";
+                    string sql = @"INSERT INTO SanPham (TenSP, DonViTinh, GiaNhap, GiaBan, MaDanhMuc, MoTa, MaVach, TrangThai) 
+                                   VALUES (@TenSP, @DonViTinh, @GiaNhap, @GiaBan, @MaDanhMuc, @MoTa, @MaVach, N'HoatDong')";
                     using (var cmd = new SqlCommand(sql, conn))
                     {
                         cmd.Parameters.AddWithValue("@TenSP", tenSP);
                         cmd.Parameters.AddWithValue("@DonViTinh", donViTinh);
+                        cmd.Parameters.AddWithValue("@GiaNhap", giaNhap);
                         cmd.Parameters.AddWithValue("@GiaBan", giaBan);
                         cmd.Parameters.AddWithValue("@MaDanhMuc", maDanhMuc);
                         cmd.Parameters.AddWithValue("@MoTa", (object?)moTa ?? DBNull.Value);
@@ -203,7 +205,7 @@ namespace FreshCare.Controllers
         // POST: /SanPham/SuaSanPham
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult SuaSanPham(int maSP, string tenSP, string donViTinh, decimal giaBan, int maDanhMuc, string? moTa, string? maVach)
+        public IActionResult SuaSanPham(int maSP, string tenSP, string donViTinh, decimal giaNhap, decimal giaBan, int maDanhMuc, string? moTa, string? maVach)
         {
             try
             {
@@ -211,7 +213,7 @@ namespace FreshCare.Controllers
                 {
                     conn.Open();
                     string sql = @"UPDATE SanPham 
-                                   SET TenSP = @TenSP, DonViTinh = @DonViTinh, GiaBan = @GiaBan, 
+                                   SET TenSP = @TenSP, DonViTinh = @DonViTinh, GiaNhap = @GiaNhap, GiaBan = @GiaBan, 
                                        MaDanhMuc = @MaDanhMuc, MoTa = @MoTa, MaVach = @MaVach
                                    WHERE MaSP = @MaSP";
                     using (var cmd = new SqlCommand(sql, conn))
@@ -219,6 +221,7 @@ namespace FreshCare.Controllers
                         cmd.Parameters.AddWithValue("@MaSP", maSP);
                         cmd.Parameters.AddWithValue("@TenSP", tenSP);
                         cmd.Parameters.AddWithValue("@DonViTinh", donViTinh);
+                        cmd.Parameters.AddWithValue("@GiaNhap", giaNhap);
                         cmd.Parameters.AddWithValue("@GiaBan", giaBan);
                         cmd.Parameters.AddWithValue("@MaDanhMuc", maDanhMuc);
                         cmd.Parameters.AddWithValue("@MoTa", (object?)moTa ?? DBNull.Value);

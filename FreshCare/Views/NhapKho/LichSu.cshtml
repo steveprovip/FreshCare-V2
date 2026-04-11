@@ -6,7 +6,7 @@
 <div class="card card-fc">
     <div class="card-body p-0">
         <table class="table table-fc table-hover mb-0">
-            <thead><tr><th>Mã Phiếu</th><th>Ngày nhập</th><th>Nhân viên</th><th>Ghi chú</th></tr></thead>
+            <thead><tr><th>Mã Phiếu</th><th>Ngày nhập</th><th>Nhân viên</th><th>Ghi chú</th><th>Thao tác</th></tr></thead>
             <tbody>
                 @foreach (var p in Model)
                 {
@@ -15,13 +15,19 @@
                         <td>@p.NgayNhap.ToString("dd/MM/yyyy HH:mm")</td>
                         <td>@p.TenNhanVien</td>
                         <td>@(p.GhiChu ?? "—")</td>
+                        <td>
+                            <a href="/NhapKho/ChiTiet?id=@p.MaPhieuNhap" class="btn btn-sm btn-outline-primary" title="Xem chi tiết và In phiếu">
+                                <i class="fas fa-print me-1"></i>Xem / In
+                            </a>
+                        </td>
                     </tr>
                 }
                 @if (!Model.Any())
                 {
-                    <tr><td colspan="4" class="text-center text-muted py-4">Chưa có phiếu nhập nào</td></tr>
+                    <tr><td colspan="5" class="text-center text-muted py-4">Chưa có phiếu nhập nào</td></tr>
                 }
             </tbody>
         </table>
     </div>
 </div>
+

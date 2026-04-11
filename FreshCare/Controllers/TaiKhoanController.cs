@@ -321,8 +321,6 @@ namespace FreshCare.Controllers
                 return RedirectToAction("QuanLy");
             }
         }
-        // xoa nhan vien
-
         [HttpPost]
         public IActionResult DeleteStaff(int id)
         {
@@ -349,6 +347,34 @@ namespace FreshCare.Controllers
             }
 
             // ✅ quay về đúng trang danh sách
+            return RedirectToAction("QuanLy");
+        }
+
+        // mở khóa nhân viên
+        [HttpPost]
+        public IActionResult UnlockStaff(int id)
+        {
+            try
+            {
+                using (var conn = DatabaseHelper.GetConnection(_connectionString))
+                {
+                    conn.Open();
+                    string sql = "UPDATE NhanVien SET TrangThai = N'HoatDong' WHERE MaNV = @Id";
+
+                    using (var cmd = new SqlCommand(sql, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@Id", id);
+                        cmd.ExecuteNonQuery();
+                    }
+                }
+
+                TempData["Success"] = "Đã mở khóa tài khoản nhân viên thành công";
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = "Lỗi: " + ex.Message;
+            }
+
             return RedirectToAction("QuanLy");
         } 
         // POST: /TaiKhoan/DangXuat

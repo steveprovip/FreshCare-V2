@@ -51,6 +51,7 @@ CREATE TABLE SanPham (
     MaSP        INT IDENTITY(1,1) PRIMARY KEY,
     TenSP       NVARCHAR(200) NOT NULL,
     DonViTinh   NVARCHAR(20) NOT NULL,
+    GiaNhap     DECIMAL(18,2) NOT NULL DEFAULT 0,
     GiaBan      DECIMAL(18,2) NOT NULL,
     MaDanhMuc   INT NOT NULL,
     MoTa        NVARCHAR(500) NULL,
@@ -160,36 +161,36 @@ INSERT INTO DanhMuc (TenDanhMuc, PhanTramSale) VALUES
 GO
 
 -- Sản phẩm mẫu (thực tế hơn với đơn vị tính chính xác)
-INSERT INTO SanPham (TenSP, DonViTinh, GiaBan, MaDanhMuc, MoTa, MaVach) VALUES
+INSERT INTO SanPham (TenSP, DonViTinh, GiaNhap, GiaBan, MaDanhMuc, MoTa, MaVach) VALUES
 -- Rau Củ Quả
-(N'Rau muống hữu cơ',              N'Bó',   12000,  1, N'Rau muống sạch VietGAP 300g',     '8938505050101'),
-(N'Cà chua cherry Đà Lạt',          N'Kg',   45000,  1, N'Cà chua bi Đà Lạt loại 1',       '8938505050102'),
-(N'Bắp cải xanh',                   N'Kg',   18000,  1, N'Bắp cải VietGAP',                 NULL),
-(N'Khoai tây Đà Lạt',               N'Kg',   25000,  1, N'Khoai tây sạch Đà Lạt',           NULL),
+(N'Rau muống hữu cơ',              N'Bó',   8000,   12000,  1, N'Rau muống sạch VietGAP 300g',     '8938505050101'),
+(N'Cà chua cherry Đà Lạt',          N'Kg',   30000,  45000,  1, N'Cà chua bi Đà Lạt loại 1',       '8938505050102'),
+(N'Bắp cải xanh',                   N'Kg',   12000,  18000,  1, N'Bắp cải VietGAP',                 NULL),
+(N'Khoai tây Đà Lạt',               N'Kg',   16000,  25000,  1, N'Khoai tây sạch Đà Lạt',           NULL),
 
 -- Thịt Cá Tươi Sống
-(N'Thịt heo ba chỉ',                N'Kg',   135000, 2, N'Thịt heo sạch MEATDeli',          '8938505050201'),
-(N'Cá hồi phi lê Na Uy',            N'Khay', 189000, 2, N'Cá hồi nhập khẩu khay 300g',     '8938505050202'),
-(N'Tôm sú tươi',                    N'Kg',   220000, 2, N'Tôm sú nuôi size 20-25 con/kg',  NULL),
+(N'Thịt heo ba chỉ',                N'Kg',   95000,  135000, 2, N'Thịt heo sạch MEATDeli',          '8938505050201'),
+(N'Cá hồi phi lê Na Uy',            N'Khay', 140000, 189000, 2, N'Cá hồi nhập khẩu khay 300g',     '8938505050202'),
+(N'Tôm sú tươi',                    N'Kg',   150000, 220000, 2, N'Tôm sú nuôi size 20-25 con/kg',  NULL),
 
 -- Trái Cây Nhập Khẩu
-(N'Táo Envy New Zealand',            N'Kg',   95000,  3, N'Táo Envy xuất xứ NZ',             '8938505050301'),
-(N'Nho xanh Mỹ',                    N'Kg',   120000, 3, N'Nho xanh không hạt nhập Mỹ',      NULL),
-(N'Chuối Cavendish hữu cơ',         N'Nải',  28000,  3, N'Chuối organic Dole',               NULL),
+(N'Táo Envy New Zealand',            N'Kg',   65000,  95000,  3, N'Táo Envy xuất xứ NZ',             '8938505050301'),
+(N'Nho xanh Mỹ',                    N'Kg',   85000,  120000, 3, N'Nho xanh không hạt nhập Mỹ',      NULL),
+(N'Chuối Cavendish hữu cơ',         N'Nải',  18000,  28000,  3, N'Chuối organic Dole',               NULL),
 
 -- Đồ Khô - Gia Vị - Nước Chấm
-(N'Nước mắm Phú Quốc 500ml',        N'Chai', 42000,  4, N'Nước mắm truyền thống Phú Quốc',  '8938505050401'),
-(N'Dầu ăn Neptune 1L',              N'Chai', 48000,  4, N'Dầu ăn Neptune Gold',              '8938505050402'),
-(N'Bột nêm Knorr 900g',             N'Gói',  46000,  4, N'Bột nêm từ thịt và xương',        NULL),
+(N'Nước mắm Phú Quốc 500ml',        N'Chai', 28000,  42000,  4, N'Nước mắm truyền thống Phú Quốc',  '8938505050401'),
+(N'Dầu ăn Neptune 1L',              N'Chai', 34000,  48000,  4, N'Dầu ăn Neptune Gold',              '8938505050402'),
+(N'Bột nêm Knorr 900g',             N'Gói',  32000,  46000,  4, N'Bột nêm từ thịt và xương',        NULL),
 
 -- Sữa & Sản Phẩm Từ Sữa
-(N'Sữa tươi TH True Milk 1L',       N'Hộp',  32000,  5, N'Sữa tươi tiệt trùng nguyên chất 1 lít', '8938505050501'),
-(N'Sữa tươi TH True Milk 180ml',    N'Vỉ',   38000,  5, N'Vỉ 4 hộp x 180ml (bán nguyên vỉ)',       '8938505050502'),
-(N'Sữa chua Vinamilk có đường',     N'Vỉ',   25000,  5, N'Vỉ 4 hộp x 100g',                        '8938505050503'),
+(N'Sữa tươi TH True Milk 1L',       N'Hộp',  22000,  32000,  5, N'Sữa tươi tiệt trùng nguyên chất 1 lít', '8938505050501'),
+(N'Sữa tươi TH True Milk 180ml',    N'Vỉ',   26000,  38000,  5, N'Vỉ 4 hộp x 180ml (bán nguyên vỉ)',       '8938505050502'),
+(N'Sữa chua Vinamilk có đường',     N'Vỉ',   18000,  25000,  5, N'Vỉ 4 hộp x 100g',                        '8938505050503'),
 
 -- Trứng & Đậu Phụ
-(N'Trứng gà ta',                     N'Vỉ',   38000,  6, N'Vỉ 10 quả trứng gà thả vườn',    '8938505050601'),
-(N'Đậu phụ non Sojami',             N'Hộp',  15000,  6, N'Đậu phụ tươi đóng hộp 300g',      NULL);
+(N'Trứng gà ta',                     N'Vỉ',   26000,  38000,  6, N'Vỉ 10 quả trứng gà thả vườn',    '8938505050601'),
+(N'Đậu phụ non Sojami',             N'Hộp',  10000,  15000,  6, N'Đậu phụ tươi đóng hộp 300g',      NULL);
 GO
 
 -- Lô hàng mẫu (nhiều trạng thái để test Dashboard)
@@ -219,11 +220,23 @@ INSERT INTO LoHang (MaSP, SoLuongNhap, SoLuongTon, NgaySanXuat, HanSuDung, Trang
 GO
 
 
---sua thong tin san pham va tao hoa don va xem hoa don
-INSERT INTO SanPham (TenSP, DonViTinh, GiaBan, TrangThai)
-VALUES (N'Sữa Vinamilk', N'Hộp', 10000, N'HoatDong');
+-- Sản phẩm thêm sau (có đủ cột GiaNhap và MaDanhMuc)
+INSERT INTO SanPham (TenSP, DonViTinh, GiaNhap, GiaBan, MaDanhMuc, TrangThai)
+VALUES (N'Sữa Vinamilk', N'Hộp', 7000, 10000, 5, N'HoatDong');
 
 PRINT N'=== Tạo CSDL FreshCareDB thành công! ===';
 PRINT N'=== Tài khoản: admin / admin123 ===';
-PRINT N'=== Tổng: 6 danh mục, 18 sản phẩm, 13 lô hàng mẫu ===';
+PRINT N'=== Tổng: 6 danh mục, 19 sản phẩm, 13 lô hàng mẫu ===';
 GO
+
+-- =============================================
+-- MIGRATION: Chạy đoạn này nếu DB cũ thiếu cột GiaNhap
+-- =============================================
+/*
+IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID(N'SanPham') AND name = 'GiaNhap')
+BEGIN
+    ALTER TABLE SanPham ADD GiaNhap DECIMAL(18,2) NOT NULL DEFAULT 0;
+    PRINT N'=== Đã thêm cột GiaNhap vào bảng SanPham ===';
+END
+GO
+*/

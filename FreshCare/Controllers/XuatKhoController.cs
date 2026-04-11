@@ -44,6 +44,7 @@ namespace FreshCare.Controllers
         public IActionResult ThanhToan(XuatKhoViewModel model)
         {
             int maNV = HttpContext.Session.GetInt32("MaNV") ?? 0;
+            int maPhieuXuatResult = 0;
 
             try
             {
@@ -217,6 +218,7 @@ namespace FreshCare.Controllers
                             }
 
                             transaction.Commit();
+                            maPhieuXuatResult = maPhieuXuat;
 
                             TempData["Success"] = $"Xuất kho thành công! Hóa đơn: HD-{maPhieuXuat:D4}. Tổng tiền: {tongTienXuat:N0}đ";
                         }
@@ -232,6 +234,10 @@ namespace FreshCare.Controllers
             {
                 TempData["Error"] = "Lỗi xuất kho: " + ex.Message;
             }
+
+            // Nếu xuất thành công → chuyển sang trang hóa đơn để In
+            if (maPhieuXuatResult > 0)
+                return RedirectToAction("ChiTiet", new { id = maPhieuXuatResult });
 
             return RedirectToAction("BanHang");
         }
@@ -408,7 +414,7 @@ namespace FreshCare.Controllers
                 using (var conn = DatabaseHelper.GetConnection(_connectionString))
                 {
                     conn.Open();
-                    string sql = @"SELECT DISTINCT sp.MaSP, sp.TenSP, sp.DonViTinh, sp.GiaBan
+                    string sql = @"SELECT DISTINCT sp.MaSP, sp.TenSP, sp.DonViTinh, sp.GiaNhap, sp.GiaBan
                                    FROM SanPham sp
                                    INNER JOIN LoHang lh ON sp.MaSP = lh.MaSP
                                    WHERE sp.TrangThai = N'HoatDong' AND lh.SoLuongTon > 0
@@ -424,6 +430,7 @@ namespace FreshCare.Controllers
                                 MaSP = Convert.ToInt32(reader["MaSP"]),
                                 TenSP = reader["TenSP"].ToString()!,
                                 DonViTinh = reader["DonViTinh"].ToString()!,
+                                GiaNhap = Convert.ToDecimal(reader["GiaNhap"]),
                                 GiaBan = Convert.ToDecimal(reader["GiaBan"])
                             });
                         }

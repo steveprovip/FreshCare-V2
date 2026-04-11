@@ -190,4 +190,28 @@ namespace FreshCare.Models.ViewModels
         public decimal SoLuong { get; set; }
         public decimal DonGia { get; set; }
     }
+
+    /// <summary>
+    /// ViewModel chi tiết phiếu nhập kho (để Xem / In)
+    /// </summary>
+    public class ChiTietPhieuNhapViewModel
+    {
+        public int MaPhieuNhap { get; set; }
+        public DateTime NgayNhap { get; set; }
+        public string TenNhanVien { get; set; } = string.Empty;
+        public string? GhiChu { get; set; }
+        public decimal TongTien { get; set; }
+        public List<ChiTietNhapItem> DanhSachChiTiet { get; set; } = new();
+    }
+
+    public class ChiTietNhapItem
+    {
+        public int MaLo { get; set; }
+        public string TenSanPham { get; set; } = string.Empty;
+        public string DonViTinh { get; set; } = string.Empty;
+        public decimal SoLuong { get; set; }
+        public decimal GiaNhap { get; set; }
+        public DateTime NgaySanXuat { get; set; }
+        public DateTime HanSuDung { get; set; }
+    }
 }

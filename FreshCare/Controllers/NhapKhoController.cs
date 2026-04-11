@@ -191,7 +191,7 @@ namespace FreshCare.Controllers
                 using (var conn = DatabaseHelper.GetConnection(_connectionString))
                 {
                     conn.Open();
-                    string sql = "SELECT MaSP, TenSP, DonViTinh, GiaBan FROM SanPham WHERE MaSP = @MaSP";
+                    string sql = "SELECT MaSP, TenSP, DonViTinh, GiaNhap, GiaBan FROM SanPham WHERE MaSP = @MaSP";
                     using (var cmd = new SqlCommand(sql, conn))
                     {
                         cmd.Parameters.AddWithValue("@MaSP", maSP);
@@ -202,6 +202,7 @@ namespace FreshCare.Controllers
                                 {
                                     success = true,
                                     donViTinh = reader["DonViTinh"].ToString(),
+                                    giaNhap = Convert.ToDecimal(reader["GiaNhap"]),
                                     giaBan = Convert.ToDecimal(reader["GiaBan"])
                                 });
                         }
@@ -220,7 +221,7 @@ namespace FreshCare.Controllers
                 using (var conn = DatabaseHelper.GetConnection(_connectionString))
                 {
                     conn.Open();
-                    string sql = @"SELECT sp.MaSP, sp.TenSP, sp.DonViTinh, sp.GiaBan, dm.TenDanhMuc
+                    string sql = @"SELECT sp.MaSP, sp.TenSP, sp.DonViTinh, sp.GiaNhap, sp.GiaBan, dm.TenDanhMuc
                                    FROM SanPham sp 
                                    INNER JOIN DanhMuc dm ON sp.MaDanhMuc = dm.MaDanhMuc
                                    WHERE sp.TrangThai = N'HoatDong' ORDER BY sp.TenSP";
@@ -234,6 +235,7 @@ namespace FreshCare.Controllers
                                 MaSP = Convert.ToInt32(reader["MaSP"]),
                                 TenSP = reader["TenSP"].ToString()!,
                                 DonViTinh = reader["DonViTinh"].ToString()!,
+                                GiaNhap = Convert.ToDecimal(reader["GiaNhap"]),
                                 GiaBan = Convert.ToDecimal(reader["GiaBan"]),
                                 TenDanhMuc = reader["TenDanhMuc"].ToString()
                             });
@@ -243,6 +245,76 @@ namespace FreshCare.Controllers
             }
             catch { }
             return list;
+        }
+
+        // GET: /NhapKho/ChiTiet - Xem chi tiết phiếu nhập & In phiếu
+        public IActionResult ChiTiet(int id)
+        {
+            var model = new ChiTietPhieuNhapViewModel();
+
+            try
+            {
+                using (var conn = DatabaseHelper.GetConnection(_connectionString))
+                {
+                    conn.Open();
+
+                    // 1. Lấy thông tin phiếu nhập
+                    string sqlPhieu = @"SELECT pn.MaPhieuNhap, pn.NgayNhap, pn.GhiChu, nv.HoTen
+                                        FROM PhieuNhapKho pn
+                                        INNER JOIN NhanVien nv ON pn.MaNV = nv.MaNV
+                                        WHERE pn.MaPhieuNhap = @Id";
+                    using (var cmd = new SqlCommand(sqlPhieu, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@Id", id);
+                        using (var reader = cmd.ExecuteReader())
+                        {
+                            if (reader.Read())
+                            {
+                                model.MaPhieuNhap = Convert.ToInt32(reader["MaPhieuNhap"]);
+                                model.NgayNhap = Convert.ToDateTime(reader["NgayNhap"]);
+                                model.GhiChu = reader["GhiChu"]?.ToString();
+                                model.TenNhanVien = reader["HoTen"].ToString()!;
+                            }
+                        }
+                    }
+
+                    // 2. Lấy chi tiết nhập (tên hàng hóa, đơn vị, giá nhập, NSX, HSD)
+                    string sqlChiTiet = @"SELECT ct.MaLo, sp.TenSP, sp.DonViTinh, sp.GiaNhap, 
+                                                ct.SoLuong, lh.NgaySanXuat, lh.HanSuDung
+                                         FROM ChiTietNhap ct
+                                         INNER JOIN LoHang lh ON ct.MaLo = lh.MaLo
+                                         INNER JOIN SanPham sp ON lh.MaSP = sp.MaSP
+                                         WHERE ct.MaPhieuNhap = @Id";
+                    using (var cmd = new SqlCommand(sqlChiTiet, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@Id", id);
+                        using (var reader = cmd.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                model.DanhSachChiTiet.Add(new ChiTietNhapItem
+                                {
+                                    MaLo = Convert.ToInt32(reader["MaLo"]),
+                                    TenSanPham = reader["TenSP"].ToString()!,
+                                    DonViTinh = reader["DonViTinh"].ToString()!,
+                                    GiaNhap = Convert.ToDecimal(reader["GiaNhap"]),
+                                    SoLuong = Convert.ToDecimal(reader["SoLuong"]),
+                                    NgaySanXuat = Convert.ToDateTime(reader["NgaySanXuat"]),
+                                    HanSuDung = Convert.ToDateTime(reader["HanSuDung"])
+                                });
+                            }
+                        }
+                    }
+
+                    model.TongTien = model.DanhSachChiTiet.Sum(x => x.SoLuong * x.GiaNhap);
+                }
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = "Lỗi: " + ex.Message;
+            }
+
+            return View(model);
         }
     }
 }

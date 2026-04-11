@@ -15,7 +15,7 @@
                 <thead>
                     <tr>
                         <th>Mã SP</th><th>Tên sản phẩm</th><th>Đơn vị tính</th>
-                        <th>Giá bán</th><th>Danh mục</th><th>Mã vạch</th><th>Thao tác</th>
+                        <th>Giá nhập</th><th>Giá bán</th><th>Danh mục</th><th>Mã vạch</th><th>Thao tác</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -25,10 +25,15 @@
                             <td><strong>SP-@sp.MaSP.ToString("D3")</strong></td>
                             <td>@sp.TenSP</td>
                             <td><span class="badge bg-info">@sp.DonViTinh</span></td>
+                            <td>@sp.GiaNhap.ToString("N0")đ</td>
                             <td>@sp.GiaBan.ToString("N0")đ</td>
                             <td>@sp.TenDanhMuc</td>
                             <td>@(sp.MaVach ?? "—")</td>
                             <td>
+                                <button class="btn btn-sm btn-outline-warning" data-bs-toggle="modal" data-bs-target="#modalSuaSP" 
+                                    onclick="setEditSP(@sp.MaSP, '@sp.TenSP', '@sp.DonViTinh', @sp.GiaNhap, @sp.GiaBan, @sp.MaDanhMuc, '@sp.MaVach', '@sp.MoTa')">
+                                    <i class="fas fa-edit"></i>
+                                </button>
                                 <form asp-action="XoaSanPham" method="post" class="d-inline"
                                       onsubmit="return confirm('Xác nhận xóa sản phẩm @sp.TenSP?')">
                                     <input type="hidden" name="maSP" value="@sp.MaSP" />
@@ -61,7 +66,7 @@
                         <input name="tenSP" class="form-control" required />
                     </div>
                     <div class="row">
-                        <div class="col-md-6 mb-3">
+                        <div class="col-md-4 mb-3">
                             <label class="form-label fw-semibold">Đơn vị tính <span class="text-danger">*</span></label>
                             <select name="donViTinh" class="form-select" required>
                                 <option value="Kg">Kg</option>
@@ -72,7 +77,11 @@
                                 <option value="Gói">Gói</option>
                             </select>
                         </div>
-                        <div class="col-md-6 mb-3">
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label fw-semibold">Giá nhập (VNĐ) <span class="text-danger">*</span></label>
+                            <input name="giaNhap" type="number" step="100" class="form-control" required />
+                        </div>
+                        <div class="col-md-4 mb-3">
                             <label class="form-label fw-semibold">Giá bán (VNĐ) <span class="text-danger">*</span></label>
                             <input name="giaBan" type="number" step="100" class="form-control" required />
                         </div>
@@ -114,13 +123,13 @@
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
 
-            <form action="/SanPham/CapNhatSanPham" method="post">
+            <form action="/SanPham/SuaSanPham" method="post">
                 @Html.AntiForgeryToken()
 
                 <div class="modal-body">
 
                     <!-- ID ẩn -->
-                    <input type="hidden" name="MaSanPham" id="editMaSP" />
+                    <input type="hidden" name="maSP" id="editMaSP" />
 
                     <div class="mb-3">
                         <label class="form-label fw-semibold">Tên sản phẩm</label>
@@ -128,7 +137,7 @@
                     </div>
 
                     <div class="row">
-                        <div class="col-md-6 mb-3">
+                        <div class="col-md-4 mb-3">
                             <label class="form-label fw-semibold">Đơn vị tính</label>
                             <select id="editDonViTinh" name="donViTinh" class="form-select">
                                 <option value="Kg">Kg</option>
@@ -140,7 +149,11 @@
                             </select>
                         </div>
 
-                        <div class="col-md-6 mb-3">
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label fw-semibold">Giá nhập</label>
+                            <input id="editGiaNhap" name="giaNhap" type="number" class="form-control" />
+                        </div>
+                        <div class="col-md-4 mb-3">
                             <label class="form-label fw-semibold">Giá bán</label>
                             <input id="editGiaBan" name="giaBan" type="number" class="form-control" />
                         </div>
@@ -181,11 +194,12 @@
 </div>
 <!---->
 <script>
-    function setEditSP(id, ten, dvt, gia, madm, mavach, mota) {
+    function setEditSP(id, ten, dvt, gianhap, giaban, madm, mavach, mota) {
         document.getElementById("editMaSP").value = id;
         document.getElementById("editTenSP").value = ten;
         document.getElementById("editDonViTinh").value = dvt;
-        document.getElementById("editGiaBan").value = gia;
+        document.getElementById("editGiaNhap").value = gianhap;
+        document.getElementById("editGiaBan").value = giaban;
         document.getElementById("editDanhMuc").value = madm;
         document.getElementById("editMaVach").value = mavach;
         document.getElementById("editMoTa").value = mota;

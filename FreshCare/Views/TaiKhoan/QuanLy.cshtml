@@ -51,12 +51,24 @@
                         <td>
                             @if (nv.VaiTro != "Admin") 
                             {
-                                <form action="/TaiKhoan/DeleteStaff" method="post" onsubmit="return confirm('Bạn có chắc chắn muốn khóa nhân viên này?')">
-                                    <input type="hidden" name="id" value="@nv.MaNV" />
-                                    <button type="submit" class="btn btn-sm btn-outline-danger" title="Khóa tài khoản">
-                                        <i class="fas fa-user-lock"></i>
-                                    </button>
-                                </form>
+                                if (nv.TrangThai == "HoatDong")
+                                {
+                                    <form action="/TaiKhoan/DeleteStaff" method="post" onsubmit="return confirm('Bạn có chắc chắn muốn khóa nhân viên này?')">
+                                        <input type="hidden" name="id" value="@nv.MaNV" />
+                                        <button type="submit" class="btn btn-sm btn-outline-danger" title="Khóa tài khoản">
+                                            <i class="fas fa-user-lock"></i>
+                                        </button>
+                                    </form>
+                                }
+                                else
+                                {
+                                    <form action="/TaiKhoan/UnlockStaff" method="post" onsubmit="return confirm('Bạn có chắc chắn muốn mở khóa nhân viên này?')">
+                                        <input type="hidden" name="id" value="@nv.MaNV" />
+                                        <button type="submit" class="btn btn-sm btn-outline-success" title="Mở khóa tài khoản">
+                                            <i class="fas fa-lock-open"></i>
+                                        </button>
+                                    </form>
+                                }
                             }
                         </td>
                     </tr>
