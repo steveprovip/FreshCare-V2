@@ -116,14 +116,16 @@ namespace FreshCare.Controllers
                         }
                     }
 
-                    // Tạo tài khoản mới (mặc định vai trò Nhân viên)
-                    string insertSql = @"INSERT INTO NhanVien (HoTen, TenDangNhap, MatKhau, VaiTro, TrangThai) 
-                                         VALUES (@HoTen, @TenDangNhap, @MatKhau, N'NhanVien', N'HoatDong')";
+                    // Tạo tài khoản mới (mặc định vai trò Nhân viên) - bao gồm Email và SĐT
+                    string insertSql = @"INSERT INTO NhanVien (HoTen, TenDangNhap, MatKhau, VaiTro, TrangThai, Email, SoDienThoai) 
+                                         VALUES (@HoTen, @TenDangNhap, @MatKhau, N'NhanVien', N'HoatDong', @Email, @SoDienThoai)";
                     using (var cmd = new SqlCommand(insertSql, conn))
                     {
                         cmd.Parameters.AddWithValue("@HoTen", model.HoTen);
                         cmd.Parameters.AddWithValue("@TenDangNhap", model.TenDangNhap);
                         cmd.Parameters.AddWithValue("@MatKhau", DatabaseHelper.HashPassword(model.MatKhau));
+                        cmd.Parameters.AddWithValue("@Email", (object?)model.Email ?? DBNull.Value);
+                        cmd.Parameters.AddWithValue("@SoDienThoai", (object?)model.SoDienThoai ?? DBNull.Value);
                         cmd.ExecuteNonQuery();
                     }
                 }
@@ -139,6 +141,126 @@ namespace FreshCare.Controllers
 
             return View(model);
         }
+
+        // ============================================================
+        // CHỨC NĂNG QUÊN MẬT KHẨU
+        // ============================================================
+
+        // GET: /TaiKhoan/QuenMatKhau - Bước 1: nhập tên đăng nhập + email/SĐT
+        public IActionResult QuenMatKhau()
+        {
+            return View(new QuenMatKhauViewModel());
+        }
+
+        // POST: /TaiKhoan/QuenMatKhau - Xác minh thông tin
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult QuenMatKhau(QuenMatKhauViewModel model)
+        {
+            // Bắt buộc nhập ít nhất Email hoặc SĐT
+            if (string.IsNullOrWhiteSpace(model.Email) && string.IsNullOrWhiteSpace(model.SoDienThoai))
+            {
+                ModelState.AddModelError("", "Vui lòng nhập Email hoặc Số điện thoại để xác minh.");
+            }
+
+            if (!ModelState.IsValid) return View(model);
+
+            try
+            {
+                using (var conn = DatabaseHelper.GetConnection(_connectionString))
+                {
+                    conn.Open();
+
+                    // Tìm tài khoản khớp tên đăng nhập + (Email HOẶC SĐT)
+                    string sql = @"SELECT MaNV, HoTen, TenDangNhap, TrangThai 
+                                   FROM NhanVien 
+                                   WHERE TenDangNhap = @TenDangNhap
+                                     AND (
+                                           (Email IS NOT NULL AND Email = @Email)
+                                        OR (SoDienThoai IS NOT NULL AND SoDienThoai = @SoDienThoai)
+                                     )";
+                    using (var cmd = new SqlCommand(sql, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@TenDangNhap", model.TenDangNhap);
+                        cmd.Parameters.AddWithValue("@Email", (object?)model.Email ?? DBNull.Value);
+                        cmd.Parameters.AddWithValue("@SoDienThoai", (object?)model.SoDienThoai ?? DBNull.Value);
+
+                        using (var reader = cmd.ExecuteReader())
+                        {
+                            if (reader.Read())
+                            {
+                                string trangThai = reader["TrangThai"].ToString()!;
+                                if (trangThai == "DaKhoa")
+                                {
+                                    ModelState.AddModelError("", "Tài khoản đã bị khóa. Vui lòng liên hệ quản lý.");
+                                    return View(model);
+                                }
+
+                                int maNV = Convert.ToInt32(reader["MaNV"]);
+                                string tenDangNhap = reader["TenDangNhap"].ToString()!;
+
+                                // Chuyển sang bước 2: đặt lại mật khẩu
+                                return RedirectToAction("DatLaiMatKhau", new { maNV = maNV, tenDN = tenDangNhap });
+                            }
+                        }
+                    }
+                }
+
+                ModelState.AddModelError("", "Thông tin không khớp. Vui lòng kiểm tra lại tên đăng nhập và Email/Số điện thoại.");
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError("", "Lỗi hệ thống: " + ex.Message);
+            }
+
+            return View(model);
+        }
+
+        // GET: /TaiKhoan/DatLaiMatKhau - Bước 2: đặt mật khẩu mới
+        public IActionResult DatLaiMatKhau(int maNV, string tenDN)
+        {
+            if (maNV <= 0) return RedirectToAction("QuenMatKhau");
+
+            return View(new DatLaiMatKhauViewModel
+            {
+                MaNV = maNV,
+                TenDangNhap = tenDN
+            });
+        }
+
+        // POST: /TaiKhoan/DatLaiMatKhau - Lưu mật khẩu mới
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult DatLaiMatKhau(DatLaiMatKhauViewModel model)
+        {
+            if (!ModelState.IsValid) return View(model);
+
+            try
+            {
+                using (var conn = DatabaseHelper.GetConnection(_connectionString))
+                {
+                    conn.Open();
+
+                    string sql = "UPDATE NhanVien SET MatKhau = @MatKhau WHERE MaNV = @MaNV";
+                    using (var cmd = new SqlCommand(sql, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@MatKhau", DatabaseHelper.HashPassword(model.MatKhauMoi));
+                        cmd.Parameters.AddWithValue("@MaNV", model.MaNV);
+                        cmd.ExecuteNonQuery();
+                    }
+                }
+
+                TempData["Success"] = "Đặt lại mật khẩu thành công! Vui lòng đăng nhập.";
+                return RedirectToAction("DangNhap");
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError("", "Lỗi hệ thống: " + ex.Message);
+            }
+
+            return View(model);
+        }
+
         // them nhan vien moi
         [HttpPost]
         public IActionResult AddStaff(string HoTen, string Username, string Password, string ConfirmPassword)

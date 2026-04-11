@@ -1,0 +1,384 @@
+
+TRƯỜNG ĐẠI HỌC CÔNG NGHỆ THÔNG TIN VÀ TRUYỀN THÔNG
+KHOA CÔNG NGHỆ THÔNG TIN
+
+
+BÁO CÁO
+MÔN: CÔNG NGHỆ PHẦN MỀM
+ĐỀ TÀI:
+XÂY DỰNG HỆ THỐNG QUẢN LÝ KHO & HẠN SỬ DỤNG
+CHO CỬA HÀNG THỰC PHẨM SẠCH FRESHCARE
+NHÓM SINH VIÊN THỰC HIỆN:
+Nguyễn Duy Linh – CNTT K23I
+Nguyễn Nam Khánh – CNTT K23I
+Giàng A Tủa – CNTT K23I
+Sầm Nam Tú – CNTT K23I
+Mai Đăng Cường – CNTT K23I
+Giảng viên hướng dẫn: Đoàn Ngọc Phương
+Thái Nguyên, tháng 03 năm 2026
+
+LỜI CẢM ƠN
+Trước tiên với tình cảm sâu sắc và chân thành nhất, cho phép nhóm em được bày tỏ lòng biết ơn đến tất cả các cá nhân và tổ chức đã tạo điều kiện hỗ trợ, giúp đỡ nhóm em trong suốt quá trình học tập và xây dựng phần mềm. Trong suốt thời gian từ khi bắt đầu học tập tại trường đến nay, nhóm em đã nhận được rất nhiều sự quan tâm, giúp đỡ của quý thầy cô và bạn bè.
+Với lòng biết ơn sâu sắc nhất, em xin gửi đến quý thầy cô ở Khoa Công nghệ Thông tin đã truyền đạt vốn kiến thức quý báu cho chúng em trong khoảng thời gian học tập vừa qua. Nhờ có những lời hướng dẫn, dạy bảo của các thầy cô nên bài báo cáo của em mới có thể hoàn thiện tốt đẹp.
+Đặc biệt, nhóm em xin chân thành cảm ơn cô Đoàn Ngọc Phương – người đã trực tiếp giúp đỡ, quan tâm, hướng dẫn nhóm em hoàn thành tốt bài báo cáo này trong thời gian qua.
+Bài báo cáo môn Công nghệ Phần mềm với đề tài "Xây dựng hệ thống quản lý kho & hạn sử dụng cho cửa hàng thực phẩm sạch FreshCare" được thực hiện trong thời gian qua. Bước đầu đi vào thực tế của nhóm em còn hạn chế, còn nhiều bỡ ngỡ nên không tránh khỏi những thiếu sót. Nhóm em rất mong nhận được những ý kiến đóng góp quý báu của quý thầy cô để kiến thức của chúng em trong lĩnh vực này được hoàn thiện hơn, đồng thời có điều kiện bổ sung, nâng cao kiến thức của mình.
+Thái Nguyên, ngày 08 tháng 03 năm 2026
+Nhóm sinh viên thực hiện
+
+MỤC LỤC
+
+CHƯƠNG I: TỔNG QUAN VỀ CÔNG NGHỆ PHẦN MỀM
+1. Các khái niệm cơ bản
+1.1. Phần cứng
+Phần cứng (Hardware) là các thiết bị, cấu kiện mang tính vật lý có thể tiếp xúc bằng tay được, bao gồm: máy in, ổ đĩa, máy quét, các mạch tích hợp (IC), máy quét mã vạch (được sử dụng trong hệ thống kho của FreshCare) và nhiều thiết bị ngoại vi khác.
+1.2. Phần mềm
+Nghĩa đơn giản nhất của phần mềm (Software) là các chương trình chứa các dòng lệnh chỉ thị cho máy tính thực hiện một công việc nào đó. Đôi khi người ta gọi phần mềm là chương trình, cho dù thực tế thì phần mềm gồm nhiều chương trình và dữ liệu. Ví dụ: chương trình quản lý kho hàng, quản lý bán hàng.
+Trong công nghệ phần mềm, người ta hiểu phần mềm không chỉ là các chương trình, dữ liệu, mà còn gồm cả các tài liệu liên quan như các bản đặc tả, thiết kế, hướng dẫn sử dụng, các thông tin cấu hình cần thiết để làm cho các chương trình này có thể vận hành một cách đúng đắn.
+1.3. Các xu hướng công nghệ phần mềm hiện đại
+Trong bối cảnh của thời đại số, việc ứng dụng công nghệ thông tin vào quản lý chuỗi cung ứng và kho bãi là tất yếu. Một số xu hướng công nghệ phần mềm hiện đại nổi bật bao gồm:
+- Mô hình Agile: Phương pháp quản lý dự án và phát triển phần mềm linh hoạt, thích ứng tốt với các thay đổi yêu cầu liên tục – rất phù hợp với dự án FreshCare.
+- Khối lượng dữ liệu lớn (Big Data): Giúp phân tích hành vi mua sắm, dự báo xu hướng tiêu thụ thực phẩm để nhập kho với số lượng hợp lý, hạn chế tồn đọng và hết hạn.
+- Đám mây (Cloud Computing): Cho phép lưu trữ và truy cập dữ liệu tồn kho theo thời gian thực từ bất kỳ chi nhánh nào mà không cần đầu tư hạ tầng máy chủ cục bộ lớn.
+- Internet vạn vật (IoT): Kết nối các cảm biến nhiệt độ trong kho lạnh với phần mềm để cảnh báo nếu môi trường bảo quản thực phẩm bị lỗi, đảm bảo chất lượng sản phẩm.
+1.4. Vòng đời phần mềm
+Vòng đời phần mềm là quá trình phát triển và quản lý phần mềm, từ khi khởi đầu cho đến khi nó được rút khỏi hoặc thay thế bằng một phiên bản mới. Đối với hệ thống FreshCare, vòng đời phần mềm bao gồm các giai đoạn sau:
+- Giai đoạn yêu cầu: Thu thập yêu cầu từ cửa hàng FreshCare, xác định nghiệp vụ quản lý hạn sử dụng (HSD) và lô hàng (Batch).
+- Giai đoạn thiết kế: Thiết kế cơ sở dữ liệu (đặc biệt là bảng Lô Hàng), thiết kế giao diện người dùng (UI/UX) trực quan.
+- Giai đoạn phát triển (Lập trình): Viết mã nguồn cho toàn bộ hệ thống, triển khai thuật toán xuất kho FIFO.
+- Giai đoạn kiểm thử: Đảm bảo luồng xuất kho FIFO hoạt động chính xác, kiểm tra các trường hợp về tính toán hạn sử dụng.
+- Giai đoạn triển khai và bảo trì: Cài đặt hệ thống cho cửa hàng, hỗ trợ vận hành và khắc phục sự cố.
+1.5. Các mô hình phát triển phần mềm
+Mô hình quy trình phát triển phần mềm là một thể hiện đơn giản hóa của một quy trình phần mềm. Một số mô hình phổ biến được nhóm nghiên cứu để áp dụng cho dự án:
+- Mô hình thác nước (Waterfall): Thực hiện tuần tự qua từng giai đoạn, dễ quản lý tiến độ nhưng kém linh hoạt khi yêu cầu thay đổi.
+- Mô hình mẫu thử (Prototype): Xây dựng bản nháp, lấy ý kiến từ phía cửa hàng FreshCare và tinh chỉnh liên tục cho đến khi đáp ứng yêu cầu.
+- Mô hình xoắn ốc (Spiral): Kết hợp giữa mô hình thác nước và mẫu thử, đặc biệt chú trọng đến phân tích và quản lý rủi ro ở mỗi vòng lặp.
+1.6. Các chuẩn trong công nghệ phần mềm
+Trong lĩnh vực công nghệ phần mềm, các chuẩn và tiêu chuẩn quốc tế đóng vai trò quan trọng đảm bảo chất lượng và tính tin cậy của sản phẩm. Một số chuẩn được nhóm tham khảo:
+- CMM/CMMI: Mô hình đánh giá và cải tiến năng lực phát triển phần mềm của tổ chức, do Viện Kỹ thuật Phần mềm (SEI) của Mỹ phát triển.
+- ISO 9001: Tiêu chuẩn quốc tế về hệ thống quản lý chất lượng, áp dụng để đảm bảo sản phẩm đáp ứng yêu cầu của khách hàng.
+- ISO/IEC 9126: Tiêu chuẩn đánh giá chất lượng phần mềm theo các tiêu chí: tính chức năng, độ tin cậy, tính khả dụng, hiệu suất, khả năng bảo trì và tính linh động.
+2. Mô hình sử dụng trong xây dựng phần mềm FreshCare
+Với hệ thống quản lý kho & hạn sử dụng FreshCare, nhóm quyết định sử dụng mô hình Agile/Scrum. Đây là mô hình phù hợp nhất với tính chất của dự án vì các lý do sau:
+Lý do lựa chọn: Nghiệp vụ quản lý thực phẩm sạch yêu cầu sự thay đổi liên tục về cách tính toán hạn sử dụng, quy tắc trừ kho FIFO (First In, First Out) và các báo cáo hao hụt. Mô hình Agile/Scrum cho phép nhóm phản ứng nhanh với những thay đổi này mà không cần phá vỡ toàn bộ kế hoạch.
+Cách thức thực hiện: Nhóm chia nhỏ dự án thành các Sprint (chu kỳ phát triển từ 2 đến 3 tuần):
+- Sprint 1: Tập trung vào việc thiết kế cơ sở dữ liệu và xây dựng chức năng Thêm/Sửa/Xóa hàng hóa trong danh mục.
+- Sprint 2: Phát triển module Nhập kho có gắn ngày hạn sử dụng và mã lô (Batch Number).
+- Sprint 3: Phát triển thuật toán xuất kho tự động ưu tiên hàng cận hạn (FIFO/FEFO) và Dashboard cảnh báo hạn sử dụng.
+Lợi ích đạt được: Cuối mỗi Sprint, một phần mềm có thể hoạt động được sẽ được đưa ra chạy thử tại cửa hàng. Các rủi ro về thuật toán tính toán sai số lượng tồn kho hay tính sai hạn sử dụng sẽ được phát hiện và khắc phục ngay lập tức, tránh tích lũy lỗi về cuối dự án.
+CHƯƠNG II: LẬP KẾ HOẠCH DỰ ÁN
+2.1. Lý do chọn đề tài
+Thực trạng ngành bán lẻ thực phẩm:
+Ngành thực phẩm sạch (rau củ hữu cơ, thịt cá tươi sống) đối mặt với bài toán lớn về hao hụt (food waste). Các sản phẩm này có thời hạn sử dụng rất ngắn, chỉ từ 2 đến 7 ngày, đòi hỏi hệ thống quản lý kho phải cực kỳ chính xác và kịp thời.
+Nhược điểm của hệ thống hiện tại:
+Nhiều cửa hàng hiện nay quản lý bằng sổ sách hoặc file Excel cơ bản. Hệ thống này chỉ quản lý được tổng số lượng tồn (ví dụ: kho còn 20 bó rau) nhưng không kiểm soát được trong 20 bó đó có bao nhiêu bó hết hạn ngày mai, bao nhiêu bó hết hạn tuần sau. Điều này dẫn đến tình trạng nhân viên lấy nhầm hàng mới bán trước, hàng cũ bị tồn lại đến lúc hỏng phải vứt bỏ, gây thiệt hại kinh tế đáng kể cho cửa hàng.
+Tính thiết thực của đề tài:
+Một hệ thống quản lý kho được thiết kế chuyên biệt để tự động hóa quy tắc FIFO (Vào trước – Ra trước) và tích hợp hệ thống cảnh báo (Dashboard Alert) trước khi sản phẩm hết hạn sẽ giúp quản lý cửa hàng chủ động lên kế hoạch giảm giá kịp thời, tối ưu hóa lợi nhuận và giảm thiểu đáng kể lượng rác thải thực phẩm.
+2.2. Sơ lược về dự án
+Tên dự án: Xây dựng phần mềm quản lý kho & hạn sử dụng cho cửa hàng thực phẩm sạch FreshCare.
+Thời gian thực hiện: 3 tháng
+- Giai đoạn 1: Thu thập yêu cầu và phân tích nghiệp vụ kho thực phẩm.
+- Giai đoạn 2: Phân tích, thiết kế hệ thống (kiến trúc tổng thể, cơ sở dữ liệu theo lô hàng).
+- Giai đoạn 3: Cài đặt hệ thống (lập trình các module chức năng).
+- Giai đoạn 4: Kiểm thử thuật toán xuất kho và triển khai tại cửa hàng.
+Kinh phí dự kiến: 150.000.000 VNĐ
+Nhân sự thực hiện (Nhóm 8):
+- Nguyễn Duy Linh – Trưởng nhóm / Quản lý dự án (Project Manager)
+- Nguyễn Nam Khánh – Phân tích nghiệp vụ / Hỗ trợ kiểm thử (Business Analyst)
+- Giàng A Tủa – Lập trình giao diện người dùng (Frontend Developer)
+- Sầm Nam Tú – Lập trình xử lý nghiệp vụ và cơ sở dữ liệu (Backend Developer)
+- Mai Đăng Cường – Kiểm thử và triển khai phần mềm (QA/Tester)
+Bảng phân công công việc chi tiết:
+Lịch các cuộc họp dự án:
+Kết quả dự kiến khi hoàn thành dự án:
+- Phần mềm vận hành ổn định trên nền tảng Web, tốc độ tải trang nhanh, đáp ứng nhiều người dùng đồng thời.
+- Quản lý chính xác số lượng tồn kho theo từng lô hàng (Batch) và hạn sử dụng cụ thể.
+- Giao diện Dashboard trực quan, tự động đổi màu (đỏ/cam) cho các mặt hàng đã hết hạn hoặc sắp hết hạn trong vòng 3 ngày.
+- Khi thực hiện xuất bán, hệ thống tự động ưu tiên trừ tồn kho vào lô hàng có ngày sản xuất hoặc ngày nhập kho cũ nhất (FIFO).
+- Hệ thống chặn tuyệt đối việc xuất bán các lô hàng đã quá hạn sử dụng.
+2.3. Phân tích rủi ro dự án
+2.3.1. Dự đoán rủi ro
+Trong quá trình lập kế hoạch, nhóm đã xác định các nhóm rủi ro chính có thể ảnh hưởng đến tiến độ và chất lượng của dự án:
+- Rủi ro về lập kế hoạch: Ước lượng sai thời gian cần thiết cho việc xây dựng và kiểm thử thuật toán trừ kho FIFO; kế hoạch bị thay đổi do cửa hàng FreshCare điều chỉnh quy trình nhập hàng; ước lượng ngân sách không chính xác; lập lịch biểu không hợp lý dẫn đến một số Sprint bị quá tải.
+- Rủi ro về tổ chức: Phân bổ công việc chưa đồng đều giữa 5 thành viên; sự phối hợp giữa thành viên phụ trách Backend và Frontend bị lệch chuẩn giao tiếp API.
+- Rủi ro về kỹ thuật (đặc thù hệ thống kho): Logic trừ kho phức tạp khi số lượng xuất vượt quá tồn kho của một lô đơn lẻ; vấn đề lệch múi giờ (Timezone) khi lưu trữ ngày hạn sử dụng; hiệu suất hệ thống giảm khi dữ liệu lô hàng tích lũy quá nhiều theo thời gian.
+
+
+
+
+2.3.2. Bảng phân tích quản lý rủi ro
+a) Rủi ro về kỹ thuật và nghiệp vụ
+
+
+
+
+b) Rủi ro nội bộ và tiến độ
+
+
+CHƯƠNG III: KHẢO SÁT HỆ THỐNG VÀ ĐẶC TẢ YÊU CẦU
+1. Khảo sát
+1.1. Khảo sát hiện trạng
+Ngày nay, cùng với sự nâng cao về mức sống, nhu cầu tiêu dùng thực phẩm sạch, an toàn và rõ nguồn gốc ngày càng gia tăng. Tại Thái Nguyên, cửa hàng thực phẩm sạch FreshCare là một trong những đơn vị cung cấp đa dạng các mặt hàng hữu cơ như: rau củ quả, thịt cá tươi sống và các loại hạt, đồ khô. Tuy nhiên, đặc thù lớn nhất của ngành thực phẩm sạch là vòng đời sản phẩm rất ngắn (có những loại rau ăn lá hoặc thịt tươi chỉ có hạn sử dụng từ 2 đến 5 ngày).
+Để thu thập yêu cầu chính xác cho hệ thống quản lý kho FreshCare, nhóm chúng em KHÔNG sử dụng phương pháp Bảng hỏi (Survey) qua biểu mẫu trực tuyến do số lượng nhân sự cửa hàng ít và nghiệp vụ kho mang tính thao tác thực hành cao. Thay vào đó, nhóm áp dụng kết hợp 3 phương pháp thực tế:
+- Phỏng vấn trực tiếp (Interviews): Phỏng vấn quản lý cửa hàng để xác định quy tắc cảnh báo hạn sử dụng (ví dụ: rau củ cảnh báo trước 1 ngày, đồ khô cảnh báo trước 1 tháng) và kỳ vọng về việc giảm tỷ lệ hao hụt. Phỏng vấn nhân viên bán hàng về những khó khăn khi phải nhớ xuất lô hàng nào trước.
+- Quan sát thực tế (Observation): Theo chân nhân viên kho vào lúc sáng sớm khi nhập hàng để quan sát cách họ kiểm đếm, tìm ngày sản xuất/hạn sử dụng trên bao bì và xếp hàng lên kệ. Quan sát cách nhân viên bán hàng lấy sản phẩm cho khách để hiểu tại sao nguyên tắc FIFO (vào trước, ra trước) hay bị phá vỡ trong thực tế.
+- Phân tích tài liệu (Document Analysis): Thu thập và phân tích các mẫu file Excel quản lý tồn kho hiện tại, hóa đơn nhập hàng từ nhà cung cấp và biên bản ghi nhận hàng hủy do quá date để làm cơ sở thiết kế cấu trúc Cơ sở dữ liệu và các trường thông tin cần thiết.
+
+
+
+1.2. Đánh giá hiện trạng khảo sát
+Qua quá trình khảo sát thực tế tại FreshCare, chúng tôi nhận thấy: Cửa hàng có quy mô vừa, lượng khách hàng ra vào liên tục mỗi ngày. Tuy nhiên, công tác quản lý kho đang gặp rắc rối lớn. Việc sử dụng kết hợp giữa sổ sách ghi tay và một file Excel cơ bản khiến cho việc theo dõi Hạn sử dụng (HSD) của từng lô hàng trở nên bất khả thi.
+Lượng thực phẩm sạch bị vứt bỏ do hết hạn (hao hụt) chiếm đến gần 15% doanh thu hàng tháng. Nguyên nhân chủ yếu do nhân viên không biết chính xác mặt hàng nào đang cận date để ưu tiên bán trước hoặc tham mưu cho quản lý đưa ra chương trình khuyến mãi kịp thời. Do đó, việc xây dựng một phần mềm quản lý kho chuyên biệt theo Lô hàng (Batch) là vô cùng cấp thiết.
+1.3. Quy trình hoạt động của Cửa hàng FreshCare hiện tại
+- Tại bộ phận Kho (Luồng Nhập hàng): Mỗi sáng sớm khi nhà cung cấp giao hàng đến, nhân viên sẽ tiến hành kiểm đếm số lượng. Nhân viên nhìn vào bao bì để xem Ngày sản xuất (NSX) và Hạn sử dụng (HSD), sau đó ghi chép lại vào một cuốn sổ tay. Cuối ca trực, nhân viên sẽ tổng hợp số liệu và nhập vào một file Excel lưu trên máy tính. File Excel này hiện tại chỉ quản lý theo Tổng số lượng, chứ không tách biệt được số lượng theo từng ngày nhập hay từng mức hạn sử dụng.
+- Tại bộ phận Bán hàng (Luồng Xuất kho): Khi có khách mua hàng hoặc khi cần bổ sung hàng lên kệ trưng bày, nhân viên sẽ vào kho lấy hàng. Theo thói quen và sự tiện lợi, nhân viên thường lấy những thùng hàng được đặt ở ngoài cùng (thường là hàng mới nhập) thay vì lấy hàng ở sâu bên trong (hàng cũ hơn). Điều này trực tiếp phá vỡ quy tắc FIFO (First In, First Out).
+- Tại bộ phận Quản lý: Quản lý chỉ xem được file Excel báo cáo tổng tồn kho. Đến khi tiến hành kiểm kê kho thực tế vào cuối tuần, quản lý mới phát hiện ra có những lô rau củ hoặc thịt đã quá hạn sử dụng bị nằm khuất trên kệ, bắt buộc phải làm biên bản xuất hủy, gây thiệt hại lớn về kinh tế.
+
+
+
+2. Đánh giá hệ thống hiện trạng
+2.1. Ưu điểm
+- Giá thành đầu tư ban đầu thấp, không mất chi phí mua sắm và duy trì phần mềm chuyên nghiệp.
+- Thời gian triển khai nhanh, nhân viên chỉ cần biết sử dụng máy tính ở mức cơ bản (nhập liệu Excel) là có thể làm được ngay, không tốn thời gian tập huấn công nghệ.
+- Linh hoạt trong việc ghi chú các trường hợp phát sinh lạ vào sổ tay cá nhân.
+2.2. Nhược điểm
+- Lãng phí thực phẩm nghiêm trọng: Không có hệ thống cảnh báo hàng cận date, dẫn đến hàng hóa bị hết hạn mà không ai biết để xử lý (giảm giá hoặc chế biến tiêu hủy).
+- Sai lệch tồn kho theo lô: Việc chỉ quản lý tổng số lượng khiến cửa hàng không kiểm soát được dòng chảy của từng lô hàng, không áp dụng được nguyên tắc FIFO.
+- Tốn thời gian và công sức: Việc ghi chép từ sổ tay sang Excel dễ gây nhầm lẫn, sai sót dữ liệu. Mất rất nhiều thời gian mỗi khi cần kiểm kê kho vật lý.
+- Quyết định kinh doanh chậm trễ: Do dữ liệu rải rác và cập nhật thủ công, quản lý không có báo cáo tức thời để biết mặt hàng nào đang bán chậm, mặt hàng nào sắp hỏng để ra quyết định kinh doanh.
+3. Đề xuất hệ thống mới
+Từ những nhược điểm nêu trên, yêu cầu đặt ra là phải xây dựng một Hệ thống Quản lý kho & Hạn sử dụng chuyên sâu dành riêng cho FreshCare. Thay vì quản lý tồn kho theo "Mã sản phẩm" đơn thuần, hệ thống mới sẽ quản lý lõi dựa trên "Lô hàng" (Batch). Mỗi lần nhập hàng, một mã lô mới sẽ được sinh ra gắn liền với Ngày sản xuất và Hạn sử dụng cụ thể.
+Hệ thống sẽ tự động hóa hoàn toàn quy tắc FIFO khi xuất kho và tích hợp bảng điều khiển (Dashboard) tự động đổi màu cảnh báo đối với các mặt hàng cận date hoặc đã hết hạn, giúp cửa hàng tiết kiệm tối đa chi phí hao hụt.
+
+
+3.0. Danh sách Stakeholder (Các bên liên quan)
+Stakeholder là những cá nhân hoặc tổ chức có liên quan hoặc chịu ảnh hưởng bởi hệ thống quản lý kho & hạn sử dụng FreshCare.
+
+
+
+
+
+
+
+3.1. Yêu cầu chức năng (Functional Requirements)
+Dựa trên việc phân tích các nghiệp vụ tại cửa hàng thực phẩm sạch FreshCare, hệ thống cần đáp ứng các yêu cầu chức năng chi tiết sau:
+
+3.2. Yêu cầu phi chức năng (Non-Functional Requirements)
+Để đảm bảo hệ thống vận hành trơn tru và mang lại trải nghiệm tốt nhất, các yêu cầu phi chức năng được xác định như sau:
+
+
+
+
+
+
+
+
+
+
+3.3. Sơ đồ phân cấp chức năng
+Hệ thống được thiết kế theo 4 phân hệ (Module) chính:
+Hệ thống Quản lý kho & Hạn sử dụng FreshCare
+
+Hình 3.1: Sơ đồ phân cấp chức năng hệ thống FreshCare
+3.4. Đặc tả bán hình thức (Semi-formal Specification)
+Use Case UC-01: Đăng nhập hệ thống
+
+Use Case UC-02: Nhập kho – Tạo lô hàng mới
+
+
+
+Use Case UC-03: Xuất kho tự động theo FIFO
+
+
+CHƯƠNG IV: PHÂN TÍCH VÀ THIẾT KẾ HỆ THỐNG
+1. Biểu đồ Use Case
+1.1. Tác nhân (Actors)
+Hệ thống quản lý kho & hạn sử dụng FreshCare có hai tác nhân chính tương tác trực tiếp:
+- Quản lý (Admin): Là người có toàn quyền trên hệ thống. Thực hiện quản trị tài khoản nhân viên, xem báo cáo doanh thu và hao hụt, theo dõi dashboard cảnh báo HSD, quản lý danh mục sản phẩm và duyệt/hủy phiếu nhập xuất bất thường.
+- Nhân viên (Staff): Thực hiện các nghiệp vụ hàng ngày. Nhân viên kho nhập kho, gắn thông tin lô hàng; nhân viên bán hàng thực hiện xuất kho. Hệ thống tự động áp dụng FIFO, nhân viên không cần chọn thủ công từng lô.
+1.2. Danh sách Use Case
+
+
+
+
+
+1.3. Biểu đồ Use Case tổng quát
+(Biểu đồ Use Case tổng quát: Hai Actor Quản lý và Nhân viên, các Use Case UC-01 đến UC-08 trong hình Ellipse được bao bởi hệ thống FreshCare)
+
+
+
+
+
+
+
+1.4. Biểu đồ Use Case phân rã
+(Biểu đồ Use Case phân rã: UC-04 Xuất kho FIFO phân rã gồm <<include>> Kiểm tra tồn kho; Tìm lô theo FIFO; Trừ tồn kho theo từng lô)
+
+2. Kịch bản cho các Use Case
+Bảng 4.1: Kịch bản cho Use Case UC-03 – Nhập kho (Tạo lô hàng mới)
+
+Bảng 4.2: Kịch bản cho Use Case UC-04 – Xuất kho tự động theo FIFO (Use Case trọng tâm)
+
+Bảng 4.3: Kịch bản cho Use Case UC-05 – Xem Dashboard cảnh báo HSD
+
+
+Bảng 4.4: Kịch bản cho Use Case UC-06 – Xuất hủy hàng hết hạn
+
+3. Biểu đồ lớp (Class Diagram)
+
+
+
+4. Biểu đồ trạng thái (State Diagram)
+Biểu đồ trạng thái cho lô hàng (Batch) – đối tượng trung tâm của hệ thống FreshCare:
+
+
+5. Mô tả chi tiết thuật toán FIFO xuất kho
+Hệ thống FreshCare áp dụng thuật toán FEFO (First Expired, First Out) thay vì FIFO
+truyền thống. Điểm khác biệt cốt lõi:
+- FIFO (First In, First Out): Ưu tiên xuất lô nhập kho trước. Phù hợp với hàng không
+  có hạn sử dụng.
+- FEFO (First Expired, First Out): Ưu tiên xuất lô HẾT HẠN SỚM NHẤT trước,
+  bất kể lô nào nhập kho trước. Phù hợp với thực phẩm sạch có HSD ngắn.
+Câu lệnh SQL thực thi thuật toán FEFO:
+ SELECT MaLo, SoLuongTon, HanSuDung
+  FROM LoHang
+  WHERE MaSP = @MaSP AND SoLuongTon > 0
+        AND TrangThai NOT IN (N'Quá Hạn', N'Đã Hủy')
+  ORDER BY HanSuDung ASC, NgayNhapKho ASC
+Giải thích:
+- ORDER BY HanSuDung ASC: Lô nào hết hạn sớm nhất được đẩy lên đầu danh
+  sách để xuất trước (Luật FEFO).
+- NgayNhapKho ASC: Nếu hai lô có cùng HSD, ưu tiên lô nhập kho trước (FIFO dự
+  phòng).
+Ngoài ra, hệ thống còn áp dụng cơ chế tính giá bán lũy tiến cho các lô cận date: lô
+nào càng gần ngày hết hạn thì mức giảm giá càng sâu (xem chi tiết tại Mục 5.1.7).
+Ví dụ minh họa (khách mua 12 kg Rau cải ngọt):
+
+Kết quả: Hệ thống tự động trừ 5 kg từ L001 (HSD 22/03 – gần nhất) và 7 kg từ L002 (HSD 25/03). Hàng sắp hết hạn luôn được ưu tiên bán trước, tránh hao hụt.
+
+
+
+
+
+
+6. Biểu đồ tuần tự (Sequence Diagram)
+Bảng 4.5: Biểu đồ tuần tự cho UC-04 – Xuất kho FIFO
+
+
+
+
+
+
+
+
+
+
+Bảng 4.6: Biểu đồ tuần tự cho UC-03 – Nhập kho
+
+
+7. Biểu đồ thành phần (Component Diagram)
+
+
+
+
+
+
+
+
+CHƯƠNG V: THIẾT KẾ VÀ XÂY DỰNG HỆ THỐNG FRESHCARE 
+5.1. Lựa chọn công nghệ Sau khi đánh giá lại yêu cầu bài toán quản lý kho thực phẩm với tính toàn vẹn dữ liệu cao, nhóm quyết định chuyển đổi sang hệ sinh thái công nghệ của Microsoft:
+Ngôn ngữ lập trình: C# (C-Sharp).
+Nền tảng phát triển: ASP.NET Core MVC chạy trên công cụ Visual Studio 2022, cung cấp cấu trúc code rõ ràng và hiệu suất cao.
+Hệ quản trị CSDL: SQL Server 2022, đảm bảo khả năng xử lý Transaction (giao dịch) an toàn khi xuất/nhập kho.
+Công nghệ truy cập dữ liệu: Sử dụng thư viện System.Data.SqlClient (ADO.NET) để viết các câu truy vấn SQL thuần, giúp tối ưu hóa tốc độ khi xử lý vòng lặp trừ kho FIFO/FEFO.
+Giao diện: HTML5, CSS3, Bootstrap 5.
+5.2. Mô hình kiến trúc hệ thống MVC Hệ thống FreshCare được phân tách thành 3 lớp riêng biệt:
+Model: Chứa cấu trúc dữ liệu (LoHangViewModel) nhận từ SQL Server, bao gồm các thuộc tính bổ sung như Đơn Vị Tính, Giá Bán Gốc, Phần Trăm Sale, và Trạng Thái.
+View: Các file .cshtml (Razor View) chịu trách nhiệm hiển thị giao diện. Razor cho phép nhúng trực tiếp code C# vào HTML để render màu sắc cảnh báo theo hạn sử dụng.
+Controller: HomeController.cs là nơi tiếp nhận Request, xử lý thuật toán phân loại lô hàng, tính toán giá Sale tự động và thực thi luồng xuất/hủy kho.
+Biểu đồ Kiến trúc Hệ thống (MVC Architecture Diagram)
+5.3. Cấu trúc Cơ sở dữ liệu nâng cao Để giải quyết bài toán đặc thù của chuỗi thực phẩm sạch, CSDL được chuẩn hóa:
+Phân loại Sale theo danh mục: Bảng DanhMuc chứa trường PhanTramSale. Khi hàng cận Date, hệ thống tự động ánh xạ mức giảm giá (VD: Rau giảm 50%, Thịt giảm 30%).
+Đơn vị tính: Bảng SanPham chứa DonViTinh (Kg, Bó, Hộp) giúp việc xuất kho trực quan.
+Bảo toàn dữ liệu (No Hard-Delete): Bảng LoHang sử dụng trường TrangThai (An Toàn, Cận Date, Quá Hạn, Đã Hủy). Hàng hỏng sẽ được chuyển trạng thái thay vì xóa khỏi hệ thống.
+Tách biệt Doanh thu và Thất thoát: Bảng PhieuXuat định nghĩa rõ LoaiPhieu (Bán hàng / Hủy hàng) giúp kế toán báo cáo doanh thu chính xác.
+Sơ đồ Thực thể Liên kết (ERD - Entity Relationship Diagram)
+5.4. Xây dựng các chức năng nghiệp vụ lõi
+5.4.1. Chức năng hiển thị tồn kho và tính giá Sale tự động (GET Route)
+Mục đích: Hiển thị trực quan tình trạng kho, tự động gán nhãn cảnh báo và áp dụng chương trình khuyến mãi.
+Xử lý số ngày tồn: Sử dụng TimeSpan trong C# để trừ ngày HanSuDung cho DateTime.Now. Đặc biệt: Lập trình ràng buộc chặn số ngày âm. Nếu kết quả < 0, hệ thống tự động gán SoNgayConLai = 0, chuyển TrangThai = 'Quá Hạn' và khóa tính năng bán của lô đó.
+Tính giá thực tế (GiaThucTe): Được tính thông qua một biểu thức trong Model: Giá Thực Tế = (Trạng Thái == "Cận Date") ? Giá Gốc * (100 - PhanTramSale)/100 : Giá Gốc
+5.4.2. Chức năng Nhập kho và Quản lý Hủy hàng (POST Route)
+Nhập kho: Ràng buộc chặt chẽ đầu vào ở Backend, nếu HanSuDung < NgaySanXuat, Controller ném ra lỗi TempData["Message"] và hủy lệnh INSERT vào SQL.
+Hủy hàng: Thay vì thực thi lệnh DELETE, hàm HuyHang sẽ tạo một PhieuXuat mang nhãn "Hủy Hàng", cập nhật SoLuongTon = 0 và TrangThai = 'Đã Hủy'.
+5.4.3. Chức năng Xuất kho theo thuật toán FEFO/FIFO (POST Route)
+Mục đích: Ngăn chặn xuất âm kho và ưu tiên đẩy hàng cũ ra trước (First Expired - First Out).
+Thuật toán xử lý:
+Chặn xuất quá tồn: Dùng ExecuteScalar tính tổng SUM(SoLuongTon) các lô hàng còn hạn. Nếu lượng yêu cầu > tổng tồn, giao dịch bị từ chối.
+Sắp xếp mảng: Truy vấn danh sách các lô hợp lệ bằng ORDER BY HanSuDung ASC để đẩy lô sắp hết hạn lên đầu.
+Vòng lặp trừ kho (foreach): * Nếu Số lượng lô hiện tại >= Số lượng cần xuất: Trừ lượng cần xuất vào lô này, biến đếm về 0, thoát vòng lặp (break).
+ Nếu Số lượng lô hiện tại < Số lượng cần xuất: Trừ sạch lượng tồn của lô hiện tại về 0, cập nhật phần còn lại vào biến đếm, tiếp tục vòng lặp sang lô tiếp theo.
+Đồng thời, hệ thống tính giá xuất thực tế cho từng lô theo công thức giảm giá
+  lũy tiến:
+  - Nếu lô đang ở trạng thái "Cận Date": Áp dụng công thức lũy tiến
+    (PhanTramSale × (1 + (14 − SoNgayConLai) / 14), tối đa 80%).
+  - Nếu lô ở trạng thái "An Toàn": Bán đúng giá gốc.
+  Kết quả được ghi vào bảng ChiTietXuat với cột DonGia là giá thực tế tại thời
+  điểm bán.
+
+  Ngoài ra, trước khi thực hiện xuất kho, Controller còn kiểm tra ràng buộc đơn vị
+  tính (Luật #10):
+  - Nếu đơn vị tính là "Kg": Cho phép nhập số thập phân (ví dụ: 1.5 Kg).
+  - Nếu đơn vị tính là "Chai", "Bó", "Hộp", "Khay"...: Chỉ cho phép số nguyên.
+  Việc kiểm tra này được thực hiện ở 3 lớp:
+  (1) HTML5 attribute (step/min);
+  (2) jQuery validate trước submit;
+  (3) Server-side kiểm tra Math.Floor(SoLuong) tại Controller.
+Sơ đồ khối Thuật toán (Flowchart)
+CHƯƠNG VI: KIỂM THỬ HỆ THỐNG
+6.1. Mục đích
+Giai đoạn kiểm thử (Testing) nhằm mục đích phát hiện các lỗi lập trình, lỗi logic nghiệp vụ và đảm bảo hệ thống FreshCare đáp ứng đúng các yêu cầu của bài toán đặt ra. Cụ thể:
+Xác minh tính chính xác của các thuật toán: Tự động tính giá Sale, chặn ngày âm đối với hàng quá hạn, và nguyên tắc xuất kho FEFO/FIFO.
+Đảm bảo quy trình quản lý rủi ro: Lô hàng hủy không bị xóa khỏi CSDL mà được lưu lịch sử để quản lý doanh thu và thất thoát.
+Đánh giá trải nghiệm người dùng: Hiển thị đúng đơn vị tính, màu sắc cảnh báo trực quan.
+6.2. Kế hoạch kiểm tra
+6.2.1. Công cụ và môi trường
+Công cụ phần cứng: * Laptop/PC có bộ vi xử lý Intel Core i5 / AMD Ryzen 5 trở lên.
+RAM tối thiểu 8GB.
+Ổ cứng SSD trống ít nhất 50GB.
+Công cụ phần mềm:
+Visual Studio 2022 (Công cụ biên dịch và chạy Unit Test C#).
+SQL Server Management Studio (SSMS) 19.x (Công cụ kiểm tra dữ liệu trực tiếp dưới Database).
+Môi trường:
+Hệ điều hành: Windows 10/11 64-bit.
+Môi trường triển khai: Localhost chạy trên IIS Express.
+Trình duyệt kiểm thử: Google Chrome (Version 120+), Microsoft Edge.
+6.2.2. Các tính năng cần kiểm tra
+Tính năng Đăng nhập & Phân quyền.
+Tính năng Thêm mới lô hàng (Validate NSX và HSD).
+Tính năng tự động cập nhật trạng thái thời gian thực (Cận date, Quá hạn).
+Tính năng tự động tính giá Sale dựa theo danh mục.
+Tính năng Xuất kho thông minh (FEFO/FIFO) và chặn xuất âm.
+Tính năng Xuất Hủy và lưu lịch sử bảo toàn dữ liệu.
+6.3. Test Case
+(Bảng kịch bản kiểm thử các luồng nghiệp vụ lõi)
+
+
+6.4. Báo cáo kiểm thử
+Tổng số Test Case thực thi: 10
+Số Test Case Pass: 10
+Số Test Case Fail: 00
+Tỷ lệ thành công: 100%
+Kết luận: Hệ thống sau khi được tinh chỉnh CSDL, cập nhật công nghệ C# và bổ sung thuật toán tự động đã khắc phục hoàn toàn các khiếm khuyết của phiên bản cũ. Các chức năng đáp ứng chính xác yêu cầu quản lý hạn sử dụng khắt khe của cửa hàng thực phẩm, sẵn sàng đưa vào triển khai thực tế.
+CHƯƠNG VII: TRIỂN KHAI VÀ BẢO TRÌ PHẦN MỀM
+7.1. Quy trình triển khai (Deployment) Hệ thống FreshCare là ứng dụng Web nội bộ chạy trên nền tảng ASP.NET Core MVC,được triển khai trực tiếp tại cửa hàng mà không cần đăng tải lên kho ứng dụng (App Store) như ứng dụng di động. Quy trình triển khai gồm các bước: 
+Bước 1 — Chuẩn bị môi trường máy chủ: - Cài đặt SQL Server 2022 Express Edition (miễn phí). - Cài đặt .NET Runtime phiên bản tương ứng. - Cấu hình IIS (Internet Information Services) hoặc sử dụng Kestrel Server tích hợp sẵn. 
+Bước 2 — Đóng gói phần mềm: Sử dụng lệnh: dotnet publish -c Release -o ./publish Lệnh này biên dịch và đóng gói toàn bộ mã nguồn thành file DLL chạy trên production, không chứa mã nguồn gốc (bảo mật logic kinh doanh).
+ Bước 3 — Khởi tạo Cơ sở dữ liệu: Chạy file script SQL (database_init.sql) trên SQL Server Management Studio để tạo toàn bộ bảng, ràng buộc và dữ liệu mẫu ban đầu. 
+Bước 4 — Bàn giao cho người dùng: - Tạo shortcut trên Desktop của máy tính cửa hàng trỏ đến URL http://localhost:5000. - Giao tài liệu "Hướng dẫn sử dụng" (file PDF) kèm tài khoản Admin mặc định. - Đào tạo trực tiếp nhân viên kho các thao tác: Nhập kho, Xuất kho, Xem báo cáo.
+ 7.2. Quy trình cập nhật phiên bản (Update) Khác với ứng dụng di động (chỉ cần bấm "Cập nhật" trên App Store), hệ thống web nội bộ cần thực hiện cập nhật thủ công theo quy trình: 
+Bước 1 — Sao lưu (Backup): - Backup database hiện tại bằng lệnh: BACKUP DATABASE FreshCareDB TO DISK = 'D:\Backup\FreshCare_YYYYMMDD.bak' - Backup thư mục publish/ cũ. 
+Bước 2 — Cập nhật mã nguồn: - Copy thư mục publish/ mới đè lên thư mục cũ. - Nếu phiên bản mới có thay đổi cấu trúc Database (thêm cột, thêm bảng), chạy file script update_vX.sql. Tuyệt đối KHÔNG xóa database cũ mà chỉ dùng lệnh ALTER TABLE. 
+Bước 3 — Khởi động lại ứng dụng: - Khởi động lại dịch vụ IIS hoặc khởi động lại file FreshCare.exe. - Kiểm tra nhanh bằng cách đăng nhập và xem Dashboard. 7.3. Kế hoạch bảo trì (Maintenance)
+ a) Bảo trì định kỳ: - Backup database: Tối thiểu 1 lần/tuần (khuyến nghị: hàng ngày vào lúc 0h). - Kiểm tra log lỗi: File log được ghi tại thư mục /logs/ của ứng dụng. - Dọn dẹp dữ liệu cũ: Các phiếu xuất/nhập lâu hơn 2 năm có thể chuyển sang bảng lưu trữ (Archive) để tối ưu hiệu suất truy vấn. 
+b) Bảo trì khẩn cấp: - Nếu hệ thống bị lỗi: Khôi phục database từ bản backup gần nhất. - Hỗ trợ từ xa: Sử dụng phần mềm TeamViewer hoặc AnyDesk để nhà phát triển truy cập máy tính cửa hàng và xử lý sự cố nhanh chóng.
+c) Nâng cấp tương lai: - Tích hợp máy quét mã vạch (Barcode Scanner) phần cứng. - Phát triển ứng dụng di động (Mobile App) để quản lý từ xa cho chủ cửa hàng. - Tích hợp gửi email/SMS cảnh báo tự động khi có lô hàng sắp hết hạn.

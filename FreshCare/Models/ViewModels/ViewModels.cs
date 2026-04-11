@@ -33,6 +33,42 @@ namespace FreshCare.Models.ViewModels
         [Required(ErrorMessage = "Vui lòng xác nhận mật khẩu")]
         [Compare("MatKhau", ErrorMessage = "Mật khẩu xác nhận không khớp")]
         public string XacNhanMatKhau { get; set; } = string.Empty;
+
+        [EmailAddress(ErrorMessage = "Email không hợp lệ")]
+        public string? Email { get; set; }
+
+        [Phone(ErrorMessage = "Số điện thoại không hợp lệ")]
+        public string? SoDienThoai { get; set; }
+    }
+
+    /// <summary>
+    /// ViewModel Bước 1: Xác minh danh tính để quên mật khẩu
+    /// </summary>
+    public class QuenMatKhauViewModel
+    {
+        [Required(ErrorMessage = "Vui lòng nhập tên đăng nhập")]
+        public string TenDangNhap { get; set; } = string.Empty;
+
+        // Nhập một trong hai để xác minh
+        public string? Email { get; set; }
+        public string? SoDienThoai { get; set; }
+    }
+
+    /// <summary>
+    /// ViewModel Bước 2: Đặt mật khẩu mới
+    /// </summary>
+    public class DatLaiMatKhauViewModel
+    {
+        public int MaNV { get; set; }
+        public string TenDangNhap { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Vui lòng nhập mật khẩu mới")]
+        [MinLength(6, ErrorMessage = "Mật khẩu tối thiểu 6 ký tự")]
+        public string MatKhauMoi { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Vui lòng xác nhận mật khẩu mới")]
+        [Compare("MatKhauMoi", ErrorMessage = "Mật khẩu xác nhận không khớp")]
+        public string XacNhanMatKhauMoi { get; set; } = string.Empty;
     }
 
     /// <summary>

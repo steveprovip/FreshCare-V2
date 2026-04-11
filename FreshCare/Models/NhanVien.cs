@@ -11,5 +11,7 @@ namespace FreshCare.Models
         public string MatKhau { get; set; } = string.Empty; // SHA256 hash
         public string VaiTro { get; set; } = "NhanVien"; // Admin / NhanVien
         public string TrangThai { get; set; } = "HoatDong"; // HoatDong / DaKhoa
+        public string? Email { get; set; }       // Dùng để xác minh quên mật khẩu
+        public string? SoDienThoai { get; set; } // Dùng để xác minh quên mật khẩu
     }
 }

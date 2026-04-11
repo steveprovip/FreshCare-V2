@@ -28,7 +28,9 @@ CREATE TABLE NhanVien (
     TenDangNhap NVARCHAR(50) NOT NULL UNIQUE,
     MatKhau     NVARCHAR(255) NOT NULL,
     VaiTro      NVARCHAR(20) NOT NULL DEFAULT N'NhanVien',
-    TrangThai   NVARCHAR(20) NOT NULL DEFAULT N'HoatDong'
+    TrangThai   NVARCHAR(20) NOT NULL DEFAULT N'HoatDong',
+    Email       NVARCHAR(100) NULL,
+    SoDienThoai NVARCHAR(20) NULL
 );
 GO
 
@@ -135,16 +137,16 @@ GO
 -- =============================================
 
 -- Tài khoản Admin (admin / admin123)
-INSERT INTO NhanVien (HoTen, TenDangNhap, MatKhau, VaiTro, TrangThai)
+INSERT INTO NhanVien (HoTen, TenDangNhap, MatKhau, VaiTro, TrangThai, Email, SoDienThoai)
 VALUES (N'Quản Lý FreshCare', 'admin',
         '240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9',
-        N'Admin', N'HoatDong');
+        N'Admin', N'HoatDong', 'admin@freshcare.vn', '0988123456');
 
 -- Tài khoản nhân viên mẫu (nhanvien1 / nhanvien123)
-INSERT INTO NhanVien (HoTen, TenDangNhap, MatKhau, VaiTro, TrangThai)
+INSERT INTO NhanVien (HoTen, TenDangNhap, MatKhau, VaiTro, TrangThai, Email, SoDienThoai)
 VALUES (N'Nguyễn Duy Linh', 'nhanvien1',
         'a4a63b2f73dde89c4ad73e94ebbd48659be1e8916b3c0bbee3f459c6f22e13c6',
-        N'NhanVien', N'HoatDong');
+        N'NhanVien', N'HoatDong', 'nhanvien1@freshcare.vn', '0977654321');
 GO
 
 -- Danh mục mẫu
