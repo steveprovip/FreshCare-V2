@@ -141,9 +141,9 @@ namespace FreshCare.Controllers
         }
         // them nhan vien moi
         [HttpPost]
-        public IActionResult AddStaff(string Username, string Password, string ConfirmPassword)
+        public IActionResult AddStaff(string HoTen, string Username, string Password, string ConfirmPassword)
         {
-            if (string.IsNullOrEmpty(Username) || string.IsNullOrEmpty(Password))
+            if (string.IsNullOrEmpty(HoTen) || string.IsNullOrEmpty(Username) || string.IsNullOrEmpty(Password))
             {
                 TempData["Error"] = "Vui lòng nhập đầy đủ thông tin";
                 return RedirectToAction("QuanLy");
@@ -181,8 +181,7 @@ namespace FreshCare.Controllers
 
                     using (var cmd = new SqlCommand(insertSql, conn))
                     {
-                        // ⚠️ sửa chỗ này (bạn đang để "Username" = chuỗi cứng)
-                        cmd.Parameters.AddWithValue("@HoTen", "admin");
+                        cmd.Parameters.AddWithValue("@HoTen", HoTen);
 
                         cmd.Parameters.AddWithValue("@Username", Username);
                         cmd.Parameters.AddWithValue("@Password", DatabaseHelper.HashPassword(Password));
@@ -210,9 +209,8 @@ namespace FreshCare.Controllers
                 using (var conn = DatabaseHelper.GetConnection(_connectionString))
                 {
                     conn.Open();
-
-                    // ✅ ĐÚNG: dùng MaNV (không phải Id)
-                    string sql = "DELETE FROM NhanVien WHERE MaNV = @Id";
+                    // Luật #5: Không dùng DELETE, cập nhật trạng thái
+                    string sql = "UPDATE NhanVien SET TrangThai = N'DaKhoa' WHERE MaNV = @Id";
 
                     using (var cmd = new SqlCommand(sql, conn))
                     {
@@ -221,7 +219,7 @@ namespace FreshCare.Controllers
                     }
                 }
 
-                TempData["Success"] = "Xóa nhân viên thành công";
+                TempData["Success"] = "Đã khóa tài khoản nhân viên thành công";
             }
             catch (Exception ex)
             {

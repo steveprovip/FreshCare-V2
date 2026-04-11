@@ -36,14 +36,14 @@ namespace FreshCare.Helpers
 
         /// <summary>
         /// Luật #7: Tự động phân loại trạng thái lô hàng dựa trên HSD
-        /// Quá hạn (Đỏ), Cận date < 30 ngày (Cam), An toàn (Xanh)
+        /// Quá hạn (Đỏ), Cận date < 14 ngày (Cam), An toàn (Xanh)
         /// </summary>
         public static string PhanLoaiTrangThai(DateTime hanSuDung)
         {
             int soNgay = (hanSuDung.Date - DateTime.Now.Date).Days;
             if (soNgay < 0)
                 return "Quá Hạn";
-            if (soNgay < 30)
+            if (soNgay < 14)
                 return "Cận Date";
             return "An Toàn";
         }

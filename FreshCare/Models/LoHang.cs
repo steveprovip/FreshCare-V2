@@ -3,7 +3,7 @@ namespace FreshCare.Models
     /// <summary>
     /// Bảng Lô hàng (Batch) - BẢNG LÕI CỦA HỆ THỐNG
     /// Mỗi lần nhập hàng tạo 1 lô mới gắn NSX + HSD
-    /// Luật #7: Tự động phân loại trạng thái: Quá hạn (Đỏ), Cận date <30 ngày (Cam), An toàn (Xanh)
+    /// Luật #7: Tự động phân loại trạng thái: Quá hạn (Đỏ), Cận date <14 ngày (Cam), An toàn (Xanh)
     /// Luật #6: Số ngày còn lại hiển thị >= 0
     /// </summary>
     public class LoHang
@@ -37,15 +37,35 @@ namespace FreshCare.Models
         }
 
         /// <summary>
-        /// Luật #8: Giá thực tế (đã Sale nếu cận date)
-        /// GiaThucTe = (TrangThai == "Cận Date") ? GiaGoc * (100 - PhanTramSale)/100 : GiaGoc
+        /// Tỷ lệ giảm giá thực tế lũy tiến theo số ngày còn lại (Luật mới)
+        /// Càng gần ngày hết hạn càng giảm sâu.
+        /// </summary>
+        public decimal PhanTramSaleHienTai
+        {
+            get
+            {
+                if (TrangThai == "Cận Date" && PhanTramSale > 0)
+                {
+                    // Công thức lũy tiến: Base + (Base * (14 - soNgay) / 14)
+                    decimal factor = (decimal)(14 - SoNgayConLai) / 14m;
+                    decimal actualSale = PhanTramSale * (1m + factor);
+                    
+                    // Giới hạn giảm tối đa 80% để tránh mất trắng
+                    return actualSale > 80m ? 80m : Math.Round(actualSale, 2);
+                }
+                return 0;
+            }
+        }
+
+        /// <summary>
+        /// Luật #8: Giá thực tế (đã Sale lũy tiến nếu cận date)
         /// </summary>
         public decimal GiaThucTe
         {
             get
             {
-                if (TrangThai == "Cận Date" && PhanTramSale > 0)
-                    return GiaBanGoc * (100 - PhanTramSale) / 100;
+                if (TrangThai == "Cận Date" && PhanTramSaleHienTai > 0)
+                    return GiaBanGoc * (100 - PhanTramSaleHienTai) / 100;
                 return GiaBanGoc;
             }
         }

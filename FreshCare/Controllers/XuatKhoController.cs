@@ -70,6 +70,21 @@ namespace FreshCare.Controllers
                         return RedirectToAction("BanHang");
                     }
 
+                    // Luật #10: Kiểm tra đơn vị tính - chỉ Kg cho phép số thập phân
+                    string donViTinh = "";
+                    string sqlDVT = "SELECT DonViTinh FROM SanPham WHERE MaSP = @MaSP";
+                    using (var cmdDVT = new SqlCommand(sqlDVT, conn))
+                    {
+                        cmdDVT.Parameters.AddWithValue("@MaSP", model.MaSP);
+                        donViTinh = cmdDVT.ExecuteScalar()?.ToString() ?? "";
+                    }
+
+                    if (donViTinh != "Kg" && model.SoLuong != Math.Floor(model.SoLuong))
+                    {
+                        TempData["Error"] = $"Lỗi: Đơn vị \"{donViTinh}\" chỉ cho phép nhập số nguyên!";
+                        return RedirectToAction("BanHang");
+                    }
+
                     using (var transaction = conn.BeginTransaction())
                     {
                         try
@@ -139,11 +154,19 @@ namespace FreshCare.Controllers
                             {
                                 if (soLuongConLai <= 0) break;
 
-                                // Tính giá xuất (Luật #8: cận date thì tính giá sale)
+                                // Luật #8: Tính giá sale LŨY TIẾN cho lô cận date
                                 string trangThaiLo = DatabaseHelper.PhanLoaiTrangThai(lo.HanSuDung);
-                                decimal donGiaXuat = (trangThaiLo == "Cận Date")
-                                    ? giaBan * (100 - phanTramSale) / 100
-                                    : giaBan;
+                                decimal donGiaXuat = giaBan;
+                                if (trangThaiLo == "Cận Date" && phanTramSale > 0)
+                                {
+                                    int soNgayConLai = (lo.HanSuDung.Date - DateTime.Now.Date).Days;
+                                    if (soNgayConLai < 0) soNgayConLai = 0;
+                                    decimal factor = (decimal)(14 - soNgayConLai) / 14m;
+                                    decimal actualSale = phanTramSale * (1m + factor);
+                                    if (actualSale > 80m) actualSale = 80m;
+                                    actualSale = Math.Round(actualSale, 2);
+                                    donGiaXuat = giaBan * (100 - actualSale) / 100;
+                                }
 
                                 decimal soLuongTru;
 

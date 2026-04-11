@@ -6,14 +6,20 @@
     <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modal_add_staff">
         Thêm nhân viên
     </button>
-   
 </div>
 
-<div class="card card-fc">
+<div class="card card-fc mt-3">
     <div class="card-body p-0">
         <table class="table table-fc table-hover mb-0">
             <thead>
-                <tr><th>Mã NV</th><th>Họ tên</th><th>Tên đăng nhập</th><th>Vai trò</th><th>Trạng thái</th></tr>
+                <tr>
+                    <th>Mã NV</th>
+                    <th>Họ tên</th>
+                    <th>Tên đăng nhập</th>
+                    <th>Vai trò</th>
+                    <th>Trạng thái</th>
+                    <th>Thao tác</th>
+                </tr>
             </thead>
             <tbody>
                 @foreach (var nv in Model)
@@ -42,14 +48,22 @@
                                 <span class="badge bg-danger">Đã khóa</span>
                             }
                         </td>
+                        <td>
+                            @if (nv.VaiTro != "Admin") 
+                            {
+                                <form action="/TaiKhoan/DeleteStaff" method="post" onsubmit="return confirm('Bạn có chắc chắn muốn khóa nhân viên này?')">
+                                    <input type="hidden" name="id" value="@nv.MaNV" />
+                                    <button type="submit" class="btn btn-sm btn-outline-danger" title="Khóa tài khoản">
+                                        <i class="fas fa-user-lock"></i>
+                                    </button>
+                                </form>
+                            }
+                        </td>
                     </tr>
                 }
             </tbody>
         </table>
     </div>
-
-
-    
 </div>
 
 <div class="modal fade" id="modal_add_staff" tabindex="-1" aria-labelledby="testModal" aria-hidden="true">
@@ -66,7 +80,7 @@
                     <!-- ho ten -->
                     <div class="mb-3">
                         <label>Họ Tên</label>
-                        <input type="text" name="Username" class="form-control" required>
+                        <input type="text" name="HoTen" class="form-control" required>
                     </div>
                     <!-- Tài khoản -->
                     <div class="mb-3">
@@ -95,61 +109,14 @@
             </form>
 
         </div>
-        // xoa 
-        @foreach (var item in Model)
-        {
-            <tr>
-                <td>@item.TenDangNhap</td>
-                <td>
-                    <form action="/TaiKhoan/DeleteStaff" method="post">
-                        <input type="hidden" name="id" value="@item.MaNV" />
-                        <button class="btn btn-danger">Xóa</button>
-                    </form>
-                </td>
-            </tr>
-        }
     </div>
 </div>
-//xoa
 
 @if (TempData["Success"] != null)
 {
-    <div class="alert alert-success">@TempData["Success"]</div>
+    <div class="alert alert-success mt-3">@TempData["Success"]</div>
 }
 @if (TempData["Error"] != null)
 {
-    <div class="alert alert-danger">@TempData["Error"]</div>
+    <div class="alert alert-danger mt-3">@TempData["Error"]</div>
 }
-
-<table class="table">
-    <thead>
-        <tr>
-            <th>Mã NV</th>
-            <th>Tên đăng nhập</th>
-            <th>Hành động</th>
-        </tr>
-    </thead>
-
-    <tbody>
-        @foreach (var item in Model)
-        {
-            <tr>
-                <td>@item.MaNV</td>
-                <td>@item.TenDangNhap</td>
-                <td>
-                    <!-- ✅ FORM XÓA -->
-                    <form action="/TaiKhoan/DeleteStaff" method="post"
-                          onsubmit="return confirm('Bạn có chắc muốn xóa không?');">
-                        
-                        <!-- ✅ truyền đúng id -->
-                        <input type="hidden" name="id" value="@item.MaNV" />
-
-                        <button class="btn btn-danger">Xóa</button>
-                    </form>
-                </td>
-            </tr>
-        }
-    </tbody>
-</table>
-    </tbody>
-</table>

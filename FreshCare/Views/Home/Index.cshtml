@@ -83,7 +83,7 @@
 {
     <div class="card card-fc mb-4 border-start border-warning border-4">
         <div class="card-header" style="background: linear-gradient(135deg, #f4a261, #e76f51); color: #fff;">
-            <h5 class="mb-0"><i class="fas fa-exclamation-circle me-2"></i>LÔ HÀNG CẬN DATE (&lt; 30 ngày) — Gợi ý giảm giá!</h5>
+            <h5 class="mb-0"><i class="fas fa-exclamation-circle me-2"></i>LÔ HÀNG CẬN DATE (&lt; 14 ngày) — Gợi ý giảm giá!</h5>
         </div>
         <div class="card-body p-0">
             <div class="table-responsive">
@@ -106,7 +106,7 @@
                                 <td><span class="badge badge-can-date">@lo.SoNgayConLai ngày</span></td>
                                 <td><span class="gia-goc">@lo.GiaBanGoc.ToString("N0")đ</span></td>
                                 <td><span class="gia-sale">@lo.GiaThucTe.ToString("N0")đ</span></td>
-                                <td><span class="badge bg-danger">-@lo.PhanTramSale%</span></td>
+                                <td><span class="badge bg-danger">-@lo.PhanTramSaleHienTai%</span></td>
                             </tr>
                         }
                     </tbody>

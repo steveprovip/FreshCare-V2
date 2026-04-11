@@ -145,10 +145,14 @@
 
         // Luật #10: Bó/Hộp/Khay/Chai/Vỉ → số nguyên, Kg → thập phân
         if (dvt === 'Kg') {
-            $('#txtSoLuong').attr('step', '0.01');
+            $('#txtSoLuong').attr('step', '0.01').attr('min', '0.01');
         } else {
-            $('#txtSoLuong').attr('step', '1');
-            $('#txtSoLuong').val(Math.round($('#txtSoLuong').val()));
+            $('#txtSoLuong').attr('step', '1').attr('min', '1');
+            // Nếu giá trị hiện tại là thập phân, làm tròn xuống
+            var val = parseFloat($('#txtSoLuong').val());
+            if (val && val % 1 !== 0) {
+                $('#txtSoLuong').val(Math.floor(val));
+            }
         }
 
         // Hiển thị info card

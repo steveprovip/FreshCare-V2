@@ -87,14 +87,43 @@
             if (data.success) {
                 $('#lblDVTXuat').text(data.donViTinh);
                 $('#lblTonKho').text(data.tongTon + ' ' + data.donViTinh);
-                // Luật #10: ràng buộc đơn vị
+                // Luật #10: ràng buộc đơn vị (Chỉ Kg cho phép thập phân)
                 if (data.donViTinh === 'Kg') {
-                    $('#txtSoLuongXuat').attr('step', '0.01');
+                    $('#txtSoLuongXuat').attr('step', '0.01').attr('min', '0.01');
                 } else {
-                    $('#txtSoLuongXuat').attr('step', '1');
+                    $('#txtSoLuongXuat').attr('step', '1').attr('min', '1');
+                    // Nếu giá trị hiện tại là thập phân, làm tròn xuống
+                    var val = $('#txtSoLuongXuat').val();
+                    if (val && val % 1 !== 0) {
+                        $('#txtSoLuongXuat').val(Math.floor(val));
+                    }
                 }
             }
         });
+    });
+
+    // Validate form trước khi submit
+    $('form').on('submit', function (e) {
+        var maSP = $('#ddlSanPhamXuat').val();
+        if (!maSP) {
+            e.preventDefault();
+            alert('Vui lòng chọn sản phẩm!');
+            return false;
+        }
+
+        var sl = parseFloat($('#txtSoLuongXuat').val());
+        if (!sl || sl <= 0) {
+            e.preventDefault();
+            alert('Số lượng phải lớn hơn 0!');
+            return false;
+        }
+
+        var dvt = $('#lblDVTXuat').text();
+        if (dvt !== 'Kg' && dvt !== '---' && sl % 1 !== 0) {
+            e.preventDefault();
+            alert('Đơn vị "' + dvt + '" chỉ cho phép nhập số nguyên!');
+            return false;
+        }
     });
 </script>
 }

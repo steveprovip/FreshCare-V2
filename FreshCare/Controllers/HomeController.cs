@@ -6,7 +6,7 @@ using Microsoft.Data.SqlClient;
 
 namespace FreshCare.Controllers
 {
-    /// <summary>
+    /// <summary> alo cường à cường
     /// HomeController - Dashboard cảnh báo hạn sử dụng
     /// Luật #7: Tự động phân loại Quá hạn (Đỏ), Cận date (Cam), An toàn (Xanh)
     /// Luật #6: Số ngày còn lại >= 0
@@ -108,7 +108,7 @@ namespace FreshCare.Controllers
 
         /// <summary>
         /// Cập nhật tự động trạng thái tất cả lô hàng dựa trên ngày hiện tại
-        /// Luật #7: Quá hạn (HSD < Today), Cận Date (HSD < Today + 30), An Toàn
+        /// Luật #7: Quá hạn (HSD < Today), Cận Date (HSD < Today + 14), An Toàn
         /// </summary>
         private void CapNhatTrangThaiLoHang(SqlConnection conn)
         {
@@ -116,7 +116,7 @@ namespace FreshCare.Controllers
                 UPDATE LoHang SET TrangThai = 
                     CASE 
                         WHEN HanSuDung < CAST(GETDATE() AS DATE) THEN N'Quá Hạn'
-                        WHEN DATEDIFF(DAY, CAST(GETDATE() AS DATE), HanSuDung) < 30 THEN N'Cận Date'
+                        WHEN DATEDIFF(DAY, CAST(GETDATE() AS DATE), HanSuDung) < 14 THEN N'Cận Date'
                         ELSE N'An Toàn'
                     END
                 WHERE TrangThai != N'Đã Hủy' AND SoLuongTon > 0";

@@ -29,7 +29,7 @@ namespace FreshCare.Controllers
             var model = new NhapKhoViewModel
             {
                 NgaySanXuat = DateTime.Today,
-                HanSuDung = DateTime.Today.AddDays(30),
+                HanSuDung = DateTime.Today.AddDays(14),
                 DanhSachSanPham = LayDanhSachSanPham()
             };
 
@@ -59,6 +59,21 @@ namespace FreshCare.Controllers
                 using (var conn = DatabaseHelper.GetConnection(_connectionString))
                 {
                     conn.Open();
+
+                    // Luật #10: Kiểm tra đơn vị tính - chỉ Kg cho phép số thập phân
+                    string donViTinh = "";
+                    string sqlDVT = "SELECT DonViTinh FROM SanPham WHERE MaSP = @MaSP";
+                    using (var cmdDVT = new SqlCommand(sqlDVT, conn))
+                    {
+                        cmdDVT.Parameters.AddWithValue("@MaSP", model.MaSP);
+                        donViTinh = cmdDVT.ExecuteScalar()?.ToString() ?? "";
+                    }
+
+                    if (donViTinh != "Kg" && model.SoLuong != Math.Floor(model.SoLuong))
+                    {
+                        TempData["Error"] = $"Lỗi: Đơn vị \"{donViTinh}\" chỉ cho phép nhập số nguyên!";
+                        return View("Index", model);
+                    }
 
                     // Sử dụng Transaction để đảm bảo toàn vẹn dữ liệu
                     using (var transaction = conn.BeginTransaction())
