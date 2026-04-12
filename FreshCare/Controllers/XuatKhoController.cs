@@ -37,6 +37,7 @@ namespace FreshCare.Controllers
         /// <summary>
         /// POST: /XuatKho/ThanhToan
         /// THUẬT TOÁN FEFO (First Expired, First Out) - Luật #11
+        /// Hỗ trợ bán nhiều mặt hàng cùng lúc trên 1 hóa đơn
         /// ORDER BY HanSuDung ASC → ưu tiên xuất lô hết hạn sớm nhất
         /// </summary>
         [HttpPost]
@@ -46,51 +47,83 @@ namespace FreshCare.Controllers
             int maNV = HttpContext.Session.GetInt32("MaNV") ?? 0;
             int maPhieuXuatResult = 0;
 
+            // Xây dựng danh sách items: hỗ trợ cả xuất đơn (cũ) và xuất nhiều (mới)
+            var danhSachItems = new List<XuatKhoItem>();
+            if (model.DanhSachXuat != null && model.DanhSachXuat.Any(x => x.MaSP > 0))
+            {
+                danhSachItems = model.DanhSachXuat.Where(x => x.MaSP > 0 && x.SoLuong > 0).ToList();
+            }
+            else if (model.MaSP > 0 && model.SoLuong > 0)
+            {
+                // Backward compatible: xuất đơn
+                danhSachItems.Add(new XuatKhoItem
+                {
+                    MaSP = model.MaSP,
+                    SoLuong = model.SoLuong
+                });
+            }
+
+            if (!danhSachItems.Any())
+            {
+                TempData["Error"] = "Lỗi: Vui lòng thêm ít nhất một mặt hàng!";
+                return RedirectToAction("BanHang");
+            }
+
             try
             {
                 using (var conn = DatabaseHelper.GetConnection(_connectionString))
                 {
                     conn.Open();
 
-                    // === BƯỚC 1: Kiểm tra tổng tồn kho an toàn (chỉ lô chưa quá hạn) ===
-                    string sqlCheckTon = @"SELECT ISNULL(SUM(SoLuongTon), 0) 
-                                           FROM LoHang 
-                                           WHERE MaSP = @MaSP AND SoLuongTon > 0 
-                                                 AND TrangThai NOT IN (N'Quá Hạn', N'Đã Hủy')";
-                    decimal tongTon;
-                    using (var cmd = new SqlCommand(sqlCheckTon, conn))
+                    // === BƯỚC 1: Kiểm tra tổng tồn kho + đơn vị tính cho TỪNG mặt hàng ===
+                    foreach (var item in danhSachItems)
                     {
-                        cmd.Parameters.AddWithValue("@MaSP", model.MaSP);
-                        tongTon = Convert.ToDecimal(cmd.ExecuteScalar());
+                        // Kiểm tra tồn kho an toàn
+                        string sqlCheckTon = @"SELECT ISNULL(SUM(SoLuongTon), 0) 
+                                               FROM LoHang 
+                                               WHERE MaSP = @MaSP AND SoLuongTon > 0 
+                                                     AND TrangThai NOT IN (N'Quá Hạn', N'Đã Hủy')";
+                        decimal tongTon;
+                        using (var cmd = new SqlCommand(sqlCheckTon, conn))
+                        {
+                            cmd.Parameters.AddWithValue("@MaSP", item.MaSP);
+                            tongTon = Convert.ToDecimal(cmd.ExecuteScalar());
+                        }
+
+                        if (item.SoLuong > tongTon)
+                        {
+                            // Lấy tên SP để thông báo rõ ràng
+                            string tenSP = "";
+                            using (var cmd = new SqlCommand("SELECT TenSP FROM SanPham WHERE MaSP = @MaSP", conn))
+                            {
+                                cmd.Parameters.AddWithValue("@MaSP", item.MaSP);
+                                tenSP = cmd.ExecuteScalar()?.ToString() ?? "";
+                            }
+                            TempData["Error"] = $"Lỗi: \"{tenSP}\" không đủ tồn kho an toàn! Tồn hiện có: {tongTon:N2}";
+                            return RedirectToAction("BanHang");
+                        }
+
+                        // Luật #10: Kiểm tra đơn vị tính
+                        string donViTinh = "";
+                        using (var cmdDVT = new SqlCommand("SELECT DonViTinh FROM SanPham WHERE MaSP = @MaSP", conn))
+                        {
+                            cmdDVT.Parameters.AddWithValue("@MaSP", item.MaSP);
+                            donViTinh = cmdDVT.ExecuteScalar()?.ToString() ?? "";
+                        }
+
+                        if (donViTinh != "Kg" && item.SoLuong != Math.Floor(item.SoLuong))
+                        {
+                            TempData["Error"] = $"Lỗi: Đơn vị \"{donViTinh}\" chỉ cho phép nhập số nguyên!";
+                            return RedirectToAction("BanHang");
+                        }
                     }
 
-                    // Chặn xuất quá tồn
-                    if (model.SoLuong > tongTon)
-                    {
-                        TempData["Error"] = $"Lỗi: Kho không đủ hàng an toàn để xuất! Tồn kho hiện có: {tongTon:N2}";
-                        return RedirectToAction("BanHang");
-                    }
-
-                    // Luật #10: Kiểm tra đơn vị tính - chỉ Kg cho phép số thập phân
-                    string donViTinh = "";
-                    string sqlDVT = "SELECT DonViTinh FROM SanPham WHERE MaSP = @MaSP";
-                    using (var cmdDVT = new SqlCommand(sqlDVT, conn))
-                    {
-                        cmdDVT.Parameters.AddWithValue("@MaSP", model.MaSP);
-                        donViTinh = cmdDVT.ExecuteScalar()?.ToString() ?? "";
-                    }
-
-                    if (donViTinh != "Kg" && model.SoLuong != Math.Floor(model.SoLuong))
-                    {
-                        TempData["Error"] = $"Lỗi: Đơn vị \"{donViTinh}\" chỉ cho phép nhập số nguyên!";
-                        return RedirectToAction("BanHang");
-                    }
-
+                    // === BƯỚC 2: Transaction — Tạo hóa đơn + FEFO cho từng mặt hàng ===
                     using (var transaction = conn.BeginTransaction())
                     {
                         try
                         {
-                            // === BƯỚC 2: Tạo phiếu xuất loại "Bán Hàng" (Luật #12) ===
+                            // Tạo 1 phiếu xuất chung (Luật #12: LoaiPhieu = "Bán Hàng")
                             string sqlPhieu = @"INSERT INTO PhieuXuat (NgayXuat, MaNV, LoaiPhieu, TongTien, GhiChu)
                                                 OUTPUT INSERTED.MaPhieuXuat
                                                 VALUES (GETDATE(), @MaNV, N'Bán Hàng', 0, @GhiChu)";
@@ -102,117 +135,120 @@ namespace FreshCare.Controllers
                                 maPhieuXuat = Convert.ToInt32(cmd.ExecuteScalar());
                             }
 
-                            // === BƯỚC 3: Thuật toán FEFO + FIFO backup ===
-                            // FEFO: HanSuDung ASC (hết hạn trước xuất trước)
-                            // FIFO backup: NgayNhapKho ASC (nếu cùng HSD thì nhập trước xuất trước)
-                            string sqlFEFO = @"SELECT MaLo, SoLuongTon, HanSuDung
-                                               FROM LoHang
-                                               WHERE MaSP = @MaSP AND SoLuongTon > 0 
-                                                     AND TrangThai NOT IN (N'Quá Hạn', N'Đã Hủy')
-                                               ORDER BY HanSuDung ASC, NgayNhapKho ASC";
+                            decimal tongTienHoaDon = 0;
 
-                            var danhSachLo = new List<(int MaLo, decimal SoLuongTon, DateTime HanSuDung)>();
-                            using (var cmd = new SqlCommand(sqlFEFO, conn, transaction))
+                            // Duyệt từng mặt hàng → chạy FEFO riêng
+                            foreach (var item in danhSachItems)
                             {
-                                cmd.Parameters.AddWithValue("@MaSP", model.MaSP);
-                                using (var reader = cmd.ExecuteReader())
+                                // Lấy danh sách lô theo FEFO (Luật #11)
+                                string sqlFEFO = @"SELECT MaLo, SoLuongTon, HanSuDung
+                                                   FROM LoHang
+                                                   WHERE MaSP = @MaSP AND SoLuongTon > 0 
+                                                         AND TrangThai NOT IN (N'Quá Hạn', N'Đã Hủy')
+                                                   ORDER BY HanSuDung ASC, NgayNhapKho ASC";
+
+                                var danhSachLo = new List<(int MaLo, decimal SoLuongTon, DateTime HanSuDung)>();
+                                using (var cmd = new SqlCommand(sqlFEFO, conn, transaction))
                                 {
-                                    while (reader.Read())
+                                    cmd.Parameters.AddWithValue("@MaSP", item.MaSP);
+                                    using (var reader = cmd.ExecuteReader())
                                     {
-                                        danhSachLo.Add((
-                                            Convert.ToInt32(reader["MaLo"]),
-                                            Convert.ToDecimal(reader["SoLuongTon"]),
-                                            Convert.ToDateTime(reader["HanSuDung"])
-                                        ));
+                                        while (reader.Read())
+                                        {
+                                            danhSachLo.Add((
+                                                Convert.ToInt32(reader["MaLo"]),
+                                                Convert.ToDecimal(reader["SoLuongTon"]),
+                                                Convert.ToDateTime(reader["HanSuDung"])
+                                            ));
+                                        }
                                     }
                                 }
-                            }
 
-                            // Lấy giá bán và % sale
-                            decimal giaBan = 0, phanTramSale = 0;
-                            string sqlGia = @"SELECT sp.GiaBan, dm.PhanTramSale
-                                              FROM SanPham sp 
-                                              INNER JOIN DanhMuc dm ON sp.MaDanhMuc = dm.MaDanhMuc
-                                              WHERE sp.MaSP = @MaSP";
-                            using (var cmd = new SqlCommand(sqlGia, conn, transaction))
-                            {
-                                cmd.Parameters.AddWithValue("@MaSP", model.MaSP);
-                                using (var reader = cmd.ExecuteReader())
+                                // Lấy giá bán và % sale
+                                decimal giaBan = 0, phanTramSale = 0;
+                                string sqlGia = @"SELECT sp.GiaBan, dm.PhanTramSale
+                                                  FROM SanPham sp 
+                                                  INNER JOIN DanhMuc dm ON sp.MaDanhMuc = dm.MaDanhMuc
+                                                  WHERE sp.MaSP = @MaSP";
+                                using (var cmd = new SqlCommand(sqlGia, conn, transaction))
                                 {
-                                    if (reader.Read())
+                                    cmd.Parameters.AddWithValue("@MaSP", item.MaSP);
+                                    using (var reader = cmd.ExecuteReader())
                                     {
-                                        giaBan = Convert.ToDecimal(reader["GiaBan"]);
-                                        phanTramSale = Convert.ToDecimal(reader["PhanTramSale"]);
+                                        if (reader.Read())
+                                        {
+                                            giaBan = Convert.ToDecimal(reader["GiaBan"]);
+                                            phanTramSale = Convert.ToDecimal(reader["PhanTramSale"]);
+                                        }
                                     }
                                 }
+
+                                // VÒNG LẶP TRỪ KHO FEFO
+                                decimal soLuongConLai = item.SoLuong;
+                                decimal tongTienItem = 0;
+
+                                foreach (var lo in danhSachLo)
+                                {
+                                    if (soLuongConLai <= 0) break;
+
+                                    // Luật #8: Tính giá sale LŨY TIẾN cho lô cận date
+                                    string trangThaiLo = DatabaseHelper.PhanLoaiTrangThai(lo.HanSuDung);
+                                    decimal donGiaXuat = giaBan;
+                                    if (trangThaiLo == "Cận Date" && phanTramSale > 0)
+                                    {
+                                        int soNgayConLai = (lo.HanSuDung.Date - DateTime.Now.Date).Days;
+                                        if (soNgayConLai < 0) soNgayConLai = 0;
+                                        decimal factor = (decimal)(14 - soNgayConLai) / 14m;
+                                        decimal actualSale = phanTramSale * (1m + factor);
+                                        if (actualSale > 80m) actualSale = 80m;
+                                        actualSale = Math.Round(actualSale, 2);
+                                        donGiaXuat = giaBan * (100 - actualSale) / 100;
+                                    }
+
+                                    decimal soLuongTru;
+                                    if (lo.SoLuongTon >= soLuongConLai)
+                                    {
+                                        soLuongTru = soLuongConLai;
+                                        soLuongConLai = 0;
+                                    }
+                                    else
+                                    {
+                                        soLuongTru = lo.SoLuongTon;
+                                        soLuongConLai -= lo.SoLuongTon;
+                                    }
+
+                                    // Cập nhật SoLuongTon
+                                    string sqlUpdateLo = "UPDATE LoHang SET SoLuongTon = SoLuongTon - @SoLuongTru WHERE MaLo = @MaLo";
+                                    using (var cmd = new SqlCommand(sqlUpdateLo, conn, transaction))
+                                    {
+                                        cmd.Parameters.AddWithValue("@SoLuongTru", soLuongTru);
+                                        cmd.Parameters.AddWithValue("@MaLo", lo.MaLo);
+                                        cmd.ExecuteNonQuery();
+                                    }
+
+                                    // Ghi chi tiết xuất
+                                    string sqlChiTiet = @"INSERT INTO ChiTietXuat (MaPhieuXuat, MaLo, SoLuong, DonGia)
+                                                          VALUES (@MaPhieuXuat, @MaLo, @SoLuong, @DonGia)";
+                                    using (var cmd = new SqlCommand(sqlChiTiet, conn, transaction))
+                                    {
+                                        cmd.Parameters.AddWithValue("@MaPhieuXuat", maPhieuXuat);
+                                        cmd.Parameters.AddWithValue("@MaLo", lo.MaLo);
+                                        cmd.Parameters.AddWithValue("@SoLuong", soLuongTru);
+                                        cmd.Parameters.AddWithValue("@DonGia", donGiaXuat);
+                                        cmd.ExecuteNonQuery();
+                                    }
+
+                                    tongTienItem += soLuongTru * donGiaXuat;
+                                }
+
+                                tongTienHoaDon += tongTienItem;
                             }
 
-                            // VÒNG LẶP TRỪ KHO (mô tả trong báo cáo Chương V - 5.4.3)
-                            decimal soLuongConLai = model.SoLuong;
-                            decimal tongTienXuat = 0;
-
-                            foreach (var lo in danhSachLo)
-                            {
-                                if (soLuongConLai <= 0) break;
-
-                                // Luật #8: Tính giá sale LŨY TIẾN cho lô cận date
-                                string trangThaiLo = DatabaseHelper.PhanLoaiTrangThai(lo.HanSuDung);
-                                decimal donGiaXuat = giaBan;
-                                if (trangThaiLo == "Cận Date" && phanTramSale > 0)
-                                {
-                                    int soNgayConLai = (lo.HanSuDung.Date - DateTime.Now.Date).Days;
-                                    if (soNgayConLai < 0) soNgayConLai = 0;
-                                    decimal factor = (decimal)(14 - soNgayConLai) / 14m;
-                                    decimal actualSale = phanTramSale * (1m + factor);
-                                    if (actualSale > 80m) actualSale = 80m;
-                                    actualSale = Math.Round(actualSale, 2);
-                                    donGiaXuat = giaBan * (100 - actualSale) / 100;
-                                }
-
-                                decimal soLuongTru;
-
-                                if (lo.SoLuongTon >= soLuongConLai)
-                                {
-                                    // Lô này đủ → trừ hết lượng cần xuất
-                                    soLuongTru = soLuongConLai;
-                                    soLuongConLai = 0;
-                                }
-                                else
-                                {
-                                    // Lô này không đủ → trừ sạch, chuyển sang lô kế tiếp
-                                    soLuongTru = lo.SoLuongTon;
-                                    soLuongConLai -= lo.SoLuongTon;
-                                }
-
-                                // Cập nhật SoLuongTon của lô
-                                string sqlUpdateLo = "UPDATE LoHang SET SoLuongTon = SoLuongTon - @SoLuongTru WHERE MaLo = @MaLo";
-                                using (var cmd = new SqlCommand(sqlUpdateLo, conn, transaction))
-                                {
-                                    cmd.Parameters.AddWithValue("@SoLuongTru", soLuongTru);
-                                    cmd.Parameters.AddWithValue("@MaLo", lo.MaLo);
-                                    cmd.ExecuteNonQuery();
-                                }
-
-                                // Ghi chi tiết xuất
-                                string sqlChiTiet = @"INSERT INTO ChiTietXuat (MaPhieuXuat, MaLo, SoLuong, DonGia)
-                                                      VALUES (@MaPhieuXuat, @MaLo, @SoLuong, @DonGia)";
-                                using (var cmd = new SqlCommand(sqlChiTiet, conn, transaction))
-                                {
-                                    cmd.Parameters.AddWithValue("@MaPhieuXuat", maPhieuXuat);
-                                    cmd.Parameters.AddWithValue("@MaLo", lo.MaLo);
-                                    cmd.Parameters.AddWithValue("@SoLuong", soLuongTru);
-                                    cmd.Parameters.AddWithValue("@DonGia", donGiaXuat);
-                                    cmd.ExecuteNonQuery();
-                                }
-
-                                tongTienXuat += soLuongTru * donGiaXuat;
-                            }
-
-                            // Cập nhật tổng tiền phiếu xuất
+                            // Cập nhật tổng tiền hóa đơn
                             string sqlUpdatePhieu = "UPDATE PhieuXuat SET TongTien = @TongTien WHERE MaPhieuXuat = @MaPhieuXuat";
                             using (var cmd = new SqlCommand(sqlUpdatePhieu, conn, transaction))
                             {
-                                cmd.Parameters.AddWithValue("@TongTien", tongTienXuat);
+                                cmd.Parameters.AddWithValue("@TongTien", tongTienHoaDon);
                                 cmd.Parameters.AddWithValue("@MaPhieuXuat", maPhieuXuat);
                                 cmd.ExecuteNonQuery();
                             }
@@ -220,7 +256,7 @@ namespace FreshCare.Controllers
                             transaction.Commit();
                             maPhieuXuatResult = maPhieuXuat;
 
-                            TempData["Success"] = $"Xuất kho thành công! Hóa đơn: HD-{maPhieuXuat:D4}. Tổng tiền: {tongTienXuat:N0}đ";
+                            TempData["Success"] = $"Xuất kho thành công! Hóa đơn: HD-{maPhieuXuat:D4} ({danhSachItems.Count} mặt hàng). Tổng tiền: {tongTienHoaDon:N0}đ";
                         }
                         catch
                         {
@@ -240,6 +276,54 @@ namespace FreshCare.Controllers
                 return RedirectToAction("ChiTiet", new { id = maPhieuXuatResult });
 
             return RedirectToAction("BanHang");
+        }
+
+        // AJAX: Lấy thông tin tồn kho + giá bán cho mặt hàng (realtime)
+        [HttpGet]
+        public IActionResult GetTonKho(int maSP)
+        {
+            try
+            {
+                using (var conn = DatabaseHelper.GetConnection(_connectionString))
+                {
+                    conn.Open();
+                    // Tồn kho an toàn (loại trừ Quá Hạn, Đã Hủy)
+                    decimal tonKho = 0;
+                    string sqlTon = @"SELECT ISNULL(SUM(SoLuongTon), 0) 
+                                      FROM LoHang 
+                                      WHERE MaSP = @MaSP AND SoLuongTon > 0 
+                                            AND TrangThai NOT IN (N'Quá Hạn', N'Đã Hủy')";
+                    using (var cmd = new SqlCommand(sqlTon, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@MaSP", maSP);
+                        tonKho = Convert.ToDecimal(cmd.ExecuteScalar());
+                    }
+
+                    // Thông tin SP + giá
+                    string donViTinh = "";
+                    decimal giaBan = 0;
+                    string sqlSP = @"SELECT sp.DonViTinh, sp.GiaBan 
+                                     FROM SanPham sp WHERE sp.MaSP = @MaSP";
+                    using (var cmd = new SqlCommand(sqlSP, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@MaSP", maSP);
+                        using (var reader = cmd.ExecuteReader())
+                        {
+                            if (reader.Read())
+                            {
+                                donViTinh = reader["DonViTinh"].ToString()!;
+                                giaBan = Convert.ToDecimal(reader["GiaBan"]);
+                            }
+                        }
+                    }
+
+                    return Json(new { success = true, tonKho, donViTinh, giaBan });
+                }
+            }
+            catch
+            {
+                return Json(new { success = false });
+            }
         }
 
         /// <summary>
@@ -343,7 +427,12 @@ namespace FreshCare.Controllers
                 using (var conn = DatabaseHelper.GetConnection(_connectionString))
                 {
                     conn.Open();
-                    string sql = @"SELECT px.MaPhieuXuat, px.NgayXuat, px.LoaiPhieu, px.TongTien, px.GhiChu, nv.HoTen AS TenNhanVien
+                    string sql = @"SELECT px.MaPhieuXuat, px.NgayXuat, px.LoaiPhieu, px.TongTien, px.GhiChu, nv.HoTen AS TenNhanVien,
+                                          (SELECT STRING_AGG(sp2.TenSP, N', ') 
+                                           FROM ChiTietXuat ct2 
+                                           INNER JOIN LoHang lh2 ON ct2.MaLo = lh2.MaLo 
+                                           INNER JOIN SanPham sp2 ON lh2.MaSP = sp2.MaSP 
+                                           WHERE ct2.MaPhieuXuat = px.MaPhieuXuat) AS TenMatHang
                                    FROM PhieuXuat px
                                    INNER JOIN NhanVien nv ON px.MaNV = nv.MaNV
                                    ORDER BY px.NgayXuat DESC";
@@ -359,7 +448,8 @@ namespace FreshCare.Controllers
                                 LoaiPhieu = reader["LoaiPhieu"].ToString()!,
                                 TongTien = Convert.ToDecimal(reader["TongTien"]),
                                 GhiChu = reader["GhiChu"]?.ToString(),
-                                TenNhanVien = reader["TenNhanVien"].ToString()
+                                TenNhanVien = reader["TenNhanVien"].ToString(),
+                                TenMatHang = reader["TenMatHang"]?.ToString()
                             });
                         }
                     }
@@ -503,6 +593,86 @@ namespace FreshCare.Controllers
             catch (Exception ex)
             {
                 TempData["Error"] = ex.Message;
+            }
+
+            return View(model);
+        }
+
+        // GET: /XuatKho/InTongHopNgay?ngay=2026-04-12
+        public IActionResult InTongHopNgay(DateTime? ngay)
+        {
+            if (HttpContext.Session.GetInt32("MaNV") == null)
+                return RedirectToAction("DangNhap", "TaiKhoan");
+
+            DateTime ngayIn = ngay ?? DateTime.Today;
+            var model = new TongHopXuatNgayViewModel { Ngay = ngayIn };
+
+            try
+            {
+                using (var conn = DatabaseHelper.GetConnection(_connectionString))
+                {
+                    conn.Open();
+
+                    // Lấy tất cả phiếu xuất trong ngày
+                    string sqlPhieu = @"SELECT px.MaPhieuXuat, px.NgayXuat, px.LoaiPhieu, px.TongTien, nv.HoTen
+                                        FROM PhieuXuat px
+                                        INNER JOIN NhanVien nv ON px.MaNV = nv.MaNV
+                                        WHERE CAST(px.NgayXuat AS DATE) = @Ngay
+                                        ORDER BY px.NgayXuat ASC";
+                    var danhSachPhieu = new List<ChiTietPhieuXuatViewModel>();
+                    using (var cmd = new SqlCommand(sqlPhieu, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@Ngay", ngayIn.Date);
+                        using (var reader = cmd.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                danhSachPhieu.Add(new ChiTietPhieuXuatViewModel
+                                {
+                                    MaPhieuXuat = Convert.ToInt32(reader["MaPhieuXuat"]),
+                                    NgayXuat = Convert.ToDateTime(reader["NgayXuat"]),
+                                    LoaiPhieu = reader["LoaiPhieu"].ToString(),
+                                    TongTien = Convert.ToDecimal(reader["TongTien"]),
+                                    TenNhanVien = reader["HoTen"].ToString()
+                                });
+                            }
+                        }
+                    }
+
+                    // Lấy chi tiết cho từng phiếu
+                    foreach (var phieu in danhSachPhieu)
+                    {
+                        string sqlCT = @"SELECT ct.MaLo, sp.TenSP, ct.SoLuong, ct.DonGia
+                                         FROM ChiTietXuat ct
+                                         INNER JOIN LoHang lh ON ct.MaLo = lh.MaLo
+                                         INNER JOIN SanPham sp ON lh.MaSP = sp.MaSP
+                                         WHERE ct.MaPhieuXuat = @Id";
+                        using (var cmd = new SqlCommand(sqlCT, conn))
+                        {
+                            cmd.Parameters.AddWithValue("@Id", phieu.MaPhieuXuat);
+                            using (var reader = cmd.ExecuteReader())
+                            {
+                                while (reader.Read())
+                                {
+                                    phieu.DanhSachChiTiet.Add(new ChiTietItem
+                                    {
+                                        MaLo = Convert.ToInt32(reader["MaLo"]),
+                                        TenSanPham = reader["TenSP"].ToString(),
+                                        SoLuong = Convert.ToDecimal(reader["SoLuong"]),
+                                        DonGia = Convert.ToDecimal(reader["DonGia"])
+                                    });
+                                }
+                            }
+                        }
+                    }
+
+                    model.DanhSachPhieu = danhSachPhieu;
+                    model.TongTien = danhSachPhieu.Sum(p => p.TongTien);
+                }
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = "Lỗi: " + ex.Message;
             }
 
             return View(model);

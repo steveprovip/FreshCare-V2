@@ -86,46 +86,62 @@ namespace FreshCare.Models.ViewModels
     }
 
     /// <summary>
-    /// ViewModel cho form Nhập kho
+    /// ViewModel cho form Nhập kho (hỗ trợ nhập nhiều mặt hàng)
     /// </summary>
     public class NhapKhoViewModel
     {
-        [Required(ErrorMessage = "Vui lòng chọn sản phẩm")]
+        // === Nhập đơn (backward compatible) ===
         public int MaSP { get; set; }
-
-        [Required(ErrorMessage = "Vui lòng nhập số lượng")]
-        [Range(0.01, double.MaxValue, ErrorMessage = "Số lượng phải lớn hơn 0")]
         public decimal SoLuong { get; set; }
-
-        [Required(ErrorMessage = "Vui lòng nhập ngày sản xuất")]
         public DateTime NgaySanXuat { get; set; }
-
-        [Required(ErrorMessage = "Vui lòng nhập hạn sử dụng")]
         public DateTime HanSuDung { get; set; }
 
         public string? GhiChu { get; set; }
+
+        // === Nhập nhiều mặt hàng cùng lúc ===
+        public List<NhapKhoItem> DanhSachNhap { get; set; } = new();
 
         // Hiển thị dropdown
         public List<SanPham> DanhSachSanPham { get; set; } = new();
     }
 
     /// <summary>
-    /// ViewModel cho form Xuất kho
+    /// Một dòng mặt hàng trong phiếu nhập kho
+    /// </summary>
+    public class NhapKhoItem
+    {
+        public int MaSP { get; set; }
+        public decimal SoLuong { get; set; }
+        public DateTime NgaySanXuat { get; set; }
+        public DateTime HanSuDung { get; set; }
+    }
+
+    /// <summary>
+    /// ViewModel cho form Xuất kho (hỗ trợ bán nhiều mặt hàng)
     /// </summary>
     public class XuatKhoViewModel
     {
-        [Required(ErrorMessage = "Vui lòng chọn sản phẩm")]
+        // === Xuất đơn (backward compatible) ===
         public int MaSP { get; set; }
-
-        [Required(ErrorMessage = "Vui lòng nhập số lượng")]
-        [Range(0.01, double.MaxValue, ErrorMessage = "Số lượng phải lớn hơn 0")]
         public decimal SoLuong { get; set; }
 
         public string? GhiChu { get; set; }
 
+        // === Xuất nhiều mặt hàng cùng lúc ===
+        public List<XuatKhoItem> DanhSachXuat { get; set; } = new();
+
         // Hiển thị
         public List<SanPham> DanhSachSanPham { get; set; } = new();
         public List<LoHang> DanhSachLoHang { get; set; } = new();
+    }
+
+    /// <summary>
+    /// Một dòng mặt hàng trong phiếu xuất kho (bán hàng)
+    /// </summary>
+    public class XuatKhoItem
+    {
+        public int MaSP { get; set; }
+        public decimal SoLuong { get; set; }
     }
 
     /// <summary>
@@ -146,6 +162,22 @@ namespace FreshCare.Models.ViewModels
         public decimal TongThatThoat { get; set; }
         public List<PhieuXuat> PhieuHuyList { get; set; } = new();
         public List<PhieuXuat> PhieuBanList { get; set; } = new();
+
+        // Thống kê mặt hàng bán chạy / chậm (Yêu cầu #5)
+        public List<ThongKeSanPham> TopBanChay { get; set; } = new();
+        public List<ThongKeSanPham> TopBanCham { get; set; } = new();
+    }
+
+    /// <summary>
+    /// Thống kê mặt hàng bán chạy / chậm
+    /// </summary>
+    public class ThongKeSanPham
+    {
+        public int MaSP { get; set; }
+        public string TenSP { get; set; } = string.Empty;
+        public string DonViTinh { get; set; } = string.Empty;
+        public decimal TongSoLuong { get; set; }
+        public decimal TongDoanhThu { get; set; }
     }
 
     /// <summary>
@@ -213,5 +245,27 @@ namespace FreshCare.Models.ViewModels
         public decimal GiaNhap { get; set; }
         public DateTime NgaySanXuat { get; set; }
         public DateTime HanSuDung { get; set; }
+    }
+
+    /// <summary>
+    /// ViewModel In tổng hợp phiếu nhập trong ngày
+    /// </summary>
+    public class TongHopNhapNgayViewModel
+    {
+        public DateTime Ngay { get; set; }
+        public string TenNhanVien { get; set; } = string.Empty;
+        public List<ChiTietPhieuNhapViewModel> DanhSachPhieu { get; set; } = new();
+        public decimal TongTien { get; set; }
+    }
+
+    /// <summary>
+    /// ViewModel In tổng hợp phiếu xuất trong ngày
+    /// </summary>
+    public class TongHopXuatNgayViewModel
+    {
+        public DateTime Ngay { get; set; }
+        public string TenNhanVien { get; set; } = string.Empty;
+        public List<ChiTietPhieuXuatViewModel> DanhSachPhieu { get; set; } = new();
+        public decimal TongTien { get; set; }
     }
 }

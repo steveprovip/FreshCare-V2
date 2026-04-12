@@ -150,7 +150,12 @@ namespace FreshCare.Controllers
                     }
 
                     // Danh sách phiếu bán
-                    string sqlPhieuBan = @"SELECT px.MaPhieuXuat, px.NgayXuat, px.TongTien, nv.HoTen AS TenNhanVien
+                    string sqlPhieuBan = @"SELECT px.MaPhieuXuat, px.NgayXuat, px.TongTien, nv.HoTen AS TenNhanVien,
+                                                 (SELECT STRING_AGG(sp2.TenSP, N', ') 
+                                                  FROM ChiTietXuat ct2 
+                                                  INNER JOIN LoHang lh2 ON ct2.MaLo = lh2.MaLo 
+                                                  INNER JOIN SanPham sp2 ON lh2.MaSP = sp2.MaSP 
+                                                  WHERE ct2.MaPhieuXuat = px.MaPhieuXuat) AS TenMatHang
                                            FROM PhieuXuat px
                                            INNER JOIN NhanVien nv ON px.MaNV = nv.MaNV
                                            WHERE px.LoaiPhieu = N'Bán Hàng'
@@ -170,14 +175,20 @@ namespace FreshCare.Controllers
                                     NgayXuat = Convert.ToDateTime(reader["NgayXuat"]),
                                     TongTien = Convert.ToDecimal(reader["TongTien"]),
                                     LoaiPhieu = "Bán Hàng",
-                                    TenNhanVien = reader["TenNhanVien"].ToString()
+                                    TenNhanVien = reader["TenNhanVien"].ToString(),
+                                    TenMatHang = reader["TenMatHang"]?.ToString()
                                 });
                             }
                         }
                     }
 
                     // Danh sách phiếu hủy
-                    string sqlPhieuHuy = @"SELECT px.MaPhieuXuat, px.NgayXuat, px.GhiChu, nv.HoTen AS TenNhanVien
+                    string sqlPhieuHuy = @"SELECT px.MaPhieuXuat, px.NgayXuat, px.GhiChu, nv.HoTen AS TenNhanVien,
+                                                 (SELECT STRING_AGG(sp2.TenSP, N', ') 
+                                                  FROM ChiTietXuat ct2 
+                                                  INNER JOIN LoHang lh2 ON ct2.MaLo = lh2.MaLo 
+                                                  INNER JOIN SanPham sp2 ON lh2.MaSP = sp2.MaSP 
+                                                  WHERE ct2.MaPhieuXuat = px.MaPhieuXuat) AS TenMatHang
                                            FROM PhieuXuat px
                                            INNER JOIN NhanVien nv ON px.MaNV = nv.MaNV
                                            WHERE px.LoaiPhieu = N'Hủy Hàng'
@@ -197,7 +208,85 @@ namespace FreshCare.Controllers
                                     NgayXuat = Convert.ToDateTime(reader["NgayXuat"]),
                                     LoaiPhieu = "Hủy Hàng",
                                     GhiChu = reader["GhiChu"]?.ToString(),
-                                    TenNhanVien = reader["TenNhanVien"].ToString()
+                                    TenNhanVien = reader["TenNhanVien"].ToString(),
+                                    TenMatHang = reader["TenMatHang"]?.ToString()
+                                });
+                            }
+                        }
+                    }
+
+                    // Thống kê mặt hàng bán chạy nhất (Top 5)
+                    string sqlTopBanChay = @"SELECT TOP 5 sp.MaSP, sp.TenSP, sp.DonViTinh,
+                                                   SUM(ct.SoLuong) AS TongSoLuong,
+                                                   SUM(ct.SoLuong * ct.DonGia) AS TongDoanhThu
+                                            FROM ChiTietXuat ct
+                                            INNER JOIN LoHang lh ON ct.MaLo = lh.MaLo
+                                            INNER JOIN SanPham sp ON lh.MaSP = sp.MaSP
+                                            INNER JOIN PhieuXuat px ON ct.MaPhieuXuat = px.MaPhieuXuat
+                                            WHERE px.LoaiPhieu = N'Bán Hàng'
+                                                  AND px.NgayXuat >= @TuNgay AND px.NgayXuat <= @DenNgay
+                                            GROUP BY sp.MaSP, sp.TenSP, sp.DonViTinh
+                                            ORDER BY TongSoLuong DESC";
+                    using (var cmd = new SqlCommand(sqlTopBanChay, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@TuNgay", model.TuNgay);
+                        cmd.Parameters.AddWithValue("@DenNgay", model.DenNgay.Value.AddDays(1));
+                        using (var reader = cmd.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                model.TopBanChay.Add(new ThongKeSanPham
+                                {
+                                    MaSP = Convert.ToInt32(reader["MaSP"]),
+                                    TenSP = reader["TenSP"].ToString()!,
+                                    DonViTinh = reader["DonViTinh"].ToString()!,
+                                    TongSoLuong = Convert.ToDecimal(reader["TongSoLuong"]),
+                                    TongDoanhThu = Convert.ToDecimal(reader["TongDoanhThu"])
+                                });
+                            }
+                        }
+                    }
+
+                    // Thống kê mặt hàng bán chậm nhất (Top 5)
+                    // Loại trừ các MaSP đã nằm trong TopBanChay để tránh trùng lặp
+                    var excludeIds = model.TopBanChay.Select(x => x.MaSP).ToList();
+                    string excludeClause = "";
+                    if (excludeIds.Any())
+                    {
+                        excludeClause = " AND sp.MaSP NOT IN (" + string.Join(",", excludeIds.Select((_, i) => $"@ExcSP{i}")) + ")";
+                    }
+
+                    string sqlTopBanCham = $@"SELECT TOP 5 sp.MaSP, sp.TenSP, sp.DonViTinh,
+                                                   SUM(ct.SoLuong) AS TongSoLuong,
+                                                   SUM(ct.SoLuong * ct.DonGia) AS TongDoanhThu
+                                            FROM ChiTietXuat ct
+                                            INNER JOIN LoHang lh ON ct.MaLo = lh.MaLo
+                                            INNER JOIN SanPham sp ON lh.MaSP = sp.MaSP
+                                            INNER JOIN PhieuXuat px ON ct.MaPhieuXuat = px.MaPhieuXuat
+                                            WHERE px.LoaiPhieu = N'Bán Hàng'
+                                                  AND px.NgayXuat >= @TuNgay AND px.NgayXuat <= @DenNgay
+                                                  {excludeClause}
+                                            GROUP BY sp.MaSP, sp.TenSP, sp.DonViTinh
+                                            ORDER BY TongSoLuong ASC";
+                    using (var cmd = new SqlCommand(sqlTopBanCham, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@TuNgay", model.TuNgay);
+                        cmd.Parameters.AddWithValue("@DenNgay", model.DenNgay.Value.AddDays(1));
+                        for (int i = 0; i < excludeIds.Count; i++)
+                        {
+                            cmd.Parameters.AddWithValue($"@ExcSP{i}", excludeIds[i]);
+                        }
+                        using (var reader = cmd.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                model.TopBanCham.Add(new ThongKeSanPham
+                                {
+                                    MaSP = Convert.ToInt32(reader["MaSP"]),
+                                    TenSP = reader["TenSP"].ToString()!,
+                                    DonViTinh = reader["DonViTinh"].ToString()!,
+                                    TongSoLuong = Convert.ToDecimal(reader["TongSoLuong"]),
+                                    TongDoanhThu = Convert.ToDecimal(reader["TongDoanhThu"])
                                 });
                             }
                         }

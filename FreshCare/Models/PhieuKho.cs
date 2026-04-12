@@ -12,6 +12,7 @@ namespace FreshCare.Models
 
         // Hiển thị
         public string? TenNhanVien { get; set; }
+        public string? TenMatHang { get; set; }
         public List<ChiTietNhap> ChiTietNhaps { get; set; } = new();
     }
 
@@ -47,6 +48,7 @@ namespace FreshCare.Models
 
         // Hiển thị
         public string? TenNhanVien { get; set; }
+        public string? TenMatHang { get; set; }
         public List<ChiTietXuat> ChiTietXuats { get; set; } = new();
     }
 
