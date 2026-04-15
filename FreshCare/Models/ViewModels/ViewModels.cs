@@ -83,6 +83,11 @@ namespace FreshCare.Models.ViewModels
         public int TongLoHang { get; set; }
         public int SoLoQuaHan { get; set; }
         public int SoLoCanDate { get; set; }
+
+        // Bổ sung cho Hàng Bán Chậm
+        public List<ThongKeSanPham> SanPhamBanCham { get; set; } = new();
+        public int SoNgayBanCham { get; set; } = 30; // Từ CauHinh
+        public int SoLuongBanChamThreshold { get; set; } = 10; // Từ CauHinh
     }
 
     /// <summary>
@@ -114,6 +119,8 @@ namespace FreshCare.Models.ViewModels
         public decimal SoLuong { get; set; }
         public DateTime NgaySanXuat { get; set; }
         public DateTime HanSuDung { get; set; }
+        public decimal HeSoQuyDoi { get; set; } = 1;
+        public string? DonViQuyDoi { get; set; }
     }
 
     /// <summary>
@@ -142,6 +149,8 @@ namespace FreshCare.Models.ViewModels
     {
         public int MaSP { get; set; }
         public decimal SoLuong { get; set; }
+        public decimal HeSoQuyDoi { get; set; } = 1;
+        public string? DonViQuyDoi { get; set; }
     }
 
     /// <summary>
@@ -267,5 +276,51 @@ namespace FreshCare.Models.ViewModels
         public string TenNhanVien { get; set; } = string.Empty;
         public List<ChiTietPhieuXuatViewModel> DanhSachPhieu { get; set; } = new();
         public decimal TongTien { get; set; }
+    }
+
+    /// <summary>
+    /// ViewModel cho trang Danh sách Sản phẩm (phân trang, tìm kiếm, sắp xếp)
+    /// </summary>
+    public class DanhSachSanPhamViewModel
+    {
+        public List<SanPhamChiTiet> DanhSach { get; set; } = new();
+        public string? TimKiem { get; set; }
+        public string SapXep { get; set; } = "az"; // az, za
+        public int Trang { get; set; } = 1;
+        public int TongTrang { get; set; }
+        public int TongSanPham { get; set; }
+        public int SoLuongMoiTrang { get; set; } = 10;
+    }
+
+    /// <summary>
+    /// Sản phẩm + thông tin lô gần nhất (NSX, HSD)
+    /// </summary>
+    public class SanPhamChiTiet
+    {
+        public int MaSP { get; set; }
+        public string TenSP { get; set; } = null!;
+        public string DonViTinh { get; set; } = null!;
+        public decimal GiaNhap { get; set; }
+        public decimal GiaBan { get; set; }
+        public int MaDanhMuc { get; set; }
+        public string? TenDanhMuc { get; set; }
+        public string? MoTa { get; set; }
+        public string? MaVach { get; set; }
+        public string TrangThai { get; set; } = null!;
+        // Thông tin lô gần nhất
+        public DateTime? NgaySanXuatGanNhat { get; set; }
+        public DateTime? HanSuDungGanNhat { get; set; }
+        public decimal TongTonKho { get; set; }
+    }
+
+    /// <summary>
+    /// ViewModel cho trang Lịch sử hệ thống
+    /// </summary>
+    public class LichSuHeThongViewModel
+    {
+        public List<LichSuHeThong> DanhSach { get; set; } = new();
+        public string? TimKiem { get; set; }
+        public int Trang { get; set; } = 1;
+        public int TongTrang { get; set; }
     }
 }

@@ -2,6 +2,7 @@ using FreshCare.Helpers;
 using FreshCare.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
+using System.Text.Json;
 
 namespace FreshCare.Controllers
 {
@@ -119,41 +120,97 @@ namespace FreshCare.Controllers
         #region Sản Phẩm
 
         // GET: /SanPham/DanhSach
-        public IActionResult DanhSach()
+        public IActionResult DanhSach(string? timKiem, string sapXep = "az", int trang = 1)
         {
             if (HttpContext.Session.GetInt32("MaNV") == null)
                 return RedirectToAction("DangNhap", "TaiKhoan");
 
-            var list = new List<SanPham>();
+            int soLuongMoiTrang = 10;
+            var model = new FreshCare.Models.ViewModels.DanhSachSanPhamViewModel
+            {
+                TimKiem = timKiem,
+                SapXep = sapXep,
+                Trang = trang,
+                SoLuongMoiTrang = soLuongMoiTrang
+            };
+
             try
             {
                 using (var conn = DatabaseHelper.GetConnection(_connectionString))
                 {
                     conn.Open();
-                    string sql = @"SELECT sp.MaSP, sp.TenSP, sp.DonViTinh, sp.GiaNhap, sp.GiaBan, sp.MaDanhMuc,
-                                          sp.MoTa, sp.MaVach, sp.TrangThai, dm.TenDanhMuc
+
+                    // === Đếm tổng sản phẩm (có lọc tìm kiếm) ===
+                    string sqlCount = @"SELECT COUNT(*) FROM SanPham sp
+                                        INNER JOIN DanhMuc dm ON sp.MaDanhMuc = dm.MaDanhMuc
+                                        WHERE sp.TrangThai = N'HoatDong'";
+                    if (!string.IsNullOrWhiteSpace(timKiem))
+                        sqlCount += " AND sp.TenSP LIKE @TimKiem";
+
+                    using (var cmd = new SqlCommand(sqlCount, conn))
+                    {
+                        if (!string.IsNullOrWhiteSpace(timKiem))
+                            cmd.Parameters.AddWithValue("@TimKiem", "%" + timKiem + "%");
+                        model.TongSanPham = Convert.ToInt32(cmd.ExecuteScalar());
+                    }
+
+                    model.TongTrang = (int)Math.Ceiling((double)model.TongSanPham / soLuongMoiTrang);
+                    if (model.Trang < 1) model.Trang = 1;
+                    if (model.Trang > model.TongTrang && model.TongTrang > 0) model.Trang = model.TongTrang;
+                    int offset = (model.Trang - 1) * soLuongMoiTrang;
+
+                    // === Sắp xếp ===
+                    string orderClause = sapXep == "za" ? "sp.TenSP DESC" : "sp.TenSP ASC";
+
+                    // === Truy vấn chính: Sản phẩm + thông tin lô gần nhất ===
+                    string sql = $@"SELECT sp.MaSP, sp.TenSP, sp.DonViTinh, sp.GiaNhap, sp.GiaBan, sp.MaDanhMuc,
+                                          sp.MoTa, sp.MaVach, sp.TrangThai, dm.TenDanhMuc,
+                                          loInfo.NgaySanXuatGanNhat, loInfo.HanSuDungGanNhat, 
+                                          ISNULL(loInfo.TongTonKho, 0) AS TongTonKho
                                    FROM SanPham sp
                                    INNER JOIN DanhMuc dm ON sp.MaDanhMuc = dm.MaDanhMuc
-                                   WHERE sp.TrangThai = N'HoatDong'
-                                   ORDER BY sp.MaSP";
+                                   OUTER APPLY (
+                                       SELECT MIN(lh.NgaySanXuat) AS NgaySanXuatGanNhat,
+                                              MIN(lh.HanSuDung) AS HanSuDungGanNhat,
+                                              SUM(lh.SoLuongTon) AS TongTonKho
+                                       FROM LoHang lh 
+                                       WHERE lh.MaSP = sp.MaSP AND lh.SoLuongTon > 0 AND lh.TrangThai != N'Đã Hủy'
+                                   ) loInfo
+                                   WHERE sp.TrangThai = N'HoatDong'";
+
+                    if (!string.IsNullOrWhiteSpace(timKiem))
+                        sql += " AND sp.TenSP LIKE @TimKiem";
+
+                    sql += $" ORDER BY {orderClause} OFFSET @Offset ROWS FETCH NEXT @Fetch ROWS ONLY";
+
                     using (var cmd = new SqlCommand(sql, conn))
-                    using (var reader = cmd.ExecuteReader())
                     {
-                        while (reader.Read())
+                        if (!string.IsNullOrWhiteSpace(timKiem))
+                            cmd.Parameters.AddWithValue("@TimKiem", "%" + timKiem + "%");
+                        cmd.Parameters.AddWithValue("@Offset", offset);
+                        cmd.Parameters.AddWithValue("@Fetch", soLuongMoiTrang);
+
+                        using (var reader = cmd.ExecuteReader())
                         {
-                            list.Add(new SanPham
+                            while (reader.Read())
                             {
-                                MaSP = Convert.ToInt32(reader["MaSP"]),
-                                TenSP = reader["TenSP"].ToString()!,
-                                DonViTinh = reader["DonViTinh"].ToString()!,
-                                GiaNhap = Convert.ToDecimal(reader["GiaNhap"]),
-                                GiaBan = Convert.ToDecimal(reader["GiaBan"]),
-                                MaDanhMuc = Convert.ToInt32(reader["MaDanhMuc"]),
-                                MoTa = reader["MoTa"]?.ToString(),
-                                MaVach = reader["MaVach"]?.ToString(),
-                                TrangThai = reader["TrangThai"].ToString()!,
-                                TenDanhMuc = reader["TenDanhMuc"].ToString()
-                            });
+                                model.DanhSach.Add(new FreshCare.Models.ViewModels.SanPhamChiTiet
+                                {
+                                    MaSP = Convert.ToInt32(reader["MaSP"]),
+                                    TenSP = reader["TenSP"].ToString()!,
+                                    DonViTinh = reader["DonViTinh"].ToString()!,
+                                    GiaNhap = Convert.ToDecimal(reader["GiaNhap"]),
+                                    GiaBan = Convert.ToDecimal(reader["GiaBan"]),
+                                    MaDanhMuc = Convert.ToInt32(reader["MaDanhMuc"]),
+                                    MoTa = reader["MoTa"]?.ToString(),
+                                    MaVach = reader["MaVach"]?.ToString(),
+                                    TrangThai = reader["TrangThai"].ToString()!,
+                                    TenDanhMuc = reader["TenDanhMuc"].ToString(),
+                                    NgaySanXuatGanNhat = reader["NgaySanXuatGanNhat"] != DBNull.Value ? Convert.ToDateTime(reader["NgaySanXuatGanNhat"]) : null,
+                                    HanSuDungGanNhat = reader["HanSuDungGanNhat"] != DBNull.Value ? Convert.ToDateTime(reader["HanSuDungGanNhat"]) : null,
+                                    TongTonKho = Convert.ToDecimal(reader["TongTonKho"])
+                                });
+                            }
                         }
                     }
                 }
@@ -165,7 +222,7 @@ namespace FreshCare.Controllers
 
             // Load danh mục cho dropdown
             ViewBag.DanhMucs = LayDanhMuc();
-            return View(list);
+            return View(model);
         }
 
         // POST: /SanPham/ThemSanPham
@@ -173,6 +230,11 @@ namespace FreshCare.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult ThemSanPham(string tenSP, string donViTinh, decimal giaNhap, decimal giaBan, int maDanhMuc, string? moTa, string? maVach)
         {
+            if (giaBan <= giaNhap)
+            {
+                TempData["Error"] = "Lỗi: Giá bán phải lớn hơn giá nhập!";
+                return RedirectToAction("DanhSach");
+            }
             try
             {
                 using (var conn = DatabaseHelper.GetConnection(_connectionString))
@@ -193,6 +255,8 @@ namespace FreshCare.Controllers
                     }
                 }
                 TempData["Success"] = "Thêm sản phẩm thành công!";
+                int maNV = HttpContext.Session.GetInt32("MaNV") ?? 0;
+                LichSuController.GhiLog(_connectionString, maNV, "Thêm sản phẩm", $"Thêm SP: {tenSP}, ĐVT: {donViTinh}, Giá nhập: {giaNhap:N0}, Giá bán: {giaBan:N0}");
             }
             catch (Exception ex)
             {
@@ -203,33 +267,75 @@ namespace FreshCare.Controllers
         }
 
         // POST: /SanPham/SuaSanPham
+        // Yêu cầu #7: NhanVien sửa -> lưu vào bảng YeuCauPheDuyet, Admin sửa trực tiếp
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult SuaSanPham(int maSP, string tenSP, string donViTinh, decimal giaNhap, decimal giaBan, int maDanhMuc, string? moTa, string? maVach)
         {
+            if (giaBan <= giaNhap)
+            {
+                TempData["Error"] = "Lỗi: Giá bán phải lớn hơn giá nhập!";
+                return RedirectToAction("DanhSach");
+            }
+
+            int maNV = HttpContext.Session.GetInt32("MaNV") ?? 0;
+            string vaiTro = HttpContext.Session.GetString("VaiTro") ?? "";
+
             try
             {
-                using (var conn = DatabaseHelper.GetConnection(_connectionString))
+                if (vaiTro == "NhanVien")
                 {
-                    conn.Open();
-                    string sql = @"UPDATE SanPham 
-                                   SET TenSP = @TenSP, DonViTinh = @DonViTinh, GiaNhap = @GiaNhap, GiaBan = @GiaBan, 
-                                       MaDanhMuc = @MaDanhMuc, MoTa = @MoTa, MaVach = @MaVach
-                                   WHERE MaSP = @MaSP";
-                    using (var cmd = new SqlCommand(sql, conn))
+                    // === Nhân viên: Lưu yêu cầu chờ duyệt ===
+                    var duLieuMoi = JsonSerializer.Serialize(new Dictionary<string, string>
                     {
-                        cmd.Parameters.AddWithValue("@MaSP", maSP);
-                        cmd.Parameters.AddWithValue("@TenSP", tenSP);
-                        cmd.Parameters.AddWithValue("@DonViTinh", donViTinh);
-                        cmd.Parameters.AddWithValue("@GiaNhap", giaNhap);
-                        cmd.Parameters.AddWithValue("@GiaBan", giaBan);
-                        cmd.Parameters.AddWithValue("@MaDanhMuc", maDanhMuc);
-                        cmd.Parameters.AddWithValue("@MoTa", (object?)moTa ?? DBNull.Value);
-                        cmd.Parameters.AddWithValue("@MaVach", (object?)maVach ?? DBNull.Value);
-                        cmd.ExecuteNonQuery();
+                        { "TenSP", tenSP }, { "DonViTinh", donViTinh },
+                        { "GiaNhap", giaNhap.ToString() }, { "GiaBan", giaBan.ToString() },
+                        { "MaDanhMuc", maDanhMuc.ToString() },
+                        { "MoTa", moTa ?? "" }, { "MaVach", maVach ?? "" }
+                    });
+
+                    using (var conn = DatabaseHelper.GetConnection(_connectionString))
+                    {
+                        conn.Open();
+                        string sql = @"INSERT INTO YeuCauPheDuyet (MaNV, PhanHe, LoaiChinhSua, MaBanGhi, DuLieuCu, DuLieuMoi, TrangThai)
+                                       VALUES (@MaNV, N'SanPham', N'Sửa', @MaBanGhi, NULL, @DuLieuMoi, N'Chờ Duyệt')";
+                        using (var cmd = new SqlCommand(sql, conn))
+                        {
+                            cmd.Parameters.AddWithValue("@MaNV", maNV);
+                            cmd.Parameters.AddWithValue("@MaBanGhi", maSP);
+                            cmd.Parameters.AddWithValue("@DuLieuMoi", duLieuMoi);
+                            cmd.ExecuteNonQuery();
+                        }
                     }
+                    LichSuController.GhiLog(_connectionString, maNV, "Gửi yêu cầu sửa SP", $"SP #{maSP}: {tenSP}");
+                    TempData["Success"] = "Yêu cầu chỉnh sửa đã được gửi, chờ Quản lý phê duyệt!";
                 }
-                TempData["Success"] = "Cập nhật sản phẩm thành công!";
+                else
+                {
+                    // === Admin: Sửa trực tiếp ===
+                    using (var conn = DatabaseHelper.GetConnection(_connectionString))
+                    {
+                        conn.Open();
+                        string sql = @"UPDATE SanPham 
+                                       SET TenSP = @TenSP, DonViTinh = @DonViTinh, GiaNhap = @GiaNhap, GiaBan = @GiaBan, 
+                                           MaDanhMuc = @MaDanhMuc, MoTa = @MoTa, MaVach = @MaVach
+                                       WHERE MaSP = @MaSP";
+                        using (var cmd = new SqlCommand(sql, conn))
+                        {
+                            cmd.Parameters.AddWithValue("@MaSP", maSP);
+                            cmd.Parameters.AddWithValue("@TenSP", tenSP);
+                            cmd.Parameters.AddWithValue("@DonViTinh", donViTinh);
+                            cmd.Parameters.AddWithValue("@GiaNhap", giaNhap);
+                            cmd.Parameters.AddWithValue("@GiaBan", giaBan);
+                            cmd.Parameters.AddWithValue("@MaDanhMuc", maDanhMuc);
+                            cmd.Parameters.AddWithValue("@MoTa", (object?)moTa ?? DBNull.Value);
+                            cmd.Parameters.AddWithValue("@MaVach", (object?)maVach ?? DBNull.Value);
+                            cmd.ExecuteNonQuery();
+                        }
+                    }
+                    LichSuController.GhiLog(_connectionString, maNV, "Sửa sản phẩm", $"Cập nhật SP #{maSP}: {tenSP}");
+                    TempData["Success"] = "Cập nhật sản phẩm thành công!";
+                }
             }
             catch (Exception ex)
             {
@@ -240,6 +346,7 @@ namespace FreshCare.Controllers
         }
 
         // POST: /SanPham/XoaSanPham (Luật #5: Không DELETE, cập nhật trạng thái)
+        // Yêu cầu #7: NhanVien xóa -> chờ duyệt
         [HttpPost]
         public IActionResult XoaSanPham(int maSP)
         {

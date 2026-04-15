@@ -24,7 +24,7 @@
                                     <tr>
                                         <th style="width:30%">Sản phẩm <span class="text-danger">*</span></th>
                                         <th style="width:12%">Số lượng <span class="text-danger">*</span></th>
-                                        <th style="width:8%">ĐVT</th>
+                                        <th style="width:18%">Xuất theo ĐVT / Hệ số</th>
                                         <th style="width:15%">Tồn kho an toàn</th>
                                         <th style="width:15%">Giá bán gốc</th>
                                         <th style="width:15%">Ước tính</th>
@@ -45,7 +45,14 @@
                                             </select>
                                         </td>
                                         <td><input name="DanhSachXuat[0].SoLuong" type="number" step="0.01" min="0.01" class="form-control txt-soluong" required /></td>
-                                        <td><span class="badge bg-info lbl-dvt">---</span></td>
+                                        <td>
+                                            <div class="input-group input-group-sm mb-1">
+                                                <input name="DanhSachXuat[0].DonViQuyDoi" class="form-control" placeholder="ĐVT..." title="Đơn vị xuất (vd: Vỉ, Thùng)" />
+                                                <span class="input-group-text bg-light">x</span>
+                                                <input name="DanhSachXuat[0].HeSoQuyDoi" type="number" step="0.01" min="1" class="form-control txt-heso" value="1" title="Hệ số về ĐVT gốc" />
+                                            </div>
+                                            <small class="text-muted" style="font-size:0.7rem;">Gốc: <span class="badge bg-info lbl-dvt">---</span></small>
+                                        </td>
                                         <td><strong class="text-success lbl-tonkho">---</strong></td>
                                         <td><span class="lbl-giaban">---</span></td>
                                         <td><strong class="text-danger lbl-thanhtien">---</strong></td>
@@ -132,7 +139,14 @@
                 </select>
             </td>
             <td><input name="DanhSachXuat[${rowIndex}].SoLuong" type="number" step="0.01" min="0.01" class="form-control txt-soluong" required /></td>
-            <td><span class="badge bg-info lbl-dvt">---</span></td>
+            <td>
+                <div class="input-group input-group-sm mb-1">
+                    <input name="DanhSachXuat[${rowIndex}].DonViQuyDoi" class="form-control" placeholder="ĐVT..." />
+                    <span class="input-group-text bg-light">x</span>
+                    <input name="DanhSachXuat[${rowIndex}].HeSoQuyDoi" type="number" step="0.01" min="1" class="form-control txt-heso" value="1" />
+                </div>
+                <small class="text-muted" style="font-size:0.7rem;">Gốc: <span class="badge bg-info lbl-dvt">---</span></small>
+            </td>
             <td><strong class="text-success lbl-tonkho">---</strong></td>
             <td><span class="lbl-giaban">---</span></td>
             <td><strong class="text-danger lbl-thanhtien">---</strong></td>
@@ -202,14 +216,17 @@
         });
     });
 
-    $(document).on('input', '.txt-soluong', function() {
+    $(document).on('input', '.txt-soluong, .txt-heso', function() {
         var row = $(this).closest('tr');
-        var sl = parseFloat($(this).val()) || 0;
-        var max = parseFloat($(this).attr('max')) || 0;
+        var sl = parseFloat(row.find('.txt-soluong').val()) || 0;
+        var heso = parseFloat(row.find('.txt-heso').val()) || 1;
+        var tongSlGoc = sl * heso;
+        var max = parseFloat(row.find('.txt-soluong').attr('max')) || 0; // max theo đvt gốc
         
-        if(sl > max && max > 0) {
-            alert('Lỗi: Số lượng xuất (' + sl + ') vượt quá tồn kho an toàn (' + max + ')!');
-            $(this).val(max);
+        if(tongSlGoc > max && max > 0) {
+            alert('Lỗi: Tổng số lượng xuất sau quy đổi (' + tongSlGoc + ') vượt quá tồn kho an toàn (' + max + ')!');
+            row.find('.txt-soluong').val(1);
+            row.find('.txt-heso').val(1);
         }
         calcTotalRow(row);
     });
@@ -226,8 +243,9 @@
 
     function calcTotalRow(row) {
         var sl = parseFloat(row.find('.txt-soluong').val()) || 0;
+        var heso = parseFloat(row.find('.txt-heso').val()) || 1;
         var gia = parseFloat(row.data('giaban')) || 0;
-        var tt = sl * gia;
+        var tt = sl * heso * gia;
         row.find('.lbl-thanhtien').text(tt > 0 ? tt.toLocaleString('vi-VN') + 'đ' : '---');
         calcTotal();
     }

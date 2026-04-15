@@ -85,9 +85,14 @@ namespace FreshCare.Controllers
                 {
                     conn.Open();
 
-                    // Luật #10: Kiểm tra đơn vị tính cho từng item
+                    // Luật #10: Kiểm tra đơn vị tính cho từng item và quy đổi
                     foreach (var item in danhSachItems)
                     {
+                        if (item.HeSoQuyDoi > 0)
+                        {
+                            item.SoLuong = item.SoLuong * item.HeSoQuyDoi;
+                        }
+                        
                         string donViTinh = "";
                         string sqlDVT = "SELECT DonViTinh FROM SanPham WHERE MaSP = @MaSP";
                         using (var cmdDVT = new SqlCommand(sqlDVT, conn))

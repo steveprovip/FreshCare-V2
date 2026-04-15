@@ -200,6 +200,7 @@
                                 <li><hr class="dropdown-divider" /></li>
                                 <li><a class="dropdown-item" href="/NhapKho/Index"><i class="fas fa-download me-2"></i>Nhập kho</a></li>
                                 <li><a class="dropdown-item" href="/XuatKho/BanHang"><i class="fas fa-upload me-2"></i>Xuất kho (Bán hàng)</a></li>
+                                <li><a class="dropdown-item text-danger" href="/XuatKho/HuyThuCong"><i class="fas fa-trash-alt me-2"></i>Xuất hủy (Thủ công)</a></li>
                                 <li><hr class="dropdown-divider" /></li>
                                 <li><a class="dropdown-item" href="/NhapKho/LichSu"><i class="fas fa-file-import me-2"></i>Lịch sử nhập</a></li>
                                 <li><a class="dropdown-item" href="/XuatKho/LichSu"><i class="fas fa-file-export me-2"></i>Lịch sử xuất</a></li>
@@ -229,6 +230,8 @@
                                 @if (Context.Session.GetString("VaiTro") == "Admin")
                                 {
                                     <li><a class="dropdown-item" href="/TaiKhoan/QuanLy"><i class="fas fa-users-cog me-2"></i>Quản lý nhân viên</a></li>
+                                    <li><a class="dropdown-item" href="/LichSu/Index"><i class="fas fa-history me-2"></i>Nhật ký hệ thống</a></li>
+                                    <li><a class="dropdown-item" href="/PheDuyet/Index"><i class="fas fa-clipboard-check me-2"></i>Quản lý phê duyệt</a></li>
                                     <li><hr class="dropdown-divider" /></li>
                                 }
                                 <li>
