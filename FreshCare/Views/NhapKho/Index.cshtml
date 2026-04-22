@@ -14,19 +14,24 @@
                     <div class="mb-3">
                         <div class="d-flex justify-content-between align-items-center mb-2">
                             <h6 class="fw-bold mb-0"><i class="fas fa-list me-1"></i>Danh sách mặt hàng nhập</h6>
-                            <button type="button" class="btn btn-sm btn-outline-success" id="btnThemDong">
-                                <i class="fas fa-plus me-1"></i>Thêm mặt hàng
-                            </button>
+                            <div class="d-flex gap-2">
+                                <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modalThemSPNhanh">
+                                    <i class="fas fa-plus-circle me-1"></i>Tạo SP mới
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-success" id="btnThemDong">
+                                    <i class="fas fa-plus me-1"></i>Thêm mặt hàng
+                                </button>
+                            </div>
                         </div>
                         <div class="table-responsive">
                             <table class="table table-bordered" id="tblNhapHang">
                                 <thead class="table-light">
                                     <tr>
-                                        <th style="width:30%">Sản phẩm <span class="text-danger">*</span></th>
-                                        <th style="width:12%">Số lượng <span class="text-danger">*</span></th>
-                                        <th style="width:18%">Nhập theo ĐVT / Hệ số</th>
-                                        <th style="width:15%">Ngày SX <span class="text-danger">*</span></th>
-                                        <th style="width:15%">Hạn SD <span class="text-danger">*</span></th>
+                                        <th style="width:28%">Sản phẩm <span class="text-danger">*</span></th>
+                                        <th style="width:10%">Số lượng <span class="text-danger">*</span></th>
+                                        <th style="width:16%">Nhập theo ĐVT / Hệ số</th>
+                                        <th style="width:13%">Ngày SX <span class="text-danger">*</span></th>
+                                        <th style="width:13%">Hạn SD <span class="text-danger">*</span></th>
                                         <th style="width:12%">Giá nhập</th>
                                         <th style="width:8%">Xóa</th>
                                     </tr>
@@ -55,7 +60,7 @@
                                         </td>
                                         <td><input name="DanhSachNhap[0].NgaySanXuat" type="date" class="form-control" value="@DateTime.Today.ToString("yyyy-MM-dd")" required /></td>
                                         <td><input name="DanhSachNhap[0].HanSuDung" type="date" class="form-control" value="@DateTime.Today.AddDays(14).ToString("yyyy-MM-dd")" required /></td>
-                                        <td><span class="lbl-gia text-success fw-bold">---</span></td>
+                                        <td><input name="DanhSachNhap[0].GiaNhap" type="number" step="100" min="0" class="form-control txt-gianhap" placeholder="Tự động" title="Để trống = dùng giá mặc định SP" /></td>
                                         <td class="text-center"><button type="button" class="btn btn-sm btn-outline-danger btn-xoa-dong" title="Xóa dòng"><i class="fas fa-trash"></i></button></td>
                                     </tr>
                                 </tbody>
@@ -95,7 +100,8 @@
                     <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Gõ tên SP tại ô chọn để tìm nhanh (autocomplete)</li>
                     <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Nhập số lượng (Kg cho phép thập phân)</li>
                     <li class="mb-2"><i class="fas fa-exclamation-triangle text-warning me-2"></i><strong>HSD phải ≥ NSX</strong></li>
-                    <li><i class="fas fa-link text-info me-2"></i>Chưa có SP? <a href="/SanPham/DanhSach">Thêm tại đây</a></li>
+                    <li class="mb-2"><i class="fas fa-plus-circle text-primary me-2"></i>Chưa có SP? Ấn <strong>"Tạo SP mới"</strong> ngay trên bảng nhập!</li>
+                    <li><i class="fas fa-tag text-info me-2"></i>Cột giá nhập có thể sửa theo lô (để trống = giá mặc định)</li>
                 </ul>
             </div>
         </div>
@@ -111,6 +117,91 @@
                     <button type="button" class="btn btn-outline-primary" id="btnQuetMa"><i class="fas fa-search me-1"></i>Tìm</button>
                 </div>
                 <small class="text-muted mt-1 d-block">Quét mã vạch sẽ tự động thêm dòng mới với SP tương ứng</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ================================================================ -->
+<!-- MODAL: Tạo sản phẩm mới nhanh (ngay trong trang Nhập Kho) -->
+<!-- ================================================================ -->
+<div class="modal fade" id="modalThemSPNhanh" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content" style="border-radius:16px;">
+            <div class="modal-header" style="background:var(--fc-primary);color:#fff;border-radius:16px 16px 0 0;">
+                <h5 class="modal-title"><i class="fas fa-plus-circle me-2"></i>Tạo sản phẩm mới nhanh</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-info small py-2 mb-3">
+                    <i class="fas fa-lightbulb me-1"></i>Tạo sản phẩm mới ngay tại đây — sau khi tạo xong, SP sẽ tự động xuất hiện trong dropdown để nhập kho luôn!
+                </div>
+                <div class="row">
+                    <div class="col-md-8 mb-3">
+                        <label class="form-label fw-semibold">Tên sản phẩm <span class="text-danger">*</span></label>
+                        <input id="nsp_TenSP" class="form-control" required placeholder="VD: Rau muống hữu cơ" />
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label fw-semibold">Đơn vị tính <span class="text-danger">*</span></label>
+                        <select id="nsp_DonViTinh" class="form-select">
+                            <option value="Kg">Kg</option>
+                            <option value="Bó">Bó</option>
+                            <option value="Hộp">Hộp</option>
+                            <option value="Khay">Khay</option>
+                            <option value="Chai">Chai</option>
+                            <option value="Gói">Gói</option>
+                            <option value="Vỉ">Vỉ</option>
+                            <option value="Nải">Nải</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-semibold">Giá nhập (VNĐ) <span class="text-danger">*</span></label>
+                        <input id="nsp_GiaNhap" type="number" step="100" min="0" class="form-control" required placeholder="VD: 15000" />
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-semibold">Giá bán (VNĐ) <span class="text-danger">*</span></label>
+                        <input id="nsp_GiaBan" type="number" step="100" min="0" class="form-control" required placeholder="VD: 25000" />
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-8 mb-3">
+                        <label class="form-label fw-semibold">Danh mục <span class="text-danger">*</span></label>
+                        <select id="nsp_DanhMuc" class="form-select">
+                            @foreach (var dm in Model.DanhSachDanhMuc)
+                            {
+                                <option value="@dm.MaDanhMuc">@dm.TenDanhMuc (Sale @dm.PhanTramSale%)</option>
+                            }
+                            <option value="-1" class="fw-bold text-primary">+ Tạo danh mục mới...</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label fw-semibold">Mã vạch</label>
+                        <input id="nsp_MaVach" class="form-control" placeholder="Quét / nhập" />
+                    </div>
+                </div>
+                <!-- Khu vực tạo danh mục mới (ẩn mặc định) -->
+                <div id="divDanhMucMoi" class="row" style="display:none;">
+                    <div class="col-md-8 mb-3">
+                        <label class="form-label fw-semibold text-primary"><i class="fas fa-folder-plus me-1"></i>Tên danh mục mới <span class="text-danger">*</span></label>
+                        <input id="nsp_TenDanhMucMoi" class="form-control" placeholder="VD: Đồ Hộp" />
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label fw-semibold text-primary">% Sale cận date</label>
+                        <input id="nsp_PhanTramSale" type="number" step="1" min="0" max="80" class="form-control" value="20" />
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Mô tả</label>
+                    <textarea id="nsp_MoTa" class="form-control" rows="2" placeholder="Mô tả sản phẩm (không bắt buộc)"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                <button type="button" class="btn btn-fc-primary" id="btnLuuSPNhanh">
+                    <i class="fas fa-save me-1"></i>Tạo SP & Thêm vào phiếu nhập
+                </button>
             </div>
         </div>
     </div>
@@ -149,7 +240,7 @@
             </td>
             <td><input name="DanhSachNhap[${rowIndex}].NgaySanXuat" type="date" class="form-control" value="${new Date().toISOString().split('T')[0]}" required /></td>
             <td><input name="DanhSachNhap[${rowIndex}].HanSuDung" type="date" class="form-control" value="${getDatePlus14()}" required /></td>
-            <td><span class="lbl-gia text-success fw-bold">---</span></td>
+            <td><input name="DanhSachNhap[${rowIndex}].GiaNhap" type="number" step="100" min="0" class="form-control txt-gianhap" placeholder="Tự động" /></td>
             <td class="text-center"><button type="button" class="btn btn-sm btn-outline-danger btn-xoa-dong" title="Xóa dòng"><i class="fas fa-trash"></i></button></td>
         </tr>`;
         $('#tbodyNhapHang').append(html);
@@ -194,7 +285,12 @@
         var gia = selected.data('gia') || 0;
 
         row.find('.lbl-dvt').text(dvt);
-        row.find('.lbl-gia').text(gia > 0 ? Number(gia).toLocaleString('vi-VN') + 'đ' : '---');
+        // Tự động điền giá nhập mặc định vào input (user có thể sửa)
+        var inputGia = row.find('.txt-gianhap');
+        if (!inputGia.val() || inputGia.val() == '0') {
+            inputGia.val(gia > 0 ? gia : '');
+            inputGia.attr('placeholder', gia > 0 ? Number(gia).toLocaleString('vi-VN') + 'đ' : 'Tự động');
+        }
 
         // Luật #10: ĐVT step
         var inputSL = row.find('.txt-soluong');
@@ -225,6 +321,87 @@
 
     $('#txtMaVach').on('keypress', function(e) {
         if (e.which === 13) { e.preventDefault(); $('#btnQuetMa').click(); }
+    });
+
+    // ================================================================
+    // MODAL: Tạo SP mới nhanh
+    // ================================================================
+    // Hiện/ẩn form tạo danh mục mới
+    $('#nsp_DanhMuc').on('change', function() {
+        if ($(this).val() === '-1') {
+            $('#divDanhMucMoi').slideDown(200);
+        } else {
+            $('#divDanhMucMoi').slideUp(200);
+        }
+    });
+
+    // Nút Lưu SP nhanh
+    $('#btnLuuSPNhanh').on('click', function() {
+        var tenSP = $('#nsp_TenSP').val().trim();
+        var donViTinh = $('#nsp_DonViTinh').val();
+        var giaNhap = parseFloat($('#nsp_GiaNhap').val()) || 0;
+        var giaBan = parseFloat($('#nsp_GiaBan').val()) || 0;
+        var maDanhMuc = parseInt($('#nsp_DanhMuc').val());
+        var tenDanhMucMoi = $('#nsp_TenDanhMucMoi').val()?.trim() || '';
+        var phanTramSaleMoi = parseFloat($('#nsp_PhanTramSale').val()) || 0;
+        var moTa = $('#nsp_MoTa').val()?.trim() || '';
+        var maVach = $('#nsp_MaVach').val()?.trim() || '';
+
+        // Validate
+        if (!tenSP) { alert('Vui lòng nhập tên sản phẩm!'); return; }
+        if (giaNhap <= 0) { alert('Vui lòng nhập giá nhập!'); return; }
+        if (giaBan <= giaNhap) { alert('Giá bán phải lớn hơn giá nhập!'); return; }
+        if (maDanhMuc === -1 && !tenDanhMucMoi) { alert('Vui lòng nhập tên danh mục mới!'); return; }
+
+        var btn = $(this);
+        btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-1"></i>Đang tạo...');
+
+        $.ajax({
+            url: '/NhapKho/ThemSanPhamNhanh',
+            type: 'POST',
+            data: {
+                tenSP: tenSP,
+                donViTinh: donViTinh,
+                giaNhap: giaNhap,
+                giaBan: giaBan,
+                maDanhMuc: maDanhMuc,
+                tenDanhMucMoi: tenDanhMucMoi,
+                phanTramSaleMoi: phanTramSaleMoi,
+                moTa: moTa,
+                maVach: maVach
+            },
+            success: function(data) {
+                if (data.success) {
+                    // 1. Thêm option mới vào tất cả dropdown
+                    var newOption = `<option value="${data.maSP}" data-dvt="${data.donViTinh}" data-gia="${data.giaNhap}">${data.tenSP} (${data.donViTinh}) - ${data.tenDanhMuc}</option>`;
+                    $('#tbodyNhapHang select.select2-row').each(function() {
+                        $(this).append(newOption);
+                    });
+                    // Cập nhật template cho các dòng mới
+                    optionsHtml += newOption;
+
+                    // 2. Thêm dòng mới với SP vừa tạo
+                    addNewRow(data.maSP);
+
+                    // 3. Đóng modal & reset form
+                    $('#modalThemSPNhanh').modal('hide');
+                    $('#nsp_TenSP, #nsp_GiaNhap, #nsp_GiaBan, #nsp_MaVach, #nsp_MoTa, #nsp_TenDanhMucMoi').val('');
+                    $('#nsp_DanhMuc').val($('#nsp_DanhMuc option:first').val());
+                    $('#divDanhMucMoi').hide();
+
+                    // 4. Thông báo thành công
+                    alert('Tạo sản phẩm "' + data.tenSP + '" thành công! Đã tự động thêm vào phiếu nhập.');
+                } else {
+                    alert('Lỗi: ' + data.message);
+                }
+            },
+            error: function() {
+                alert('Lỗi kết nối máy chủ!');
+            },
+            complete: function() {
+                btn.prop('disabled', false).html('<i class="fas fa-save me-1"></i>Tạo SP & Thêm vào phiếu nhập');
+            }
+        });
     });
 
     // Validate

@@ -107,6 +107,7 @@
                         <th class="text-end">Thành tiền</th>
                         <th class="text-center">NSX</th>
                         <th class="text-center">HSD</th>
+                        <th class="text-center">Ngày nhập kho</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -125,6 +126,7 @@
                             <td class="text-end fw-semibold">@( (item.SoLuong * item.GiaNhap).ToString("N0") )đ</td>
                             <td class="text-center small">@item.NgaySanXuat.ToString("dd/MM/yyyy")</td>
                             <td class="text-center small">@item.HanSuDung.ToString("dd/MM/yyyy")</td>
+                            <td class="text-center small">@item.NgayNhapKho.ToString("dd/MM/yyyy")</td>
                         </tr>
                     }
                 </tbody>

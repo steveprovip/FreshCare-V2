@@ -30,7 +30,8 @@ namespace FreshCare.Controllers
             {
                 NgaySanXuat = DateTime.Today,
                 HanSuDung = DateTime.Today.AddDays(14),
-                DanhSachSanPham = LayDanhSachSanPham()
+                DanhSachSanPham = LayDanhSachSanPham(),
+                DanhSachDanhMuc = LayDanhMucList()
             };
 
             return View(model);
@@ -317,9 +318,9 @@ namespace FreshCare.Controllers
                         }
                     }
 
-                    // 2. Lấy chi tiết nhập (tên hàng hóa, đơn vị, giá nhập, NSX, HSD)
+                    // 2. Lấy chi tiết nhập (tên hàng hóa, đơn vị, giá nhập, NSX, HSD, Ngày nhập kho)
                     string sqlChiTiet = @"SELECT ct.MaLo, sp.TenSP, sp.DonViTinh, sp.GiaNhap, 
-                                                ct.SoLuong, lh.NgaySanXuat, lh.HanSuDung
+                                                ct.SoLuong, lh.NgaySanXuat, lh.HanSuDung, lh.NgayNhapKho
                                          FROM ChiTietNhap ct
                                          INNER JOIN LoHang lh ON ct.MaLo = lh.MaLo
                                          INNER JOIN SanPham sp ON lh.MaSP = sp.MaSP
@@ -339,7 +340,8 @@ namespace FreshCare.Controllers
                                     GiaNhap = Convert.ToDecimal(reader["GiaNhap"]),
                                     SoLuong = Convert.ToDecimal(reader["SoLuong"]),
                                     NgaySanXuat = Convert.ToDateTime(reader["NgaySanXuat"]),
-                                    HanSuDung = Convert.ToDateTime(reader["HanSuDung"])
+                                    HanSuDung = Convert.ToDateTime(reader["HanSuDung"]),
+                                    NgayNhapKho = Convert.ToDateTime(reader["NgayNhapKho"])
                                 });
                             }
                         }
@@ -400,7 +402,7 @@ namespace FreshCare.Controllers
                     foreach (var phieu in danhSachPhieu)
                     {
                         string sqlCT = @"SELECT ct.MaLo, sp.TenSP, sp.DonViTinh, sp.GiaNhap,
-                                                ct.SoLuong, lh.NgaySanXuat, lh.HanSuDung
+                                                ct.SoLuong, lh.NgaySanXuat, lh.HanSuDung, lh.NgayNhapKho
                                          FROM ChiTietNhap ct
                                          INNER JOIN LoHang lh ON ct.MaLo = lh.MaLo
                                          INNER JOIN SanPham sp ON lh.MaSP = sp.MaSP
@@ -420,7 +422,8 @@ namespace FreshCare.Controllers
                                         GiaNhap = Convert.ToDecimal(reader["GiaNhap"]),
                                         SoLuong = Convert.ToDecimal(reader["SoLuong"]),
                                         NgaySanXuat = Convert.ToDateTime(reader["NgaySanXuat"]),
-                                        HanSuDung = Convert.ToDateTime(reader["HanSuDung"])
+                                        HanSuDung = Convert.ToDateTime(reader["HanSuDung"]),
+                                        NgayNhapKho = Convert.ToDateTime(reader["NgayNhapKho"])
                                     });
                                 }
                             }
@@ -438,6 +441,120 @@ namespace FreshCare.Controllers
             }
 
             return View(model);
+        }
+
+        // ====================================================================
+        // AJAX: Tạo sản phẩm mới nhanh ngay từ form nhập kho (Vấn đề #2)
+        // ====================================================================
+        [HttpPost]
+        public IActionResult ThemSanPhamNhanh(string tenSP, string donViTinh, decimal giaNhap, decimal giaBan, 
+            int maDanhMuc, string? tenDanhMucMoi, decimal phanTramSaleMoi, string? moTa, string? maVach)
+        {
+            try
+            {
+                if (giaBan <= giaNhap)
+                    return Json(new { success = false, message = "Giá bán phải lớn hơn giá nhập!" });
+
+                using (var conn = DatabaseHelper.GetConnection(_connectionString))
+                {
+                    conn.Open();
+
+                    // Nếu chọn "Tạo danh mục mới" (maDanhMuc == -1)
+                    if (maDanhMuc == -1 && !string.IsNullOrWhiteSpace(tenDanhMucMoi))
+                    {
+                        string sqlDM = @"INSERT INTO DanhMuc (TenDanhMuc, PhanTramSale) 
+                                         OUTPUT INSERTED.MaDanhMuc
+                                         VALUES (@TenDM, @Sale)";
+                        using (var cmd = new SqlCommand(sqlDM, conn))
+                        {
+                            cmd.Parameters.AddWithValue("@TenDM", tenDanhMucMoi.Trim());
+                            cmd.Parameters.AddWithValue("@Sale", phanTramSaleMoi);
+                            maDanhMuc = Convert.ToInt32(cmd.ExecuteScalar());
+                        }
+                    }
+
+                    if (maDanhMuc <= 0)
+                        return Json(new { success = false, message = "Vui lòng chọn danh mục hợp lệ!" });
+
+                    // Tạo sản phẩm mới
+                    string sqlSP = @"INSERT INTO SanPham (TenSP, DonViTinh, GiaNhap, GiaBan, MaDanhMuc, MoTa, MaVach, TrangThai) 
+                                     OUTPUT INSERTED.MaSP
+                                     VALUES (@TenSP, @DVT, @GiaNhap, @GiaBan, @MaDM, @MoTa, @MaVach, N'HoatDong')";
+                    int maSP;
+                    using (var cmd = new SqlCommand(sqlSP, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@TenSP", tenSP.Trim());
+                        cmd.Parameters.AddWithValue("@DVT", donViTinh);
+                        cmd.Parameters.AddWithValue("@GiaNhap", giaNhap);
+                        cmd.Parameters.AddWithValue("@GiaBan", giaBan);
+                        cmd.Parameters.AddWithValue("@MaDM", maDanhMuc);
+                        cmd.Parameters.AddWithValue("@MoTa", (object?)moTa ?? DBNull.Value);
+                        cmd.Parameters.AddWithValue("@MaVach", (object?)maVach ?? DBNull.Value);
+                        maSP = Convert.ToInt32(cmd.ExecuteScalar());
+                    }
+
+                    // Lấy tên danh mục để trả về
+                    string tenDM = "";
+                    using (var cmd = new SqlCommand("SELECT TenDanhMuc FROM DanhMuc WHERE MaDanhMuc = @Id", conn))
+                    {
+                        cmd.Parameters.AddWithValue("@Id", maDanhMuc);
+                        tenDM = cmd.ExecuteScalar()?.ToString() ?? "";
+                    }
+
+                    int maNV = HttpContext.Session.GetInt32("MaNV") ?? 0;
+                    LichSuController.GhiLog(_connectionString, maNV, "Thêm SP nhanh (Nhập kho)", 
+                        $"Tạo SP: {tenSP}, ĐVT: {donViTinh}, Giá nhập: {giaNhap:N0}, Giá bán: {giaBan:N0}");
+
+                    return Json(new { 
+                        success = true, 
+                        maSP = maSP, 
+                        tenSP = tenSP.Trim(), 
+                        donViTinh = donViTinh,
+                        giaNhap = giaNhap,
+                        giaBan = giaBan,
+                        tenDanhMuc = tenDM
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        // AJAX: Lấy danh sách danh mục cho dropdown
+        [HttpGet]
+        public IActionResult LayDanhMucAjax()
+        {
+            var list = LayDanhMucList();
+            return Json(list.Select(dm => new { dm.MaDanhMuc, dm.TenDanhMuc, dm.PhanTramSale }));
+        }
+
+        private List<DanhMuc> LayDanhMucList()
+        {
+            var list = new List<DanhMuc>();
+            try
+            {
+                using (var conn = DatabaseHelper.GetConnection(_connectionString))
+                {
+                    conn.Open();
+                    using (var cmd = new SqlCommand("SELECT MaDanhMuc, TenDanhMuc, PhanTramSale FROM DanhMuc ORDER BY TenDanhMuc", conn))
+                    using (var reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            list.Add(new DanhMuc
+                            {
+                                MaDanhMuc = Convert.ToInt32(reader["MaDanhMuc"]),
+                                TenDanhMuc = reader["TenDanhMuc"].ToString()!,
+                                PhanTramSale = Convert.ToDecimal(reader["PhanTramSale"])
+                            });
+                        }
+                    }
+                }
+            }
+            catch { }
+            return list;
         }
     }
 }

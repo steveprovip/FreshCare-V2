@@ -110,6 +110,7 @@ namespace FreshCare.Models.ViewModels
 
         // Hiển thị dropdown
         public List<SanPham> DanhSachSanPham { get; set; } = new();
+        public List<DanhMuc> DanhSachDanhMuc { get; set; } = new();
     }
 
     /// <summary>
@@ -123,6 +124,7 @@ namespace FreshCare.Models.ViewModels
         public DateTime HanSuDung { get; set; }
         public decimal HeSoQuyDoi { get; set; } = 1;
         public string? DonViQuyDoi { get; set; }
+        public decimal GiaNhap { get; set; } // Giá nhập riêng cho lô này (0 = dùng giá mặc định SP)
     }
 
     /// <summary>
@@ -256,6 +258,7 @@ namespace FreshCare.Models.ViewModels
         public decimal GiaNhap { get; set; }
         public DateTime NgaySanXuat { get; set; }
         public DateTime HanSuDung { get; set; }
+        public DateTime NgayNhapKho { get; set; }
     }
 
     /// <summary>
