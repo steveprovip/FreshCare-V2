@@ -110,6 +110,7 @@
                                 </button>
                                 <form asp-action="XoaSanPham" method="post" class="d-inline"
                                       onsubmit="return confirm('Xác nhận xóa sản phẩm @sp.TenSP?')">
+                                    @Html.AntiForgeryToken()
                                     <input type="hidden" name="maSP" value="@sp.MaSP" />
                                     <button type="submit" class="btn btn-sm btn-outline-danger">
                                         <i class="fas fa-times"></i>
