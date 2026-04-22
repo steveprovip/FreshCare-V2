@@ -43,6 +43,7 @@ namespace FreshCare.Controllers
         public IActionResult NhapMoi(NhapKhoViewModel model)
         {
             model.DanhSachSanPham = LayDanhSachSanPham();
+            model.DanhSachDanhMuc = LayDanhMucList();
 
             // Xây dựng danh sách items: hỗ trợ cả nhập đơn (cũ) và nhập nhiều (mới)
             var danhSachItems = new List<NhapKhoItem>();
@@ -89,7 +90,7 @@ namespace FreshCare.Controllers
                     // Luật #10: Kiểm tra đơn vị tính cho từng item và quy đổi
                     foreach (var item in danhSachItems)
                     {
-                        if (item.HeSoQuyDoi > 0)
+                        if (item.HeSoQuyDoi > 1)
                         {
                             item.SoLuong = item.SoLuong * item.HeSoQuyDoi;
                         }

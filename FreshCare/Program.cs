@@ -22,7 +22,7 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
-app.UseHttpsRedirection();
+// app.UseHttpsRedirection(); // Tắt redirect HTTPS cho local dev (tránh lỗi 400)
 app.UseStaticFiles();
 app.UseRouting();
 app.UseSession();
