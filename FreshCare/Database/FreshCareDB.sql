@@ -123,6 +123,7 @@ CREATE TABLE LoHang (
     TrangThai   NVARCHAR(20) NOT NULL DEFAULT N'An Toàn',
     CONSTRAINT FK_LoHang_SanPham FOREIGN KEY (MaSP) REFERENCES SanPham(MaSP),
     CONSTRAINT CK_LoHang_HSD CHECK (HanSuDung >= NgaySanXuat),
+    CONSTRAINT CK_LoHang_NSX CHECK (NgaySanXuat <= CAST(GETDATE() AS DATE)),
     CONSTRAINT CK_LoHang_SoLuong CHECK (SoLuongTon >= 0)
 );
 GO

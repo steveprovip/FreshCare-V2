@@ -69,8 +69,14 @@ namespace FreshCare.Controllers
             }
 
             // Luật #17: Kiểm tra HSD >= NSX cho tất cả items
+            // + Kiểm tra NSX không được ở tương lai (NSX <= ngày hiện tại)
             foreach (var item in danhSachItems)
             {
+                if (item.NgaySanXuat > DateTime.Today)
+                {
+                    TempData["Error"] = "Lỗi: Ngày sản xuất không được lớn hơn ngày hiện tại!";
+                    return View("Index", model);
+                }
                 if (item.HanSuDung < item.NgaySanXuat)
                 {
                     TempData["Error"] = "Lỗi: Hạn sử dụng không được nhỏ hơn Ngày sản xuất!";

@@ -58,7 +58,7 @@
                                             </div>
                                             <small class="text-muted" style="font-size:0.7rem;">Gốc: <span class="badge bg-info lbl-dvt">---</span></small>
                                         </td>
-                                        <td><input name="DanhSachNhap[0].NgaySanXuat" type="date" class="form-control" value="@DateTime.Today.ToString("yyyy-MM-dd")" required /></td>
+                                        <td><input name="DanhSachNhap[0].NgaySanXuat" type="date" class="form-control" value="@DateTime.Today.ToString("yyyy-MM-dd")" max="@DateTime.Today.ToString("yyyy-MM-dd")" required /></td>
                                         <td><input name="DanhSachNhap[0].HanSuDung" type="date" class="form-control" value="@DateTime.Today.AddDays(14).ToString("yyyy-MM-dd")" required /></td>
                                         <td><input name="DanhSachNhap[0].GiaNhap" type="number" step="100" min="0" class="form-control txt-gianhap" placeholder="Tự động" title="Để trống = dùng giá mặc định SP" /></td>
                                         <td class="text-center"><button type="button" class="btn btn-sm btn-outline-danger btn-xoa-dong" title="Xóa dòng"><i class="fas fa-trash"></i></button></td>
@@ -100,6 +100,7 @@
                     <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Gõ tên SP tại ô chọn để tìm nhanh (autocomplete)</li>
                     <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Nhập số lượng (Kg cho phép thập phân)</li>
                     <li class="mb-2"><i class="fas fa-exclamation-triangle text-warning me-2"></i><strong>HSD phải ≥ NSX</strong></li>
+                    <li class="mb-2"><i class="fas fa-exclamation-triangle text-warning me-2"></i><strong>NSX không được lớn hơn ngày hiện tại</strong></li>
                     <li class="mb-2"><i class="fas fa-plus-circle text-primary me-2"></i>Chưa có SP? Ấn <strong>"Tạo SP mới"</strong> ngay trên bảng nhập!</li>
                     <li><i class="fas fa-tag text-info me-2"></i>Cột giá nhập có thể sửa theo lô (để trống = giá mặc định)</li>
                 </ul>
@@ -238,7 +239,7 @@
                 </div>
                 <small class="text-muted" style="font-size:0.7rem;">Gốc: <span class="badge bg-info lbl-dvt">---</span></small>
             </td>
-            <td><input name="DanhSachNhap[${rowIndex}].NgaySanXuat" type="date" class="form-control" value="${new Date().toISOString().split('T')[0]}" required /></td>
+            <td><input name="DanhSachNhap[${rowIndex}].NgaySanXuat" type="date" class="form-control" value="${new Date().toISOString().split('T')[0]}" max="${new Date().toISOString().split('T')[0]}" required /></td>
             <td><input name="DanhSachNhap[${rowIndex}].HanSuDung" type="date" class="form-control" value="${getDatePlus14()}" required /></td>
             <td><input name="DanhSachNhap[${rowIndex}].GiaNhap" type="number" step="100" min="0" class="form-control txt-gianhap" placeholder="Tự động" /></td>
             <td class="text-center"><button type="button" class="btn btn-sm btn-outline-danger btn-xoa-dong" title="Xóa dòng"><i class="fas fa-trash"></i></button></td>
@@ -407,9 +408,20 @@
     // Validate
     $('#formNhapKho').on('submit', function(e) {
         var valid = true;
+        var today = new Date();
+        today.setHours(0, 0, 0, 0);
+
         $('#tbodyNhapHang tr').each(function() {
             var nsx = new Date($(this).find('input[name*="NgaySanXuat"]').val());
             var hsd = new Date($(this).find('input[name*="HanSuDung"]').val());
+
+            // Kiểm tra NSX không được ở tương lai
+            if (nsx > today) {
+                valid = false;
+                alert('Lỗi: Ngày sản xuất (NSX) không được lớn hơn ngày hiện tại!');
+                return false;
+            }
+            // Luật #17: HSD >= NSX
             if (hsd < nsx) {
                 valid = false;
                 alert('Lỗi: Hạn sử dụng (HSD) phải lớn hơn hoặc bằng ngày sản xuất (NSX)!');
