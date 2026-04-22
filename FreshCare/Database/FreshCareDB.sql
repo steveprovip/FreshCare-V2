@@ -241,30 +241,48 @@ INSERT INTO SanPham (TenSP, DonViTinh, GiaNhap, GiaBan, MaDanhMuc, MoTa, MaVach)
 (N'Đậu phụ non Sojami',             N'Hộp',  10000,  15000,  6, N'Đậu phụ tươi đóng hộp 300g',      NULL);
 GO
 
--- Lô hàng mẫu (nhiều trạng thái để test Dashboard)
+-- Lô hàng mẫu (TẤT CẢ sản phẩm đều có lô hàng - nhiều trạng thái để test Dashboard)
 INSERT INTO LoHang (MaSP, SoLuongNhap, SoLuongTon, NgaySanXuat, HanSuDung, TrangThai) VALUES
--- Rau muống: 2 lô, 1 cận date
+-- Rau muống: 2 lô
 (1, 40, 32,  '2026-04-01', '2026-04-08', N'Cận Date'),
 (1, 60, 60,  '2026-04-04', '2026-04-18', N'An Toàn'),
--- Cà chua: 1 lô quá hạn
+-- Cà chua: 2 lô (1 quá hạn)
 (2, 25, 18,  '2026-03-18', '2026-04-02', N'Quá Hạn'),
 (2, 30, 30,  '2026-04-02', '2026-04-22', N'An Toàn'),
--- Thịt heo: cận date
+-- Bắp cải xanh: 1 lô
+(3, 35, 35,  '2026-04-10', '2026-04-30', N'An Toàn'),
+-- Khoai tây Đà Lạt: 1 lô
+(4, 50, 50,  '2026-04-08', '2026-05-08', N'An Toàn'),
+-- Thịt heo: 2 lô
 (5, 15, 12,  '2026-04-02', '2026-04-09', N'Cận Date'),
 (5, 20, 20,  '2026-04-04', '2026-04-15', N'An Toàn'),
--- Cá hồi: an toàn
+-- Cá hồi: 1 lô
 (6, 20, 18,  '2026-04-03', '2026-04-28', N'An Toàn'),
--- Táo Envy: an toàn
+-- Tôm sú tươi: 1 lô cận date
+(7, 10, 10,  '2026-04-15', '2026-04-22', N'Cận Date'),
+-- Táo Envy: 1 lô
 (8, 50, 45,  '2026-04-01', '2026-05-15', N'An Toàn'),
--- Nước mắm: an toàn (hạn dài)
+-- Nho xanh Mỹ: 1 lô
+(9, 30, 30,  '2026-04-10', '2026-05-10', N'An Toàn'),
+-- Chuối Cavendish: 1 lô cận date
+(10, 20, 20, '2026-04-14', '2026-04-24', N'Cận Date'),
+-- Nước mắm: 1 lô (hạn dài)
 (11, 100, 95, '2026-01-15', '2027-01-15', N'An Toàn'),
--- Sữa TH 1L: cận date
+-- Dầu ăn Neptune: 1 lô (hạn dài)
+(12, 40, 40, '2026-03-01', '2027-03-01', N'An Toàn'),
+-- Bột nêm Knorr: 1 lô (hạn dài)
+(13, 30, 30, '2026-02-15', '2027-02-15', N'An Toàn'),
+-- Sữa TH 1L: 2 lô
 (14, 30, 22, '2026-03-20', '2026-04-10', N'Cận Date'),
 (14, 40, 40, '2026-04-01', '2026-04-25', N'An Toàn'),
--- Sữa TH 180ml vỉ
+-- Sữa TH 180ml vỉ: 1 lô
 (15, 25, 25, '2026-04-02', '2026-05-02', N'An Toàn'),
--- Trứng gà
-(17, 50, 42, '2026-04-01', '2026-04-20', N'An Toàn');
+-- Sữa chua Vinamilk: 1 lô
+(16, 25, 25, '2026-04-18', '2026-05-18', N'An Toàn'),
+-- Trứng gà: 1 lô
+(17, 50, 42, '2026-04-01', '2026-04-20', N'An Toàn'),
+-- Đậu phụ non Sojami: 1 lô cận date
+(18, 15, 15, '2026-04-20', '2026-04-27', N'Cận Date');
 GO
 
 -- Phiếu nhập kho mẫu (liên kết với LoHang ở trên)
@@ -277,20 +295,32 @@ INSERT INTO PhieuNhapKho (NgayNhap, MaNV, GhiChu) VALUES
 ('2026-04-05 10:30:00', 1, N'Nhập lô nước mắm Phú Quốc'),
 ('2026-04-05 11:00:00', 1, N'Nhập lô sữa tươi TH True Milk'),
 ('2026-04-05 11:30:00', 1, N'Nhập lô sữa tươi TH True Milk 180ml'),
-('2026-04-05 14:00:00', 1, N'Nhập lô trứng gà ta');
+('2026-04-05 14:00:00', 1, N'Nhập lô trứng gà ta'),
+('2026-04-12 08:00:00', 1, N'Nhập lô rau củ bổ sung (bắp cải + khoai tây)'),
+('2026-04-12 09:30:00', 1, N'Nhập lô trái cây nhập khẩu (nho xanh + chuối)'),
+('2026-04-12 10:30:00', 1, N'Nhập lô đồ khô gia vị (dầu ăn + bột nêm)'),
+('2026-04-16 09:00:00', 1, N'Nhập lô tôm sú tươi'),
+('2026-04-19 08:00:00', 1, N'Nhập lô sữa chua Vinamilk'),
+('2026-04-20 08:30:00', 1, N'Nhập lô đậu phụ non Sojami');
 GO
 
 -- Chi tiết nhập (liên kết phiếu nhập với lô hàng)
 INSERT INTO ChiTietNhap (MaPhieuNhap, MaLo, SoLuong) VALUES 
-(1, 1, 40), (1, 2, 60),    -- Phiếu 1: Rau muống 2 lô
-(2, 3, 25), (2, 4, 30),    -- Phiếu 2: Cà chua 2 lô
-(3, 5, 15), (3, 6, 20),    -- Phiếu 3: Thịt heo 2 lô
-(4, 7, 20),                 -- Phiếu 4: Cá hồi 1 lô
-(5, 8, 50),                 -- Phiếu 5: Táo Envy 1 lô
-(6, 9, 100),                -- Phiếu 6: Nước mắm 1 lô
-(7, 10, 30), (7, 11, 40),  -- Phiếu 7: Sữa TH 1L 2 lô
-(8, 12, 25),                -- Phiếu 8: Sữa TH 180ml 1 lô
-(9, 13, 50);                -- Phiếu 9: Trứng gà 1 lô
+(1, 1, 40), (1, 2, 60),       -- Phiếu 1: Rau muống 2 lô
+(2, 3, 25), (2, 4, 30),       -- Phiếu 2: Cà chua 2 lô
+(3, 7, 15), (3, 8, 20),       -- Phiếu 3: Thịt heo 2 lô
+(4, 9, 20),                    -- Phiếu 4: Cá hồi 1 lô
+(5, 11, 50),                   -- Phiếu 5: Táo Envy 1 lô
+(6, 14, 100),                  -- Phiếu 6: Nước mắm 1 lô
+(7, 17, 30), (7, 18, 40),     -- Phiếu 7: Sữa TH 1L 2 lô
+(8, 19, 25),                   -- Phiếu 8: Sữa TH 180ml 1 lô
+(9, 21, 50),                   -- Phiếu 9: Trứng gà 1 lô
+(10, 5, 35), (10, 6, 50),     -- Phiếu 10: Bắp cải + Khoai tây
+(11, 12, 30), (11, 13, 20),   -- Phiếu 11: Nho xanh + Chuối
+(12, 15, 40), (12, 16, 30),   -- Phiếu 12: Dầu ăn + Bột nêm
+(13, 10, 10),                  -- Phiếu 13: Tôm sú
+(14, 20, 25),                  -- Phiếu 14: Sữa chua Vinamilk
+(15, 22, 15);                  -- Phiếu 15: Đậu phụ non
 GO
 
 -- Sản phẩm thêm sau (có đủ cột GiaNhap và MaDanhMuc)
@@ -299,7 +329,7 @@ VALUES (N'Sữa Vinamilk', N'Hộp', 7000, 10000, 5, N'HoatDong');
 
 PRINT N'=== Tạo CSDL FreshCareDB thành công! ===';
 PRINT N'=== Tài khoản: admin / admin123 ===';
-PRINT N'=== Tổng: 6 danh mục, 19 sản phẩm, 13 lô hàng, 9 phiếu nhập kho ===';
+PRINT N'=== Tổng: 6 danh mục, 19 sản phẩm, 22 lô hàng, 15 phiếu nhập kho ===';
 GO
 
 -- =============================================
