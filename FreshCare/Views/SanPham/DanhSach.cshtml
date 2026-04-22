@@ -1,0 +1,327 @@
+@model FreshCare.Models.ViewModels.DanhSachSanPhamViewModel
+@{ ViewData["Title"] = "Danh sách Sản phẩm"; }
+
+<h4 class="section-title"><i class="fas fa-box me-2"></i>Quản Lý Sản Phẩm</h4>
+
+<!-- Thanh công cụ: Tìm kiếm + Sắp xếp + Thêm mới -->
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+    <form method="get" asp-action="DanhSach" class="d-flex gap-2 flex-wrap align-items-center">
+        <div class="input-group" style="max-width:350px;">
+            <input type="text" name="timKiem" class="form-control" placeholder="Tìm tên sản phẩm..." value="@Model.TimKiem" />
+            <button type="submit" class="btn btn-fc-primary"><i class="fas fa-search"></i></button>
+        </div>
+        <input type="hidden" name="sapXep" value="@Model.SapXep" />
+        @if (!string.IsNullOrEmpty(Model.TimKiem))
+        {
+            <a href="/SanPham/DanhSach" class="btn btn-outline-secondary btn-sm"><i class="fas fa-times me-1"></i>Xóa bộ lọc</a>
+        }
+    </form>
+    <div class="d-flex gap-2 align-items-center">
+        <div class="btn-group" role="group">
+            <a href="/SanPham/DanhSach?timKiem=@Model.TimKiem&sapXep=az" class="btn btn-sm @(Model.SapXep == "az" ? "btn-fc-primary" : "btn-outline-secondary")">
+                <i class="fas fa-sort-alpha-down me-1"></i>A → Z
+            </a>
+            <a href="/SanPham/DanhSach?timKiem=@Model.TimKiem&sapXep=za" class="btn btn-sm @(Model.SapXep == "za" ? "btn-fc-primary" : "btn-outline-secondary")">
+                <i class="fas fa-sort-alpha-up me-1"></i>Z → A
+            </a>
+        </div>
+        <button class="btn btn-fc-primary" data-bs-toggle="modal" data-bs-target="#modalThemSP">
+            <i class="fas fa-plus me-1"></i>Thêm sản phẩm mới
+        </button>
+    </div>
+</div>
+
+<!-- Thông tin tổng -->
+<div class="mb-2 text-muted small">
+    <i class="fas fa-info-circle me-1"></i>Tổng: <strong>@Model.TongSanPham</strong> sản phẩm
+    @if (!string.IsNullOrEmpty(Model.TimKiem))
+    {
+        <span> — Kết quả cho "<strong>@Model.TimKiem</strong>"</span>
+    }
+    <span> — Trang <strong>@Model.Trang</strong> / @Model.TongTrang</span>
+</div>
+
+<div class="card card-fc">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-fc table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>Mã SP</th><th>Tên sản phẩm</th><th>Đơn vị tính</th>
+                        <th>Giá nhập</th><th>Giá bán</th><th>Danh mục</th>
+                        <th>NSX (lô gần nhất)</th><th>HSD (lô gần nhất)</th>
+                        <th>Ngày nhập kho</th><th>Tồn kho</th><th>Mã vạch</th><th>Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.DanhSach.Any())
+                    {
+                        <tr><td colspan="12" class="text-center text-muted py-4">Không tìm thấy sản phẩm nào</td></tr>
+                    }
+                    @foreach (var sp in Model.DanhSach)
+                    {
+                        <tr>
+                            <td><strong>SP-@sp.MaSP.ToString("D3")</strong></td>
+                            <td>@sp.TenSP</td>
+                            <td><span class="badge bg-info">@sp.DonViTinh</span></td>
+                            <td>@sp.GiaNhap.ToString("N0")đ</td>
+                            <td>@sp.GiaBan.ToString("N0")đ</td>
+                            <td><span class="badge bg-light text-dark border">@sp.TenDanhMuc</span></td>
+                            <td>
+                                @if (sp.NgaySanXuatGanNhat.HasValue)
+                                {
+                                    @sp.NgaySanXuatGanNhat.Value.ToString("dd/MM/yyyy")
+                                }
+                                else
+                                {
+                                    <span class="text-muted">—</span>
+                                }
+                            </td>
+                            <td>
+                                @if (sp.HanSuDungGanNhat.HasValue)
+                                {
+                                    var soNgay = (sp.HanSuDungGanNhat.Value.Date - DateTime.Now.Date).Days;
+                                    if (soNgay < 0) soNgay = 0;
+                                    string badgeClass = soNgay == 0 ? "bg-danger" : soNgay < 14 ? "bg-warning text-dark" : "bg-success";
+                                    <span>@sp.HanSuDungGanNhat.Value.ToString("dd/MM/yyyy")</span>
+                                    <span class="badge @badgeClass ms-1">@soNgay ngày</span>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">—</span>
+                                }
+                            </td>
+                            <td>
+                                @if (sp.NgayNhapKhoGanNhat.HasValue)
+                                {
+                                    @sp.NgayNhapKhoGanNhat.Value.ToString("dd/MM/yyyy")
+                                }
+                                else
+                                {
+                                    <span class="text-muted">—</span>
+                                }
+                            </td>
+                            <td><strong>@sp.TongTonKho.ToString("N2")</strong></td>
+                            <td>@(sp.MaVach ?? "—")</td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-warning" data-bs-toggle="modal" data-bs-target="#modalSuaSP" 
+                                    onclick="setEditSP(@sp.MaSP, '@sp.TenSP.Replace("'", "\\'")' , '@sp.DonViTinh', @sp.GiaNhap, @sp.GiaBan, @sp.MaDanhMuc, '@(sp.MaVach ?? "")', '@(sp.MoTa?.Replace("'", "\\'") ?? "")')">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <form asp-action="XoaSanPham" method="post" class="d-inline"
+                                      onsubmit="return confirm('Xác nhận xóa sản phẩm @sp.TenSP?')">
+                                    <input type="hidden" name="maSP" value="@sp.MaSP" />
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Phân trang -->
+@if (Model.TongTrang > 1)
+{
+    <nav class="mt-3 d-flex justify-content-center">
+        <ul class="pagination pagination-sm">
+            @if (Model.Trang > 1)
+            {
+                <li class="page-item">
+                    <a class="page-link" href="/SanPham/DanhSach?timKiem=@Model.TimKiem&sapXep=@Model.SapXep&trang=@(Model.Trang - 1)">
+                        <i class="fas fa-chevron-left"></i>
+                    </a>
+                </li>
+            }
+            @for (int i = 1; i <= Model.TongTrang; i++)
+            {
+                <li class="page-item @(i == Model.Trang ? "active" : "")">
+                    <a class="page-link" href="/SanPham/DanhSach?timKiem=@Model.TimKiem&sapXep=@Model.SapXep&trang=@i">@i</a>
+                </li>
+            }
+            @if (Model.Trang < Model.TongTrang)
+            {
+                <li class="page-item">
+                    <a class="page-link" href="/SanPham/DanhSach?timKiem=@Model.TimKiem&sapXep=@Model.SapXep&trang=@(Model.Trang + 1)">
+                        <i class="fas fa-chevron-right"></i>
+                    </a>
+                </li>
+            }
+        </ul>
+    </nav>
+}
+
+<!-- Modal Thêm Sản Phẩm -->
+<div class="modal fade" id="modalThemSP" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content" style="border-radius:16px;">
+            <div class="modal-header" style="background:var(--fc-primary);color:#fff;border-radius:16px 16px 0 0;">
+                <h5 class="modal-title"><i class="fas fa-plus-circle me-2"></i>Thêm sản phẩm mới</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form asp-action="ThemSanPham" method="post" onsubmit="return validateGia(this)">
+                @Html.AntiForgeryToken()
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Tên sản phẩm <span class="text-danger">*</span></label>
+                        <input name="tenSP" class="form-control" required />
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label fw-semibold">Đơn vị tính <span class="text-danger">*</span></label>
+                            <select name="donViTinh" class="form-select" required>
+                                <option value="Kg">Kg</option>
+                                <option value="Bó">Bó</option>
+                                <option value="Hộp">Hộp</option>
+                                <option value="Khay">Khay</option>
+                                <option value="Chai">Chai</option>
+                                <option value="Gói">Gói</option>
+                                <option value="Vỉ">Vỉ</option>
+                                <option value="Nải">Nải</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label fw-semibold">Giá nhập (VNĐ) <span class="text-danger">*</span></label>
+                            <input name="giaNhap" type="number" step="100" class="form-control" required />
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label fw-semibold">Giá bán (VNĐ) <span class="text-danger">*</span></label>
+                            <input name="giaBan" type="number" step="100" class="form-control" required />
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Danh mục <span class="text-danger">*</span></label>
+                        <select name="maDanhMuc" class="form-select" required>
+                            @foreach (DanhMuc dm in ViewBag.DanhMucs)
+                            {
+                                <option value="@dm.MaDanhMuc">@dm.TenDanhMuc (Sale @dm.PhanTramSale%)</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Mã vạch (Barcode)</label>
+                        <input name="maVach" class="form-control" placeholder="Quét hoặc nhập mã vạch" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Mô tả</label>
+                        <textarea name="moTa" class="form-control" rows="2"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                    <button type="submit" class="btn btn-fc-primary"><i class="fas fa-save me-1"></i>Lưu sản phẩm</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal cập nhật Sản Phẩm -->
+<div class="modal fade" id="modalSuaSP" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content" style="border-radius:16px;">
+            
+            <div class="modal-header" style="background:orange;color:#fff;border-radius:16px 16px 0 0;">
+                <h5 class="modal-title"><i class="fas fa-edit me-2"></i>Cập nhật sản phẩm</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+
+            <form action="/SanPham/SuaSanPham" method="post" onsubmit="return validateGia(this)">
+                @Html.AntiForgeryToken()
+
+                <div class="modal-body">
+
+                    <!-- ID ẩn -->
+                    <input type="hidden" name="maSP" id="editMaSP" />
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Tên sản phẩm</label>
+                        <input id="editTenSP" name="tenSP" class="form-control" required />
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label fw-semibold">Đơn vị tính</label>
+                            <select id="editDonViTinh" name="donViTinh" class="form-select">
+                                <option value="Kg">Kg</option>
+                                <option value="Bó">Bó</option>
+                                <option value="Hộp">Hộp</option>
+                                <option value="Khay">Khay</option>
+                                <option value="Chai">Chai</option>
+                                <option value="Gói">Gói</option>
+                                <option value="Vỉ">Vỉ</option>
+                                <option value="Nải">Nải</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label fw-semibold">Giá nhập</label>
+                            <input id="editGiaNhap" name="giaNhap" type="number" class="form-control" />
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label fw-semibold">Giá bán</label>
+                            <input id="editGiaBan" name="giaBan" type="number" class="form-control" />
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Danh mục</label>
+                        <select id="editDanhMuc" name="maDanhMuc" class="form-select">
+                            @foreach (DanhMuc dm in ViewBag.DanhMucs)
+                            {
+                                <option value="@dm.MaDanhMuc">@dm.TenDanhMuc</option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Mã vạch</label>
+                        <input id="editMaVach" name="maVach" class="form-control" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Mô tả</label>
+                        <textarea id="editMoTa" name="moTa" class="form-control"></textarea>
+                    </div>
+
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                    <button type="submit" class="btn btn-warning">
+                        <i class="fas fa-save me-1"></i>Cập nhật
+                    </button>
+                </div>
+            </form>
+
+        </div>
+    </div>
+</div>
+<!---->
+<script>
+    function setEditSP(id, ten, dvt, gianhap, giaban, madm, mavach, mota) {
+        document.getElementById("editMaSP").value = id;
+        document.getElementById("editTenSP").value = ten;
+        document.getElementById("editDonViTinh").value = dvt;
+        document.getElementById("editGiaNhap").value = gianhap;
+        document.getElementById("editGiaBan").value = giaban;
+        document.getElementById("editDanhMuc").value = madm;
+        document.getElementById("editMaVach").value = mavach;
+        document.getElementById("editMoTa").value = mota;
+    }
+</script>
+<script>
+    function validateGia(form) {
+        var giaNhap = parseFloat(form.querySelector('input[name="giaNhap"]').value) || 0;
+        var giaBan = parseFloat(form.querySelector('input[name="giaBan"]').value) || 0;
+        if (giaBan <= giaNhap) {
+            alert('Lỗi: Giá bán phải lớn hơn giá nhập!');
+            return false;
+        }
+        return true;
+    }
+</script>

@@ -1,0 +1,77 @@
+﻿@using InventoryManagement.Repository
+@model IEnumerable<ExpenseCategoryWise>
+@{
+    ViewData["Title"] = "Expense Report";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+
+    var from = Context.Request.Query["from"];
+    var to = Context.Request.Query["to"];
+    var separator = !string.IsNullOrEmpty(to) && !string.IsNullOrEmpty(from) ? " - " : "";
+}
+
+
+<div class="m-md-3">
+    <div class="mb-3">
+        <h4 class="page-header">Expense Report</h4>
+        <em>@from @separator @to</em>
+    </div>
+
+    <div class="card card-body">
+        <div class="d-flex justify-content-between align-items-center mb-5 d-print-none">
+            <form id="formFind" method="get" asp-action="ExpenseReport">
+                <div class="d-flex align-items-center">
+                    <div class="md-form m-0">
+                        <label for="inputFromDate">From Date</label>
+                        <input name="from" type="text" id="inputFromDate" value="@from" class="form-control datepicker m-0">
+                    </div>
+                    <div class="md-form m-0 ml-3">
+                        <label for="inputToDate">To Date</label>
+                        <input name="to" type="text" id="inputToDate" value="@to" class="form-control datepicker m-0">
+                    </div>
+                    <button type="submit" class="btn btn-danger py-2"><i class="fal fa-search"></i></button>
+                    <input type="reset" name="reset" value="Reset" class="btn btn-outline-danger btn-sm py-2" />
+                </div>
+            </form>
+            <h5 id="totalAmount" class="mb-0 font-weight-bold">
+               Total: ৳@Model.Sum(t=>t.TotalExpense)
+            </h5>
+        </div>
+
+        <div class="table-responsive">
+            <table id="data-table" class="table table-sm table-bordered">
+                <thead>
+                    <tr>
+                        <th class="text-left">Category</th>
+                        <th class="text-right">Amount</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td class="text-left">@item.CategoryName</td>
+                            <td class="text-right">
+                                <a class="blue-text" href="/Expenses/ExpenseCategoryDetails?category=@item.CategoryName&from=@from&to=@to">৳@item.TotalExpense</a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@section scripts{
+    <script>
+        $(function () {
+            $('.datepicker').pickadate({
+                format: 'd-mmmm-yyyy'
+            });
+        });
+
+        const formFind = document.getElementById("formFind");
+        formFind.addEventListener('reset', function () {
+            location.href = "/Expenses/ExpenseReport";
+        });
+    </script>
+}

@@ -1,0 +1,22 @@
+## [Visual Studio]
+.vs/
+
+## [.NET Core]
+bin/
+obj/
+*.user
+*.userosscache
+*.sln.docstates
+
+## [Publish]
+publish/
+*.pubxml
+*.pubxml.user
+
+## [Settings]
+appsettings.Development.json
+
+## [Databases]
+*.mdf
+*.ldf
+*.sdf

@@ -1,0 +1,173 @@
+@model BaoCaoViewModel
+@{ ViewData["Title"] = "Báo cáo Doanh thu & Hao hụt"; }
+
+<h4 class="section-title"><i class="fas fa-chart-bar me-2"></i>Báo Cáo Doanh Thu & Hao Hụt</h4>
+
+<!-- Bộ lọc thời gian -->
+<div class="card card-fc mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3 align-items-end">
+            <div class="col-md-3">
+                <label class="form-label fw-semibold">Từ ngày</label>
+                <input name="tuNgay" type="date" class="form-control" value="@Model.TuNgay?.ToString("yyyy-MM-dd")" />
+            </div>
+            <div class="col-md-3">
+                <label class="form-label fw-semibold">Đến ngày</label>
+                <input name="denNgay" type="date" class="form-control" value="@Model.DenNgay?.ToString("yyyy-MM-dd")" />
+            </div>
+            <div class="col-md-3">
+                <button type="submit" class="btn btn-fc-primary"><i class="fas fa-search me-1"></i>Lọc báo cáo</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Tổng hợp -->
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="stat-card bg-fc-success">
+            <h3>@Model.TongDoanhThu.ToString("N0")đ</h3>
+            <p><i class="fas fa-coins me-1"></i>Doanh thu (Bán Hàng)</p>
+            <i class="fas fa-money-bill-wave stat-icon"></i>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-card bg-fc-danger">
+            <h3>@Model.TongThatThoat.ToString("N0")đ</h3>
+            <p><i class="fas fa-trash me-1"></i>Thất thoát (Hủy Hàng)</p>
+            <i class="fas fa-skull-crossbones stat-icon"></i>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-card bg-fc-info">
+            <h3>@((Model.TongDoanhThu - Model.TongThatThoat).ToString("N0"))đ</h3>
+            <p><i class="fas fa-balance-scale me-1"></i>Lợi nhuận ròng</p>
+            <i class="fas fa-chart-line stat-icon"></i>
+        </div>
+    </div>
+</div>
+
+<!-- Bảng phiếu bán hàng -->
+<div class="card card-fc mb-4">
+    <div class="card-header bg-light">
+        <h6 class="mb-0"><i class="fas fa-receipt me-2 text-success"></i>Phiếu Bán Hàng (@Model.PhieuBanList.Count phiếu)</h6>
+    </div>
+    <div class="card-body p-0">
+        <table class="table table-fc table-hover mb-0">
+            <thead><tr><th>Mã Phiếu</th><th>Ngày xuất</th><th>Tên mặt hàng</th><th>Nhân viên</th><th>Tổng tiền</th></tr></thead>
+            <tbody>
+                @foreach (var p in Model.PhieuBanList)
+                {
+                    <tr>
+                        <td>HD-@p.MaPhieuXuat.ToString("D4")</td>
+                        <td>@p.NgayXuat.ToString("dd/MM/yyyy HH:mm")</td>
+                        <td><em>@(p.TenMatHang ?? "—")</em></td>
+                        <td>@p.TenNhanVien</td>
+                        <td><strong class="text-success">@p.TongTien.ToString("N0")đ</strong></td>
+                    </tr>
+                }
+                @if (!Model.PhieuBanList.Any())
+                {
+                    <tr><td colspan="5" class="text-center text-muted py-3">Không có phiếu bán trong khoảng thời gian này</td></tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Bảng phiếu hủy hàng -->
+<div class="card card-fc">
+    <div class="card-header bg-light">
+        <h6 class="mb-0"><i class="fas fa-trash me-2 text-danger"></i>Phiếu Hủy Hàng (@Model.PhieuHuyList.Count phiếu)</h6>
+    </div>
+    <div class="card-body p-0">
+        <table class="table table-fc table-hover mb-0">
+            <thead><tr><th>Mã Phiếu</th><th>Ngày hủy</th><th>Tên mặt hàng</th><th>Nhân viên</th><th>Ghi chú</th></tr></thead>
+            <tbody>
+                @foreach (var p in Model.PhieuHuyList)
+                {
+                    <tr class="table-danger">
+                        <td>HH-@p.MaPhieuXuat.ToString("D4")</td>
+                        <td>@p.NgayXuat.ToString("dd/MM/yyyy HH:mm")</td>
+                        <td><em>@(p.TenMatHang ?? "—")</em></td>
+                        <td>@p.TenNhanVien</td>
+                        <td>@p.GhiChu</td>
+                    </tr>
+                }
+                @if (!Model.PhieuHuyList.Any())
+                {
+                    <tr><td colspan="5" class="text-center text-muted py-3">Không có phiếu hủy trong khoảng thời gian này</td></tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Thống kê mặt hàng yêu thích / bán chậm -->
+<div class="row g-3 mt-2">
+    <!-- Top bán chạy -->
+    <div class="col-md-6">
+        <div class="card card-fc">
+            <div class="card-header bg-light">
+                <h6 class="mb-0"><i class="fas fa-fire me-2 text-danger"></i>👍 Top 5 Mặt Hàng Bán Chạy</h6>
+            </div>
+            <div class="card-body p-0">
+                <table class="table table-fc table-hover mb-0">
+                    <thead><tr><th>#</th><th>Sản phẩm</th><th class="text-end">SL bán</th><th class="text-end">Doanh thu</th></tr></thead>
+                    <tbody>
+                        @{ int rankBanChay = 1; }
+                        @foreach (var sp in Model.TopBanChay)
+                        {
+                            <tr>
+                                <td>
+                                    @if (rankBanChay == 1) { <span class="badge bg-warning text-dark">🥇</span> }
+                                    else if (rankBanChay == 2) { <span class="badge bg-secondary">🥈</span> }
+                                    else if (rankBanChay == 3) { <span class="badge bg-danger">🥉</span> }
+                                    else { <span class="text-muted">@rankBanChay</span> }
+                                </td>
+                                <td><strong>@sp.TenSP</strong> <small class="text-muted">(@sp.DonViTinh)</small></td>
+                                <td class="text-end fw-bold text-success">@sp.TongSoLuong.ToString("G29")</td>
+                                <td class="text-end">@sp.TongDoanhThu.ToString("N0")đ</td>
+                            </tr>
+                            rankBanChay++;
+                        }
+                        @if (!Model.TopBanChay.Any())
+                        {
+                            <tr><td colspan="4" class="text-center text-muted py-3">Chưa có dữ liệu bán hàng</td></tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Top bán chậm -->
+    <div class="col-md-6">
+        <div class="card card-fc">
+            <div class="card-header bg-light">
+                <h6 class="mb-0"><i class="fas fa-snowflake me-2 text-info"></i>👎 Top 5 Mặt Hàng Bán Chậm</h6>
+            </div>
+            <div class="card-body p-0">
+                <table class="table table-fc table-hover mb-0">
+                    <thead><tr><th>#</th><th>Sản phẩm</th><th class="text-end">SL bán</th><th class="text-end">Doanh thu</th></tr></thead>
+                    <tbody>
+                        @{ int rankBanCham = 1; }
+                        @foreach (var sp in Model.TopBanCham)
+                        {
+                            <tr class="table-warning">
+                                <td><span class="text-muted">@(rankBanCham++)</span></td>
+                                <td><strong>@sp.TenSP</strong> <small class="text-muted">(@sp.DonViTinh)</small></td>
+                                <td class="text-end fw-bold text-danger">@sp.TongSoLuong.ToString("G29")</td>
+                                <td class="text-end">@sp.TongDoanhThu.ToString("N0")đ</td>
+                            </tr>
+                        }
+                        @if (!Model.TopBanCham.Any())
+                        {
+                            <tr><td colspan="4" class="text-center text-muted py-3">Chưa có dữ liệu bán hàng</td></tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

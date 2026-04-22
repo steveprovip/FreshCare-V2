@@ -1,0 +1,112 @@
+﻿@using InventoryManagement.Repository
+@model IEnumerable<ProductCatalogShow>
+
+@{
+    ViewData["Title"] = "Category";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+@section Styles{
+    <style>
+        .treeview i { cursor: pointer }
+        .treeview i.delete { color: #fb5959 }
+
+        .parentCategory, .childCategory { transition: all .3s ease-in-out }
+        .parentCategory i.muted { color: #bfbfbf; pointer-events: none }
+        .parentCategory:hover, .childCategory:hover { background-color: #eee; border-radius: 3px }
+
+        .childCategory i { font-size: 15px }
+        .nested { display: none }
+        .nested.show { display: block }
+        .down { content: "\f107"; font-family: 'Font Awesome 5 Pro' }
+    </style> 
+}
+
+<div class="container">
+    <div class="row">
+        <div class="col justify-content-center align-self-center">
+            <h4 class="page-header">Category List</h4>
+        </div>
+        <div class="col text-right">
+            <a href="/Product/Catalog" class="btn-floating peach-gradient" title="Add New">
+                <i class="fa fa-plus" aria-hidden="true"></i>
+            </a>
+        </div>
+    </div>
+
+    <div class="card card-body">
+        <div class="treeview">
+            <ul class="list-group list-group-flush">
+                @foreach (var catalog in Model)
+                {
+                    var isNoCategory = !catalog.SubCatalog.Any();
+
+                    <li class="list-group-item">
+                        <div class="parentCategory d-flex justify-content-between mb-2">
+                            <div>
+                                @if (!isNoCategory)
+                                {
+                                    <span class="fas fa-angle-right rotate"></span>
+                                }
+                                <strong><span class="far fa-folder-open ic-w mx-1"></span>@catalog.CatalogName</strong>
+                            </div>
+                            <div>
+                                <i data-id="@(isNoCategory ? catalog.ProductCatalogId : 0)" class="@(isNoCategory ? "delete" : "muted") fal fa-trash-alt mr-3"></i>
+                                <i data-id="@catalog.ProductCatalogId" class="edit fal fa-edit"></i>
+                            </div>
+                        </div>
+                        @if (!isNoCategory)
+                        {
+                            <ul class="nested mb-1">
+                                <partial name="_SubCatalog" model="@catalog.SubCatalog" />
+                            </ul>
+                        }
+                    </li>
+                }
+            </ul>
+        </div>
+    </div>
+</div>
+
+@section Scripts{
+    <script>
+        const list = document.querySelector('.list-group');
+
+        list.addEventListener('click', function (evt) {
+            const element = evt.target;
+
+            if (element.classList.contains('delete')) {
+                const id = +element.getAttribute('data-id');
+                deleteCategory(id, element)
+            }
+
+            if (element.classList.contains('edit')) {
+                location.href = `/Product/CatalogUpdate/${element.getAttribute('data-id')}`;
+            }
+
+            if (element.classList.contains('rotate')) {
+                toggleCategory(element)
+            }
+        });
+
+
+        function deleteCategory(id, element) {
+            const url = '/Product/DeleteCatalog';
+            axios.post(url, null, { params: { id: id } })
+                .then(function (response) {
+                    if (response)
+                        element.parentElement.parentElement.remove();
+                    else
+                        alert('Category already in used');
+                })
+        }
+
+        function toggleCategory(element) {
+            const isElement = element.parentElement.parentElement.nextElementSibling;
+
+            if (isElement) {
+                isElement.classList.toggle('show');
+                element.classList.toggle('down');
+            }
+        }
+    </script>
+}

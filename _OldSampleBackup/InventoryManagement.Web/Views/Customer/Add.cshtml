@@ -1,0 +1,195 @@
+﻿@using InventoryManagement.Repository
+@model CustomerAddUpdateViewModel
+
+@{
+    ViewData["Title"] = "Add New Customer";
+    var isSalesmen = User.IsInRole("SalesPerson");
+    Layout = isSalesmen ? "_SalesmanLayout" : "_AdminLayout";
+}
+
+@section Styles{
+    <style>
+        .phone-container { display: flex; margin: 1.5rem 0; align-items: center; }
+        .phone-container .add-element { margin-left: -23px; padding-bottom: 10px; }
+        .phone-container .btn-floating.btn-sm { width: 22px; height: 22px; }
+        .phone-container .btn-floating.btn-sm i { font-size: .70rem; line-height: 2px; pointer-events: none }
+
+        .corporate-field {display: none }
+    </style>
+}
+
+<div class="container mt-3">
+    <div class="row">
+        <div class="col-md-10 col-lg-9 mx-auto">
+            <div class="card card-body p-4 px-5">
+                <form id="customer-form" asp-action="Add">
+                    @Html.ValidationSummary(false, "", new { @class = "text-danger" })
+
+                    <h4 class="page-header mt-3 text-center">Add New Customer</h4>
+
+                    <div class="text-center mt-4">
+                        <div class="custom-control custom-radio custom-control-inline">
+                            <input id="radioIndividual" name="IsIndividual" value="true" checked type="radio" class="custom-control-input" onchange="radioSelected(this)">
+                            <label class="custom-control-label" for="radioIndividual">Individual</label>
+                        </div>
+
+                        <div class="custom-control custom-radio custom-control-inline">
+                            <input id="radioCorporate" name="IsIndividual" value="false" type="radio" class="custom-control-input" onchange="radioSelected(this)">
+                            <label class="custom-control-label" for="radioCorporate">Corporate</label>
+                        </div>
+                    </div>
+
+                    <div id="phone-wrapper">
+                        <div class="phone-container">
+                            <div class="md-form m-0 flex-grow-1">
+                                <input id="phone-0" name="PhoneNumbers[0].Phone" type="number" required class="form-control valid-check" minlength="11" />
+                                <label for="phone-0">Phone Number (Primary)</label>
+                                <input type="hidden" value="true" name="PhoneNumbers[0].IsPrimary">
+                            </div>
+                            <div class="add-element">
+                                <a class="btn-floating btn-sm bg-success add m-0"><i class="fas fa-plus"></i></a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="md-form mb-5">
+                        <input id="CustomerName" name="CustomerName" type="text" class="form-control" required />
+                        <label for="CustomerName">
+                            <span class="individual-field">Name</span>
+                            <span class="corporate-field">Concerned Person</span>
+                        </label>
+                    </div>
+
+                    <div class="md-form mb-5">
+                        <input id="CustomerAddress" name="CustomerAddress" type="text" class="form-control" />
+                        <label for="CustomerAddress">Address</label>
+                    </div>
+
+                    <div class="md-form mb-5">
+                        <input id="Designation" name="Designation" type="text" class="form-control" />
+                        <label for="Designation">
+                            <span class="individual-field">Occupation</span>
+                            <span class="corporate-field">Designation</span>
+                        </label>
+                    </div>
+
+                    <div class="md-form mb-5 individual-field">
+                        <input id="Description" name="Description" type="text" class="form-control" />
+                        <label for="Description">Note</label>
+                    </div>
+
+                    <div class="md-form mb-5">
+                        <input id="OrganizationName" name="OrganizationName" type="text" class="form-control" />
+                        <label for="OrganizationName">
+                            <span class="individual-field">Working Station</span>
+                            <span class="corporate-field">Corporate Name</span>
+                        </label>
+                    </div>
+                    
+                    @if (!isSalesmen)
+                    {
+                        <div class="md-form mb-5">
+                            <input id="DueLimit" name="DueLimit" step="0.01" type="number" min="0" class="form-control" value="0"/>
+                            <label for="DueLimit">Due Limit</label>
+                        </div>
+                    }
+
+                    <div class="individual-field">
+                        <div class="md-form form-sm mb-0">
+                            <input type="hidden" id="Photo" name="Photo" />
+                            <div class="file-field">
+                                <div class="btn btn-outline-warning btn-rounded btn-sm float-left">
+                                    <span><i class="fas fa-upload mr-2" aria-hidden="true"></i>Choose</span>
+                                    <input type="file" id="upload" value="Choose a Photo" onchange="clearFile(this)">
+                                </div>
+                                <div class="file-path-wrapper">
+                                    <input class="file-path validate" type="text" placeholder="Upload photo" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="w-50 m-auto text-center">
+                            <div id="upload-demo" style="display: none;"></div>
+                            <img id="prevImg" alt="" />
+                            <a id="doneButton" class="btn-floating btn-lg btn-black" style="display: none;"><i class="fas fa-crop-alt"></i></a>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center">
+                        <button id="btnSubmit" type="submit" disabled class="btn peach-gradient btn-rounded my-4 waves-effect">Add Customer</button>
+                        <a asp-action="List">Back to List</a>
+                    </div>
+                </form>  
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        let opt = {
+            viewport: { width: 150, height: 150 },
+            boundary: { width: 180, height: 180 },
+            showZoomer: false,
+            enableResize: true,
+            enableOrientation: true
+        };
+
+        let $cropContainer = $('#upload-demo');
+        let $uploadCrop = $cropContainer.croppie(opt);
+        const $photo = $('#Photo');
+        const $preview = $('#prevImg');
+        const $btnDone = $('#doneButton');
+
+        $('input[type="file"]').change(function (e) {
+            const $this = $(e.target);
+            const $fileField = $this.closest('.file-field');
+            const $pathInput = $fileField.find('input.file-path');
+            const fileNames = [];
+
+            fileNames.push(e.target.files[0].name);
+
+            $pathInput.val(fileNames.join(', '));
+            $pathInput.trigger('change');
+        });
+
+        $('#upload').on('change', function () {
+            readFile(this);
+        });
+
+        $btnDone.on('click', function () {
+            $uploadCrop.croppie('result', { type: 'base64' }).then(function (res) {
+                $photo.val(res.split(',')[1]);
+                $cropContainer.hide();
+                $btnDone.hide();
+                $preview.attr('src', res).addClass('img-thumbnail rounded-circle');;
+            });
+        });
+
+        function readFile(input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+
+                reader.onload = function (e) {
+                    $uploadCrop.croppie('bind', { url: e.target.result });
+
+                    $photo.val('');
+                    $cropContainer.show();
+                    $btnDone.show();
+                    $preview.attr('src', '').removeClass('img-thumbnail rounded-circle');
+                }
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        function clearFile(ctrl) {
+            if ($(ctrl).val() === "") {
+                $cropContainer.croppie('destroy');
+                $uploadCrop = $cropContainer.croppie(opt);
+            }
+        }
+    </script>
+
+    <script src="~/page-js/customer-add.js"></script>
+}
+

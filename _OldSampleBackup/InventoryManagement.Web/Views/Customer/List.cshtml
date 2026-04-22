@@ -1,0 +1,136 @@
+﻿
+@{
+    ViewData["Title"] = "Customers";
+    var isSalesmen = User.IsInRole("SalesPerson");
+    Layout = isSalesmen ? "_SalesmanLayout" : "_AdminLayout";
+}
+
+
+<div class="m-md-3">
+    <div class="row align-items-center mb-3">
+        <div class="col">
+            <h4 class="page-header">Customers</h4>
+        </div>
+        <div class="col text-right">
+            <a id="CreateClick" href="/Customer/Add" class="btn-floating peach-gradient" title="Add New">
+                <i class="fa fa-plus" aria-hidden="true"></i>
+            </a>
+        </div>
+    </div>
+    
+    <ul class="nav nav-tabs nav-justified md-tabs stylish-color" role="tablist">
+        <li class="nav-item">
+            <a class="nav-link active" data-toggle="tab" href="#individual-tab" role="tab" aria-selected="true">Individual</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" data-toggle="tab" href="#corporate-tab" role="tab" aria-selected="false">Corporate</a>
+        </li>
+    </ul>
+
+    <div class="tab-content card pt-5">
+        <div class="tab-pane fade show active" id="individual-tab" role="tabpanel" aria-labelledby="home-tab-just">
+            <table id="individual-table" class="table table-sm table-bordered data-table" style="width:100% !important">
+                <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Mobile&nbsp;(Primary)</th>
+                    <th>Address</th>
+                    <th>Note</th>
+                    <th>Edit</th>
+                </tr>
+                </thead>
+            </table>
+        </div>
+        <div class="tab-pane fade" id="corporate-tab" role="tabpanel" aria-labelledby="profile-tab-just">
+            <table id="corporate-table" class="table table-sm table-bordered data-table" style="width:100% !important">
+                <thead>
+                <tr>
+                    <th>Corporate Name</th>
+                    <th>Concerned Person</th>
+                    <th>Mobile&nbsp;(Primary)</th>
+                    <th>Address</th>
+                    <th>Edit</th>
+                </tr>
+                </thead>
+            </table>
+        </div>
+    </div>
+</div>
+
+@section scripts{
+    <script>
+        $(function() {
+            individual.getData();
+            corporate.getData();
+        });
+
+
+        //get individual data
+        const individual = {
+            table: null,
+            init: function() {
+                individual.table = $("#individual-table").DataTable({
+                    processing: true,
+                    serverSide: true,
+                    ajax: {
+                        url: "/Customer/CustomerList",
+                        type: "POST",
+                        data: function(d) {
+                            d.filters = [{ Field: "IsIndividual", Value: "True", Operand: "==" }]
+                        }
+                    },
+                    columns:
+                    [
+                        { data: "CustomerName", "render": function(data, type, row, meta) { return `<a class="blue-text" href="/Customer/Details/${row.CustomerId}">${data}</a>`; } },
+                        { data: "PhonePrimary" },
+                        { data: "CustomerAddress" },
+                        { data: "Description" },
+                        { data: "CustomerId", "render": function(data) { return `<a class="fas fa-edit" href="/Customer/Update/${data}"></a>`; } }
+                    ],
+                    columnDefs: [
+                        { 'searchable': false, 'targets': [4] },
+                        { 'sortable': false, 'targets': [4] },
+                        { 'className': "text-left", "targets": [0, 2, 3] }
+                    ]
+                });
+            },
+            getData: function() {
+                individual.table ? individual.table.ajax.reload() : individual.init();
+            }
+        }
+
+        //get corporate data
+        const corporate = {
+            table: null,
+            init: function() {
+                corporate.table = $("#corporate-table").DataTable({
+                    processing: true,
+                    serverSide: true,
+                    ajax: {
+                        url: "/Customer/CustomerList",
+                        type: "POST",
+                        data: function(d) {
+                            d.filters = [{ Field: "IsIndividual", Value: "False", Operand: "==" }]
+                        }
+                    },
+                    columns:
+                    [
+                        { data: "OrganizationName", "render": function (data, type, row, meta) { return `<a class="blue-text" href="/Customer/Details/${row.CustomerId}">${data}</a>`; } },
+                        { data: "CustomerName" },
+                        { data: "PhonePrimary" },
+                        { data: "CustomerAddress" },
+                        { data: "CustomerId", "render": function(data) { return `<a class="fas fa-edit" href="/Customer/Update/${data}"></a>`; } }
+                    ],
+                    columnDefs: [
+                        { 'searchable': false, 'targets': [4] },
+                        { 'sortable': false, 'targets': [4] },
+                        { 'className': "text-left", "targets": [0, 1, 3] }
+                    ]
+                });
+            },
+            getData: function() {
+                corporate.table ? corporate.table.ajax.reload() : corporate.init();
+            }
+        }
+    </script>
+}

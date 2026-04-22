@@ -1,0 +1,163 @@
+﻿@model InventoryManagement.Repository.VendorMultipleDueCollectionViewModel
+@{
+    ViewData["Title"] = "Pay Due Multiple";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="container">
+    <h4 class="page-header mb-3">Multiple Bill Pay</h4>
+
+    <div class="card card-body">
+        <section class="my-4 d-print-none">
+            <div class="d-flex justify-content-between align-items-center">
+                <h4 class="page-header">
+                    @Model.VendorName
+                    <small class="font-small d-block mt-1">@Model.VendorAddress</small>
+                </h4>
+                <h4 class="page-header">Purchase Due: ৳@Model.TotalDue</h4>
+            </div>
+        </section>
+
+        <table id="tableReceipt" class="table table-sm table-bordered table-hover">
+            <thead class="text-center">
+            <tr>
+                <th><strong>#Bill No</strong></th>
+                <th><strong>Amount</strong></th>
+                <th><strong>Discount</strong></th>
+                <th><strong>Prev.Paid</strong></th>
+                <th><strong>Due</strong></th>
+                <th><strong>Paying</strong></th>
+                <th><strong>Date</strong></th>
+            </tr>
+            </thead>
+            <tbody>
+            @{
+                foreach (var item in Model.PurchaseDueRecords)
+                {
+                    <tr>
+                        <td class="text-center">
+                            <a target="_blank" class="blue-text" href="/Purchase/PurchaseReceipt/@item.PurchaseId">@item.PurchaseSn</a>
+                        </td>
+                        <td class="text-center">@item.PurchaseTotalPrice</td>
+                        <td class="text-right">@item.PurchaseDiscountAmount</td>
+                        <td class="text-right">@item.PurchasePaidAmount</td>
+                        <td class="text-right">@item.PurchaseDueAmount</td>
+                        <td data-id="@item.PurchaseId" class="text-right font-weight-bold">0</td>
+                        <td class="text-right">@item.PurchaseDate.ToString("d MMM yyyy")</td>
+                    </tr>
+                }
+            }
+            </tbody>
+        </table>
+
+        <form id="formPaid">
+            <div class="form-inline">
+                <div class="md-form">
+                    <input id="inputPaid" step="0.01" min="0" max="@Model.TotalDue" required type="number" class="form-control" placeholder="Total Paid Amount"/>
+                </div>
+                <div class="md-form mx-3">
+                    <input id="inputDate" placeholder="Paid Date" type="text" class="form-control datepicker"/>
+                </div>
+                <div class="md-form">
+                    <select id="selectPaymentMethod" asp-items="ViewBag.Account" required class="mdb-select mb-0 mt-1 mr-2">
+                        <option value="">[ Payment Method ]</option>
+                    </select>
+                </div>
+                <div class="md-form">
+                    <input id="submitPaid" type="submit" class="btn btn-blue" value="Paid"/>
+                    <span id="responseError" class="field-validation-error"></span>
+                </div>
+            </div>
+        </form>
+
+        <a href="/Purchase/DueReceipt">Back To List</a>
+    </div>
+</div>
+
+@section scripts{
+    <script>
+        $(function() {
+            $(".mdb-select").materialSelect();
+            $(".datepicker").pickadate().val(moment(new Date()).format("DD MMMM, YYYY"));
+        });
+
+        //selectors
+        const table = document.getElementById("tableReceipt");
+        const formPaid = document.getElementById("formPaid");
+        const inputTotalPaid = formPaid.inputPaid;
+        const inputDate = formPaid.inputDate;
+        const selectPaymentMethod = formPaid.selectPaymentMethod;
+
+        //events
+        inputTotalPaid.addEventListener("input", function() {
+            const totalDue = @Model.TotalDue;
+            let totalPaid = +this.value;
+
+            for (let i = 1, row; (row = table.rows[i]); i++) {
+                const due = row.cells[4].textContent;
+
+                if (totalPaid < due && totalPaid > 0) {
+                    row.cells[5].textContent = totalPaid.toFixed();
+                } else if (totalPaid >= due) {
+                    row.cells[5].textContent = due;
+                } else {
+                    row.cells[5].textContent = 0;
+                }
+
+                totalPaid -= due;
+            }
+
+            if (totalDue < this.value) {
+                this.value = totalDue;
+                return;
+            }
+        })
+
+        //post paid
+        formPaid.addEventListener('submit', function(evt) {
+            evt.preventDefault();
+
+            //disable button on submit
+            const btnPaid = formPaid.submitPaid;
+            btnPaid.disabled = true;
+
+            const data = {
+                VendorId: @Model.VendorId,
+                PaidAmount: +inputTotalPaid.value,
+                PaidDate: inputDate.value,
+                AccountId: selectPaymentMethod.value,
+                Bills: []
+            }
+
+            for (var i = 1, row; (row = table.rows[i]); i++) {
+                const paid = +row.cells[5].textContent;
+
+                if (paid > 0) {
+                    const invoice = { PurchaseId: +row.cells[5].getAttribute("data-id"), PurchasePaidAmount: paid };
+                    data.Bills.push(invoice);
+                }
+            }
+
+            const url = "/Purchase/PayVendorDueMultiple";
+            $.ajax({
+                type: 'POST',
+                url,
+                data,
+                success: function (response) {
+                    if (response.IsSuccess) {
+                        location.href = `/Purchase/DueReceipt/`;
+                        return;
+                    }
+
+                    btnPaid.disabled = false;
+                    $.notify(response.Message, response.IsSuccess ? "success" : "error");
+                },
+                error: function(err) {
+                    console.log(err)
+                    btnPaid.disabled = false;
+                }
+            });
+        });
+    </script>
+}
+

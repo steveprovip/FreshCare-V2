@@ -1,0 +1,223 @@
+﻿@using InventoryManagement.Repository
+@model CustomerProfileViewModel
+
+@{
+    ViewData["Title"] = Model.CustomerName + "- Details";
+    var isSalesmen = User.IsInRole("SalesPerson");
+    Layout = isSalesmen ? "_SalesmanLayout" : "_AdminLayout";
+}
+
+@section Styles{
+    <style>
+        .list-group li strong { color: #777 }
+        .list-group li span { margin-left: 8px; color: #000; }
+    </style>  
+}
+
+<div class="m-md-3">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h4 class="page-header">@Model.CustomerName</h4>
+            <a href="/Customer/List"><i class="fal fa-long-arrow-left mr-1"></i>Back to Customers</a>
+        </div>
+
+        <div class="md-form input-with-post-icon m-0">
+            <input id="inputCustomer" type="text" class="form-control" style="width: auto; display: inline" autocomplete="off" />
+            <label for="inputCustomer">Find Customer</label>
+            <i class="far fa-search input-prefix"></i>
+        </div>
+    </div>
+
+    <section class="mb-4">
+        <div class="row">
+            <div class="col-lg-3 col-md-6 mb-4">
+                <div class="media white z-depth-1 rounded">
+                    <i class="far fa-money-bill-alt fa-lg blue z-depth-1 p-4 rounded-left text-white mr-3"></i>
+                    <div class="media-body p-1">
+                        <p class="text-uppercase text-muted mb-1"><small>sold</small></p>
+                        <h5 class="font-weight-bold mb-0">@Model.SoldAmount</h5>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-3 col-md-6 mb-4">
+                <div class="media white z-depth-1 rounded">
+                    <i class="fas fa-chart-pie-alt fa-lg deep-purple z-depth-1 p-4 rounded-left text-white mr-3"></i>
+                    <div class="media-body p-1">
+                        <p class="text-uppercase text-muted mb-1"><small>discount</small></p>
+                        <h5 class="font-weight-bold mb-0">@Model.DiscountAmount</h5>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-3 col-md-6 mb-4">
+                <div class="media white z-depth-1 rounded">
+                    <i class="fas fa-chart-line fa-lg teal z-depth-1 p-4 rounded-left text-white mr-3"></i>
+                    <div class="media-body p-1">
+                        <p class="text-uppercase text-muted mb-1"><small>paid</small></p>
+                        <h5 class="font-weight-bold mb-0">@Model.ReceivedAmount</h5>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-3 col-md-6 mb-4">
+                <div class="media white z-depth-1 rounded">
+                    <i class="far fa-chart-line-down fa-lg pink z-depth-1 p-4 rounded-left text-white mr-3"></i>
+                    <div class="media-body p-1">
+                        <p class="text-uppercase text-muted mb-1"><small>due</small></p>
+                        @if (Model.DueAmount > 0)
+                        {
+                            <a href="/Selling/MultipleDueCollection/@Model.CustomerId">
+                                <h5 class="font-weight-bold mb-0">@Model.DueAmount</h5>
+                            </a>
+                        }
+                        else
+                        {
+                            <h5 class="font-weight-bold mb-0">@Model.DueAmount</h5>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section>
+        <div class="row">
+            <div class="col-lg-5 mb-3">
+                <ul class="list-group list-group-flush z-depth-1 rounded">
+                    <li class="list-group-item amber accent-2 d-flex justify-content-start align-items-center py-3">
+                        @{
+                            var imgSrc = "";
+                            imgSrc = Model.Photo != null ? $"data:image/gif;base64,{Convert.ToBase64String(Model.Photo)}" : "/images/defaultImage.jpg";
+                        }
+                        <img src="@imgSrc" class="rounded-circle z-depth-0" width="50" alt="avatar image">
+
+                        <div class="d-flex flex-column pl-3">
+                            <h6 class="font-weight-normal mb-0">@Model.CustomerName</h6>
+                            <p class="small mb-0">@Model.Designation</p>
+                        </div>
+                    </li>
+
+                    <li class="list-group-item"><strong>@(Model.IsIndividual ? "Working Station" : "Corporate Name"):</strong><span>@Model.OrganizationName</span></li>
+                    <li class="list-group-item"><strong>Address:</strong><span>@Model.CustomerAddress</span></li>
+                    @if (Model.IsIndividual)
+                    {
+                        <li class="list-group-item"><strong>Description:</strong><span>@Model.Description</span></li>
+                    }
+                    <li class="list-group-item">
+                        <strong>Phone:</strong>
+                        @foreach (var item in Model.PhoneNumbers)
+                        {
+                            <span class="mr-1">@item.Phone</span>
+                        }
+                    </li>
+                    <li class="list-group-item"><strong>DueLimit:</strong><span>@Model.DueLimit</span></li>
+                </ul>
+            </div>
+
+            <div class="col-lg-7">
+                <div class="card">
+                    <div class="card-body">
+                        <table id="receipt-data" class="table table-hover">
+                            <thead>
+                            <tr>
+                                <th><strong>#Bill No</strong></th>
+                                <th><strong>Amount</strong></th>
+                                <th><strong>Service</strong></th>
+                                <th><strong>Discount</strong></th>
+                                <th><strong>Trnsc. Charge</strong></th>
+                                <th><strong>Paid</strong></th>
+                                <th><strong>Due</strong></th>
+                                <th><strong>Date</strong></th>
+                            </tr>
+                            </thead>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+
+@section Scripts{
+    <script>
+        $(function () {
+            dataTable.filter = [];
+            dataTable.filter.push({ Field: "CustomerId", Value: @Model.CustomerId, Operand: 0 });
+            dataTable.getData();
+        });
+
+        //customer autocomplete
+        $('#inputCustomer').typeahead({
+            minLength: 1,
+            displayText: function(item) {
+                return `${item.CustomerName} ${item.PhonePrimary ? item.PhonePrimary : ''} ${item.OrganizationName ? item.OrganizationName : ''}`;
+            },
+            afterSelect: function(item) {
+                this.$element[0].value = item.CustomerName
+            },
+            source: function(request, result) {
+                $.ajax({
+                    url: "/Selling/FindCustomers",
+                    data: { prefix: request },
+                    success: function(response) { result(response); },
+                    error: function(err) { console.log(err) }
+                });
+            },
+            updater: function(item) {
+                location.href = `/Customer/Details/${item.CustomerId}`
+                return item;
+            }
+        })
+
+        //get data
+        var dataTable = {
+            table: null,
+            init: function() {
+                dataTable.table = $("#receipt-data").DataTable({
+                    processing: true,
+                    serverSide: true,
+                    language: { infoFiltered: ""},
+                    ajax: {
+                        url: "/Customer/SellingRecordsData",
+                        type: "POST",
+                        data: function(d) {
+                            d.filters = dataTable.filter;
+                        }
+                    },
+                    columns:
+                    [
+                        {
+                            data: "SellingSn",
+                            "render": function(data, type, row, meta) {
+                                return `<a class="blue-text" href="/Selling/SellingReceipt/${row.SellingId}">${data}</a>`;
+                            }
+                        },
+                        { data: "SellingTotalPrice", "render": dataTable.addSign },
+                        { data: "ServiceCharge", "render": dataTable.addSign },
+                        { data: "SellingDiscountAmount", "render": dataTable.addSign },
+                        { data: "AccountTransactionCharge", "render": dataTable.addSign },
+                        { data: "SellingPaidAmount", "render": dataTable.addSign },
+                        {
+                            data: "SellingDueAmount",
+                            "render": function(data, type, row, meta) {
+                                return data ? `<a class="blue-text" href="/Selling/DueCollection/${row.SellingId}">${data}/-</a><small class="d-block">${row.PromisedPaymentDate ? moment(row.PromisedPaymentDate).format('DD MMM YYYY') : ""}</small>` : data;
+                            }
+                        },
+                        { data: "SellingDate", "render": function(data) { return moment(data).format('DD MMM YYYY') } }
+                    ],
+                    columnDefs: [
+                        { 'searchable': false, 'targets': [1, 2, 3, 4, 5] },
+                        { 'className': "text-right", "targets": [1, 2, 3, 4, 5] },
+                        //{ 'className': "text-left", "targets": [1] }
+                    ],
+                    order: [[5, 'desc']]
+                });
+            },
+            getData: function() {
+                dataTable.table ? dataTable.table.ajax.reload() : dataTable.init();
+            },
+            addSign: function(data) { return `${data}/-` }
+        }
+    </script>
+}

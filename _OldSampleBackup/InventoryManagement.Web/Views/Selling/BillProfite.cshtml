@@ -1,0 +1,323 @@
+﻿
+@{
+    ViewData["Title"] = "Bill Profit";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+@section styles{ 
+<style>
+    td.profit-row-color { color: #00C851 }
+    td.loss-row-color { color: #CC0000 }
+
+    #summery p{ margin-bottom: 5px;}
+    #summery .net-amount{ font-weight: bold; border-top: 1px solid #333 }
+</style>
+}
+
+<div class="m-md-3">
+    <h4 class="page-header mb-3">Bill Wise Profit Report</h4>
+
+    <div class="card card-body">
+        <div class="d-flex justify-content-between align-items-center mb-5">
+            <form id="formPost">
+                <div class="d-flex align-items-center">
+                    <div class="md-form m-0">
+                        <input type="text" id="inputFromDate" placeholder="From Date" class="form-control datepicker m-0">
+                    </div>
+                    <div class="md-form m-0 ml-3">
+                        <input type="text" id="inputToDate" placeholder="To Date" class="form-control datepicker m-0">
+                    </div>
+                    <button type="submit" class="btn btn-danger py-2"><i class="fal fa-search"></i></button>
+                    <input type="reset" name="reset" value="Reset" class="btn btn-outline-danger btn-sm py-2" />
+                </div>
+            </form>
+        </div>
+
+        <div class="row">
+            <div class="col-xl-3 col-lg-6 mb-4">
+                <div class="media white z-depth-1 rounded">
+                    <i class="far fa-money-bill-alt fa-lg blue z-depth-1 p-4 rounded-left text-white mr-3"></i>
+                    <div class="media-body p-1">
+                        <p class="text-uppercase text-muted mb-1"><small>Service Profit</small></p>
+                        <h5 class="font-weight-bold mb-0">৳<span id="serviceProfit"></span></h5>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-xl-3 col-lg-6 mb-4">
+                <div class="media white z-depth-1 rounded">
+                    <i class="fas fa-chart-bar fa-lg deep-purple z-depth-1 p-4 rounded-left text-white mr-3"></i>
+                    <div class="media-body p-1">
+                        <p class="text-uppercase text-muted mb-1"><small>Bill Profit</small></p>
+                        <h5 class="font-weight-bold mb-0">৳<span id="billProfit"></span></h5>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-xl-3 col-lg-6 mb-4">
+                <div class="media white z-depth-1 rounded">
+                    <i class="fas fa-chart-pie fa-lg teal z-depth-1 p-4 rounded-left text-white mr-3"></i>
+                    <div class="media-body p-1">
+                        <p class="text-uppercase text-muted mb-1"><small>Total Expense</small></p>
+                        <h5 class="font-weight-bold mb-0">৳<span id="totalExpense"></span></h5>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-3 col-lg-6 mb-4">
+                <div class="media white z-depth-1 rounded">
+                    <i class="fas fa-dumpster fa-lg red z-depth-1 p-4 rounded-left text-white mr-3"></i>
+                    <div class="media-body p-1">
+                        <p class="text-uppercase text-muted mb-1"><small>Damage</small></p>
+                        <h5 class="font-weight-bold mb-0">৳<span id="damageAmount"></span></h5>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-3 col-lg-6 mb-4">
+                <div class="media white z-depth-1 rounded">
+                    <i class="fas fa-chart-line fa-lg success-color z-depth-1 p-4 rounded-left text-white mr-3"></i>
+                    <div class="media-body p-1">
+                        <p class="text-uppercase text-muted mb-1"><small>Profit/Loss</small></p>
+                        <h5 class="font-weight-bold mb-0">৳<span id="grandProfit"></span></h5>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <table id="data-table" class="table table-sm table-bordered">
+            <thead>
+                <tr>
+                    <th>#Bill No</th>
+                    <th>Cus. Name</th>
+                    <th>Selling Date</th>
+                    <th>Sale Price</th>
+                    <th>Pur. Price</th>
+                    <th>Product Profit</th>
+                    <th>Discount</th>
+                    <th>Account Cost</th>
+                    <th>Expense</th>
+                    <th>Pro. Net Profit</th>
+                    <th>Service Charge</th>
+                    <th>Service Cost</th>
+                    <th>Service net Profit</th>
+                    <th>TB Profit/Loss</th>
+                </tr>
+            </thead>
+        </table>
+
+    </div>
+</div>
+
+@section scripts{
+    <script>
+        $(function() {
+            $('.datepicker').pickadate({
+                format: 'd-mmmm-yyyy'
+            }).val(moment(new Date()).format('DD-MMMM-YYYY'));;
+
+            //get amount
+            getAmountSummery();
+
+            //get data-table
+            filterDataTable();
+
+            //get summary
+            getAmountSummery();
+        });
+
+        //get data
+        const dataTable = {
+            table: null,
+            filter: null,
+            init: function() {
+                dataTable.table = $("#data-table").DataTable({
+                    processing: true,
+                    serverSide: true,
+                    dom: '<"row"<"col-sm-6"Bl><"col-sm-6"f>><"row"<"col-sm-12"<tr>>><"row"<"col-sm-5"i><"col-sm-7"p>>',
+                    buttons: dataTable.button,
+                    ajax: {
+                        url: "/Selling/BillProfiteData",
+                        type: "POST",
+                        data: function(d) {
+                            d.filters = dataTable.filter;
+                        }
+                    },
+                    columns:
+                    [
+                        {
+                            data: "SellingSn",
+                            "render": function(data, type, row, meta) {
+                                return `<a class="blue-text" href="/Selling/SellingReceipt/${row.SellingId}">${data}</a>`;
+                            }
+                        },
+                        { data: "CustomerName" },
+                        { data: "SellingDate", "render": function(data) { return moment(data).format('DD MMM YYYY') } },
+                        { data: "SellingTotalPrice", "render": dataTable.addSign },
+                        { data: "BuyingTotalPrice", "render": dataTable.addSign },
+                        { data: "SellingProfit", "render": dataTable.addSign },
+                        { data: "SellingDiscountAmount", "render": dataTable.addSign },
+                        { data: "SellingAccountCost", "render": dataTable.addSign },
+                        { data: "ExpenseTotal", "render": dataTable.addSign },
+                        { data: "SellingNetProfit", "render": dataTable.addSign },
+                        { data: "ServiceCharge", "render": dataTable.addSign },
+                        { data: "ServiceCost", "render": dataTable.addSign },
+                        { data: "ServiceProfit", "render": dataTable.addSign },
+                        { data: "GrandProfit", "render": dataTable.addSign },
+                    ],
+                    columnDefs: [
+                        { 'searchable': false, 'targets': [2, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13] },
+                        { 'className': "text-right", "targets": [2, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13] },
+                        { 'className': "text-left", "targets": [1] }
+                    ],
+                    rowCallback: function(row, data, index, cells) {
+                        const sellingProfit = data["SellingProfit"];
+                        const grandProfit = data["GrandProfit"];
+
+                        if (sellingProfit < 1) {
+                            $(row).find('td:eq(9)').addClass("loss-row-color");
+                        }
+
+                        if (grandProfit < 1) {
+                            $(row).find('td:eq(13)').addClass("loss-row-color");
+                        } else {
+                            $(row).find('td:eq(13)').addClass("profit-row-color");
+                        }
+                    }
+                });
+            },
+            operand: {
+                Equal: 0,
+                NotEqual: 1,
+                GreaterThan: 2,
+                LessThan: 3,
+                GreaterThanOrEqual: 4,
+                LessThanOrEqual: 5,
+                Contains: 6,
+                StartsWith: 7,
+                EndsWith: 8
+            },
+            getData: function() {
+                dataTable.table ? dataTable.table.ajax.reload() : dataTable.init();
+            },
+            addSign: function(data) { return `${data}/-` },
+            button: {
+                buttons: [
+                    {
+                        extend: 'print',
+                        text: '<i class="fa fa-print"></i> Print',
+                        title: '',
+                        exportOptions: {
+                            //columns: [0,1] //Column value those print
+                        
+                        },
+                        customize: function(win) {
+                            $(win.document.body).prepend(`<nav class="mb-3 navbar peach-gradient"><a class="navbar-brand ml-1"><span>Zephyr</span> IT</a></nav><h3 class="h3-responsive">${$('h4').text()}</h3>`);
+                        },
+                        autoPrint: true
+                    }
+                ],
+                dom: {
+                    button: {
+                        className: 'btn btn-dark btn-rounded btn-sm my-0'
+                    }
+                }
+            }
+        }
+
+        //on post date
+        const formPost = document.getElementById("formPost");
+        formPost.addEventListener('submit',
+            function(evt) {
+                evt.preventDefault();
+
+                filterDataTable();
+
+                //get summary
+                getAmountSummery();
+            });
+
+        //reset
+        formPost.addEventListener('reset', function () {
+            location.href = "/Selling/BillProfite";
+        });
+
+
+        function filterDataTable() {
+            const inputFromDate = formPost.inputFromDate.value;
+            const inputToDate = formPost.inputToDate.value;
+
+            dataTable.filter = [];
+
+            if (inputFromDate)
+                dataTable.filter.push({ Field: "LastUpdateDate", Value: inputFromDate, Operand: dataTable.operand.GreaterThanOrEqual });
+
+            if (inputToDate)
+                dataTable.filter.push({ Field: "LastUpdateDate", Value: inputToDate, Operand: dataTable.operand.LessThanOrEqual });
+
+            dataTable.getData();
+        }
+
+        //get total profit sum
+        function getAmountSummery() {
+            const inputFromDate = formPost.inputFromDate.value;
+            const inputToDate = formPost.inputToDate.value;
+
+            const dates = { fromDate: inputFromDate, toDate: inputToDate }
+
+            //for get and set total amount
+            const serviceProfit = document.getElementById('serviceProfit');
+            const billProfit = document.getElementById('billProfit');
+            const totalExpense = document.getElementById('totalExpense');
+            const grandProfit = document.getElementById('grandProfit');
+            const damageAmount = document.getElementById('damageAmount');
+
+            $.ajax({
+                type: "POST",
+                url: "/Selling/BillProfitByDate",
+                data: dates,
+                success: function (response) {
+                    const {ServiceProfit, GrandProfit,GenuineExpense,NetProfit} = response.Data;
+
+                    serviceProfit.textContent = ServiceProfit;
+                    totalExpense.textContent = GenuineExpense;
+
+                    //bill profit
+                    billProfit.textContent = GrandProfit;
+                    if (GrandProfit > 0) {
+                        billProfit.parentElement.classList.add("text-success");
+                        billProfit.parentElement.classList.remove("text-danger");
+                    } else {
+                        billProfit.parentElement.classList.remove("text-success");
+                        billProfit.parentElement.classList.add("text-danger");
+                    }
+
+                    getDamageAmount(dates, function(res) {
+                        //Profit/Loss
+                        damageAmount.textContent = res;
+
+                        const net = NetProfit - res;
+                        grandProfit.textContent = net.toFixed(2);
+
+                        if (net > 0) {
+                            grandProfit.parentElement.classList.add("text-success");
+                            grandProfit.parentElement.classList.remove("text-danger");
+                        } else {
+                            grandProfit.parentElement.classList.remove("text-success");
+                            grandProfit.parentElement.classList.add("text-danger");
+                        }
+                    });
+                }
+            });
+        }
+
+        //get damage amount
+        function getDamageAmount(dates,cb) {
+            $.ajax({
+                type: "POST",
+                url: "/Selling/GetDamageAmountByDate",
+                data: dates,
+                success: cb
+            });
+        }
+    </script>
+}
+

@@ -1,0 +1,66 @@
+@model FreshCare.Models.ViewModels.LichSuHeThongViewModel
+@{ ViewData["Title"] = "Lịch sử hệ thống"; }
+
+<h4 class="section-title"><i class="fas fa-history me-2"></i>Lịch Sử Hệ Thống</h4>
+
+<form method="get" asp-action="Index" class="d-flex gap-2 mb-3" style="max-width:400px;">
+    <input type="text" name="timKiem" class="form-control" placeholder="Tìm theo thao tác, nội dung, tên NV..." value="@Model.TimKiem" />
+    <button type="submit" class="btn btn-fc-primary"><i class="fas fa-search"></i></button>
+    @if (!string.IsNullOrEmpty(Model.TimKiem))
+    {
+        <a href="/LichSu" class="btn btn-outline-secondary"><i class="fas fa-times"></i></a>
+    }
+</form>
+
+<div class="card card-fc">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-fc table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>#</th><th>Nhân viên</th><th>Thao tác</th><th>Chi tiết</th><th>Thời gian</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.DanhSach.Any())
+                    {
+                        <tr><td colspan="5" class="text-center text-muted py-4">Chưa có lịch sử nào</td></tr>
+                    }
+                    @foreach (var log in Model.DanhSach)
+                    {
+                        <tr>
+                            <td><small class="text-muted">#@log.MaLog</small></td>
+                            <td><strong>@log.TenNhanVien</strong></td>
+                            <td>
+                                @{
+                                    string badgeClass = "bg-secondary";
+                                    if (log.ThaoTac.Contains("Thêm")) badgeClass = "bg-success";
+                                    else if (log.ThaoTac.Contains("Sửa") || log.ThaoTac.Contains("Cập nhật")) badgeClass = "bg-warning text-dark";
+                                    else if (log.ThaoTac.Contains("Xóa") || log.ThaoTac.Contains("Hủy")) badgeClass = "bg-danger";
+                                    else if (log.ThaoTac.Contains("Duyệt")) badgeClass = "bg-info";
+                                }
+                                <span class="badge @badgeClass">@log.ThaoTac</span>
+                            </td>
+                            <td><small>@(log.ChiTiet ?? "—")</small></td>
+                            <td><small>@log.NgayTao.ToString("dd/MM/yyyy HH:mm:ss")</small></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@if (Model.TongTrang > 1)
+{
+    <nav class="mt-3 d-flex justify-content-center">
+        <ul class="pagination pagination-sm">
+            @for (int i = 1; i <= Model.TongTrang; i++)
+            {
+                <li class="page-item @(i == Model.Trang ? "active" : "")">
+                    <a class="page-link" href="/LichSu?timKiem=@Model.TimKiem&trang=@i">@i</a>
+                </li>
+            }
+        </ul>
+    </nav>
+}

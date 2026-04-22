@@ -1,0 +1,69 @@
+﻿--- SLIDE 1 ---
+XÂY DỰNG HỆ THỐNG QUẢN LÝ KHO & HẠN SỬ DỤNGCHO CỬA HÀNG THỰC PHẨM SẠCH FRESHCARE
+Thành viên nhóm: Nguyễn Duy Linh, Mai Đăng Cường, Sầm Nam Tú, Nguyễn Nam Khánh, Giàng A Tủa
+--- SLIDE 2 ---
+Phụ lục 
+Tổng quan dự án    Phân tích & Đặc tả yêu cầu  Thiết kế hệ thống & Kiến trúc  Giải quyết nghiệp vụ phức tạp - Xây dựng hệ thống & Thuật toán FEFO   Kiểm thử, Triển khai & Kết luận
+--- SLIDE 3 ---
+Giới thiệu tổng quan
+Thực trạng: Ngành thực phẩm sạch (rau củ hữu cơ, thịt cá tươi sống) đối mặt với bài toán lớn về hao hụt. Các sản phẩm này có thời hạn sử dụng rất ngắn, chỉ từ 2 đến 7 ngày, đòi hỏi hệ thống quản lý kho phải cực kỳ chính xác và kịp thời.
+Thông điệp then chốt: "Quản lý thủ công không thể đáp ứng tốc độ biến động của hạn sử dụng thực phẩm sạch"
+--- SLIDE 4 ---
+Giới thiệu tổng quan
+Vấn đền hiện tại
+Ngành thực phẩm sạch có vòng đời siêu ngắn (2-7 ngày), nhưng cửa hàng đang quản lý bằng sổ sách/Excel rời rạc dẫn đến:
+🗑️ Hao hụt khổng lồ: Rác thải thực phẩm chiếm tới 15% doanh thu hàng tháng do vứt bỏ hàng quá date.❌ Sai lệch tồn kho theo lô: Không theo dõi được HSD của từng lô hàng, không biết hàng nào sắp hỏng.🔄 Phá vỡ quy tắc FIFO: Nhân viên có thói quen lấy nhầm hàng mới nhập đặt bên ngoài để bán trước.
+Giải pháp và lợi ích 
+Hệ thống FreshCare: Quản lý theo lô - Tự động hóa - Tối ưu lợi nhuận
+🚦 Cảnh báo thông minh: Dashboard tự động đổi màu Đỏ/Cam/Xanh cho hàng sắp hết hạn.⚙️ Xuất kho FEFO tự động: Thuật toán tự động tìm và ưu tiên trừ tồn kho từ lô cận Date nhất.📉 Giảm tối đa hao hụt: Hệ thống tự động tính giá Sale lũy tiến cứu vãn doanh thu.
+--- SLIDE 5 ---
+II. Phân tích & Đặc tả yêu cầu
+Các chức năng cốt lõi bao gồm: 
+📦 Nhập kho theo Lô (Batching): Khởi tạo mã Batch ID duy nhất kèm Ngày sản xuất (NSX) và Hạn sử dụng (HSD) cho từng đợt hàng.⚙️ Xuất kho FEFO tự động: Thuật toán tự động tìm và ưu tiên trừ tồn kho từ các lô hàng có HSD gần nhất trước.🚦 Dashboard cảnh báo màu: Hệ thống mã màu trực quan: Đỏ (Quá hạn), Cam (Cận date < 3 ngày) và Xanh (An toàn).
+4.   🔒 Chặn xuất hàng quá hạn: Tự động khóa và không cho phép nhân viên thực hiện giao dịch đối với các lô hàng đã hết hạn.5.   📊 Báo cáo & Thống kê hao hụt: Theo dõi chi tiết lượng thực phẩm phải xuất hủy và giá trị thiệt hại kinh tế theo kỳ.6.   👥 Phân quyền hệ thống: Tách biệt quyền hạn giữa Quản lý (xem báo cáo, duyệt hủy) và Nhân viên (lập phiếu nhập/xuất).
+--- SLIDE 6 ---
+II. Phân tích & Đặc tả yêu cầu 
+Biểu đồ Use Case tổng quát
+Tác nhân hệ thống (Actors):          +)Quản lý (Admin)         +)Nhân viên (Staff)2.    Nhóm chức năng chính:          +)Nghiệp vụ kho lõi: Nhập kho tạo lô hàng (Batch), Xuất kho tự động FEFO.         +) Giám sát & Cảnh báo: Dashboard theo dõi hạn sử dụng theo mã màu và báo cáo hao hụt.         +)Quản trị: Đăng nhập, phân quyền và quản lý danh mục sản phẩm.
+--- SLIDE 7 ---
+III. Thiết kế Hệ thống & Kiến trúc 
+Mô hình kiến trúc MVC
+--- SLIDE 8 ---
+Kiến trúc MVC & Công nghệ sử dụng
+ - Ngôn ngữ lập trình: C# (C-Sharp).  - Nền tảng: ASP.NET Core MVC (Visual Studio 2022) giúp cấu trúc mã nguồn rõ ràng và đạt hiệu suất cao. - Hệ quản trị CSDL: SQL Server 2022, đảm bảo an toàn tuyệt đối cho các giao dịch    (Transaction) xuất/nhập kho. - Truy cập dữ liệu: ADO.NET (Microsoft.Data.SqlClient) giúp tối ưu tốc độ xử lý vòng lặp thuật toán FEFO. -  Giao diện: HTML5, CSS3, Bootstrap 5 mang lại trải nghiệm mượt mà.
+--- SLIDE 9 ---
+2. Biểu đồ lớp(Class Diagram) 
+--- SLIDE 10 ---
+Cải tiến kỹ thuật giúp hệ thống vận hành tốt
+ - Quản lý thực thể Lô hàng: Lớp LoHang là trung tâm của hệ thống, lưu trữ chặt chẽ NSX và HSD để kiểm soát chính xác tuổi thọ thực phẩm. - Kiến trúc XuatKhoViewModel: Đóng vai trò lớp bao (Aggregate Root), giúp đóng gói danh sách nhiều mặt hàng trong một lần gửi yêu cầu, tối ưu hóa xử lý tại Controller . - Đảm bảo tính toàn vẹn dữ liệu: Quan hệ Hợp thành giữa PhieuXuat và ChiTietXuat đảm bảo tính nhất quán khi thực hiện các giao dịch xuất kho. - Bảo mật và đồng bộ: Thuộc tính Makhau thể hiện tư duy bảo mật mã hóa; các trường dữ liệu khớp hoàn toàn với sơ đồ thực thể ERD
+--- SLIDE 11 ---
+3. Thiết kế CSDL
+ -      Cơ chế Bảo toàn dữ liệu: Tuyệt đối không dùng lệnh DELETE. Hệ thống sử dụng trường TrangThai để quản lý hàng hóa (An toàn, Cận Date, Quá hạn, Đã Hủy), giúp bảo toàn lịch sử giao dịch và không làm đứt gãy dữ liệu . -     Tách biệt Doanh thu & Thất thoát: Bảng PhieuXuat phân loại rõ LoaiPhieu (Bán hàng / Hủy hàng), giúp kế toán báo cáo doanh thu chính xác và quản lý được giá trị thiệt hại do hàng hỏng . -     Tự động hóa Sale theo Danh mục: Bảng DanhMuc tích hợp sẵn PhanTramSale, cho phép hệ thống tự động ánh xạ mức giảm giá khi hàng đến ngưỡng cận Date .Quản lý đơn vị tính linh hoạt: Hỗ trợ đa dạng đơn vị (Kg, Bó, Hộp...) ngay trong bảng SanPham, giúp việc xuất/nhập kho trực quan và chính xác
+--- SLIDE 12 ---
+IV. Giải quyết nghiệp vụ phức tạp 
+Sơ đồ khối thuật toán:
+--- SLIDE 13 ---
+Thuật toán xuất kho thông minh FEFO
+Từ FIFO chuyển sang FEFO: Nhóm quyết định sử dụng FEFO (First Expired, First Out) thay vì FIFO truyền thống. Hệ thống luôn ưu tiên xuất lô hàng có Hạn sử dụng gần nhất bất kể ngày nhập kho .Tối ưu hóa Truy vấn: Thuật toán được thực thi mạnh mẽ dưới CSDL bằng câu lệnh ORDER  BY HanSuDung ASC, đảm bảo hàng cận date luôn được đẩy lên đầu danh sách .Bảo vệ toàn vẹn dữ liệu: Toàn bộ vòng lặp trừ lùi được đặt trong một khối giao dịch (SQL Transaction). Nếu có bất kỳ lỗi nào (như hết hàng giữa chừng), hệ thống tự động Rollback để không làm sai lệch tồn kho.Ràng buộc: An toàn 2 lớp, chặn đứng hoàn toàn rủi ro nhân viên xuất bán vượt quá số lượng tồn thực tế .
+--- SLIDE 14 ---
+IV. Giải quyết nghiệp vụ phức tạp 
+2. Dashboard tự động hóa & Tối ưu lợi  nhuận
+Biểu đồ trạng thái Lô hàng (State Diagram)
+Hệ thống giám sát thời gian thực: 🟢 Xanh: Hàng an toàn. 🟠 Cam: Cận date (Còn <= 3 ngày) – Kích hoạt chiến dịch giảm giá. 🔴 Đỏ: Quá hạn – Hệ thống tự động khóa xuất bán, bắt buộc chuyển sang quy trình xuất hủy .
+--- SLIDE 15 ---
+V. Đảm bảo chất lượng & Tổng kết 
+100% SUCCESS RATE
+10/10 Test Cases Passed
+🛡️ Kiểm soát tính hợp lệ của Thời gian: Hệ thống tự động chặn các phiếu nhập kho có Hạn sử dụng (HSD) nhỏ hơn Ngày sản xuất (NSX).🛑 Chặn xuất kho số lượng âm: Giao dịch lập tức bị hủy nếu số lượng yêu cầu xuất vượt quá tổng tồn kho thực tế của các lô an toàn.⚠️ Validate Đơn vị tính chặt chẽ: Hệ thống cảnh báo từ chối giao dịch nếu nhập số lượng thập phân (ví dụ 5.5) cho các mặt hàng có đơn vị tính là số nguyên (như "Chai", "Hộp").
+Những case khó nhằn nhất mà hệ thống đã vượt qua:
+Kiểm thử hệ thống:
+--- SLIDE 16 ---
+V. Đảm bảo chất lượng & Tổng kế
+2.  Kết luận và hướng phát triển
+Đánh giá trạng thái hệ thống:
+Định hướng nâng cấp tương lai:
+ +) Hoạt động chuẩn xác: Hệ thống FreshCare vận hành ổn định trên nền tảng ASP.NET Core MVC, xử lý dữ liệu mạnh mẽ với ADO.NET thuần. +) Thực thi thành công FEFO: Luồng nghiệp vụ xuất kho và tính giá Sale cận date tự động đã được tích hợp hoàn chỉnh và chạy đúng quy tắc. +) Bảo vệ toàn vẹn dữ liệu: Không sử dụng lệnh DELETE, luồng Bán hàng và Hủy hàng được phân tách rõ rệt để bảo vệ số liệu kế toán.
+ +)📱 Mobile App Quản lý: Phát triển ứng dụng di động giúp chủ cửa hàng quản lý doanh thu và tồn kho từ xa. +)📠 Tích hợp Barcode Scanner: Tích hợp máy quét mã vạch phần cứng để đẩy nhanh tốc độ thanh toán tại quầy. +)📩 Hệ thống Alert tự động: Nâng cấp tính năng gửi Email/SMS cảnh báo trực tiếp đến điện thoại quản lý khi phát hiện lô hàng sắp hết hạn.
+--- SLIDE 17 ---
+LỜI CẢM ƠN & Q&A
+

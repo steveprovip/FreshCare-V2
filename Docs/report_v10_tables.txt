@@ -1,0 +1,238 @@
+﻿--- TABLE 1 ---
+Họ và tên | Nhiệm vụ công việc | Thời gian
+Nguyễn Duy Linh (Leader) | Quản lý dự án, thiết kế kiến trúc hệ thống, đánh giá rủi ro, kiểm soát tiến độ. | Suốt dự án
+Nguyễn Nam Khánh | Khảo sát và phân tích yêu cầu nghiệp vụ, viết tài liệu đặc tả, hỗ trợ kiểm thử. | 4 tuần
+Giàng A Tủa | Thiết kế giao diện người dùng (UI/UX): màn hình nhập/xuất kho, Dashboard cảnh báo HSD. | 5 tuần
+Sầm Nam Tú | Thiết kế cơ sở dữ liệu, lập trình API, xây dựng và kiểm tra thuật toán FIFO & tính HSD. | 6 tuần
+Mai Đăng Cường | Lên kịch bản kiểm thử (Test Case), kiểm thử lỗi, viết tài liệu và hỗ trợ triển khai. | 4 tuần
+
+
+--- TABLE 2 ---
+Thời gian | Nội dung cuộc họp | Hình thức
+Tuần 1 | Khảo sát nghiệp vụ nhập/xuất hàng tại cửa hàng FreshCare, xác định quy trình quản lý kho hiện tại. | Offline
+Tuần 3 | Chốt sơ đồ cơ sở dữ liệu, tập trung vào bảng Lô Hàng (Batch) và mối quan hệ các bảng. | Online
+Tuần 5 | Review mẫu giao diện (mockup) Dashboard cảnh báo hạn sử dụng, nhận phản hồi từ phía cửa hàng. | Online
+Tuần 8 | Tích hợp code Frontend và Backend, kiểm tra kết nối API. | Offline
+Tuần 10 | Đánh giá kết quả kiểm thử (Test Case) cho thuật toán xuất kho FIFO, ghi nhận lỗi và chỉnh sửa. | Online
+
+
+--- TABLE 3 ---
+Mô tả rủi ro | Giả thiết xảy ra | Xác suất | Ảnh hưởng | Biện pháp xử lý
+Lỗi thuật toán trừ kho FIFO | Code không tự động chia tách được số lượng khi trừ kho qua nhiều lô hàng khác nhau trong cùng một đơn xuất. | 25% | Tồn kho của lô hàng bị âm, dẫn đến sai lệch toàn bộ báo cáo tồn kho của hệ thống. | Viết Unit Test cực kỳ chặt chẽ cho riêng hàm Xuất kho. Kiểm tra với nhiều kịch bản dữ liệu (số lượng xuất nhỏ hơn, bằng, lớn hơn tồn kho một lô).
+Lỗi lệch múi giờ (Timezone) khi tính HSD | Lưu ngày vào cơ sở dữ liệu bị lệch giờ UTC so với giờ địa phương (UTC+7), khiến hàng hết hạn bị cảnh báo sớm hoặc muộn 1 ngày. | 20% | Cảnh báo sai lệch, gây rủi ro bán hàng quá hạn hoặc hủy nhầm hàng còn hạn, ảnh hưởng đến uy tín cửa hàng. | Thống nhất chuẩn lưu trữ ngày tháng là UTC trong cơ sở dữ liệu và thực hiện chuyển đổi sang giờ địa phương tại tầng Frontend trước khi hiển thị.
+Sai sót dữ liệu do thao tác nhập tay | Nhân viên kho nhập nhầm ngày hạn sử dụng nhỏ hơn ngày sản xuất hoặc nhỏ hơn ngày hiện tại. | 30% | Dữ liệu rác trong hệ thống, Dashboard cảnh báo đỏ liên tục gây rối loạn thao tác cho người dùng. | Thiết lập Validation chặt chẽ tại Form nhập liệu: HSD phải lớn hơn hoặc bằng ngày Sản xuất và lớn hơn hoặc bằng ngày nhập kho hiện tại.
+
+
+--- TABLE 4 ---
+Mô tả rủi ro | Giả thiết xảy ra | Xác suất | Ảnh hưởng | Biện pháp xử lý
+Sự chuyển giao API giữa Backend và Frontend không khớp | API do thành viên phụ trách Backend (Sầm Nam Tú) xây dựng trả về cấu trúc dữ liệu (JSON) khác với những gì thành viên Frontend (Giàng A Tủa) đang xử lý trên giao diện. | 15% | Không ghép được tính năng, gây trễ tiến độ Sprint và ảnh hưởng đến kế hoạch chung của dự án. | Thống nhất sử dụng Swagger hoặc Postman Collection để mô tả và ký kết "hợp đồng API" rõ ràng trước khi tiến hành lập trình.
+Nhân lực thực hiện bị bận việc cá nhân hoặc ốm đau | Nhóm có 5 thành viên; nếu 1 thành viên chủ chốt bị bận hoặc ốm, toàn bộ công đoạn đó sẽ bị đình trệ. | 10% | Chậm tiến độ của cả nhóm, ảnh hưởng đến ngày nghiệm thu Sprint. | Trưởng nhóm (Nguyễn Duy Linh) duy trì Daily Scrum hàng ngày để nắm tình hình và điều phối, phân chia lại công việc cho các thành viên khác kịp thời khi phát sinh sự cố.
+Yêu cầu từ phía FreshCare thay đổi phút chót | Khách hàng (cửa hàng FreshCare) muốn tích hợp thêm tính năng quét mã vạch (Barcode Scanner) trong khi hệ thống chưa được thiết kế để hỗ trợ trường dữ liệu này. | 20% | Phải thiết kế lại cấu trúc bảng Lô hàng trong cơ sở dữ liệu và cập nhật toàn bộ giao diện liên quan, gây mất nhiều thời gian và công sức. | Bổ sung sẵn cột dự phòng cho Barcode/QR Code vào cơ sở dữ liệu ngay từ giai đoạn thiết kế ban đầu. Chốt chặt và ký xác nhận phạm vi công việc (Scope) trong giai đoạn 1 trước khi bắt đầu lập trình.
+
+
+--- TABLE 5 ---
+STT | Stakeholder | Vai trò / Mô tả | Mức độ ảnh hưởng
+1 | Chủ cửa hàng / Quản lý | Quyết định triển khai. Dùng báo cáo doanh thu, hao hụt, cảnh báo HSD ra quyết định. Có toàn quyền trên hệ thống. | Rất cao
+2 | Nhân viên kho | Nhập kho, gắn thông tin lô hàng (Batch), ngày sản xuất và ngày hết hạn vào hệ thống khi nhận hàng. | Cao
+3 | Nhân viên bán hàng | Tạo hóa đơn bán hàng, thực hiện xuất kho. Hệ thống tự động FIFO thay mặt nhân viên. | Cao
+4 | Nhà cung cấp (Supplier) | Không tương tác trực tiếp nhưng thông tin NSX, HSD từ nhà cung cấp là đầu vào quan trọng. | Trung bình
+5 | Khách hàng (Customer) | Hưởng lợi gián tiếp: luôn nhận sản phẩm còn hạn sử dụng nhờ quy trình FIFO được tự động hóa. | Trung bình
+6 | Nhóm phát triển phần mềm | Thiết kế, xây dựng, kiểm thử hệ thống. Đảm bảo thuật toán FIFO hoạt động chính xác. | Cao
+7 | Giảng viên hướng dẫn | Định hướng yêu cầu học thuật, đánh giá sản phẩm và đảm bảo quy trình công nghệ phần mềm. | Cao
+
+
+--- TABLE 6 ---
+ID Yêu cầu | Tên Yêu cầu | Mô tả chi tiết | Độ ưu tiên
+FR1 | Đăng nhập và Phân quyền hệ thống | Hệ thống yêu cầu người dùng đăng nhập bằng tài khoản và mật khẩu. Phân quyền thành 2 vai trò:- Quản lý (Admin): Toàn quyền hệ thống, xem báo cáo doanh thu, hao hụt, quản lý nhân sự.- Nhân viên: Dùng chung cho bộ phận kho và bán hàng để lập phiếu nhập/xuất, xem cảnh báo tồn kho. | Cao
+FR2 | Quản lý danh mục & sản phẩm | Cho phép thêm, sửa, xóa, tìm kiếm danh mục (Rau củ, Thịt cá, Đồ khô...) và sản phẩm. Mỗi sản phẩm có các thuộc tính: Mã SP, Tên SP, Đơn vị tính, Giá bán, Mã danh mục. | Cao
+FR3 | Quản lý nhập kho (Tạo Lô hàng) | Cho phép tạo phiếu nhập kho. Bắt buộc người dùng phải nhập: Số lượng, Ngày sản xuất, Hạn sử dụng. Khi lưu phiếu, hệ thống tự động sinh ra một Mã Lô hàng (Batch) mới để theo dõi tuổi thọ của lượng thực phẩm này và cộng dồn vào tổng tồn kho. | Cao
+FR4 | Quản lý xuất kho (Bán hàng & Tự động trừ FIFO) | Cho phép tạo hóa đơn bán hàng hoặc phiếu xuất hủy. Người dùng nhập mặt hàng và số lượng cần xuất. Khi lưu, hệ thống tự động quét và trừ số lượng vào lô hàng có HSD gần nhất (FIFO). Nếu lô cũ nhất không đủ, tự động tách và trừ tiếp sang lô có HSD gần thứ hai. | Cao
+FR5 | Chặn xuất hàng quá hạn | Hệ thống tự động kiểm tra và khóa/không cho phép nhân viên xuất bán các lô thực phẩm đã vượt quá Ngày hạn sử dụng quy định. | Cao
+FR6 | Bảng điều khiển cảnh báo HSD (Dashboard Alert) | Màn hình chính tự động lọc các lô hàng theo thời gian thực để đưa ra cảnh báo bằng màu sắc:- Màu Đỏ: Lô hàng đã quá hạn (yêu cầu xuất hủy).- Màu Cam/Vàng: Lô hàng sắp hết hạn trong <= 3 ngày (nhắc nhở quản lý dán tem giảm giá Clearance Sale). | Cao
+FR7 | Xem lịch sử nhập/xuất | Cho phép tra cứu, xem danh sách các phiếu nhập kho và hóa đơn bán/xuất kho đã lưu theo khoảng thời gian, xem chi tiết từng phiếu. | Trung bình
+FR8 | Thống kê tồn kho và Hao hụt | Cung cấp chức năng báo cáo:- Báo cáo tổng tồn kho theo mặt hàng và chi tiết tồn kho theo từng lô hàng.- Báo cáo hao hụt: Liệt kê danh sách hàng hóa phải xuất hủy do hết hạn trong kỳ và tổng giá trị thiệt hại. | Cao
+FR9 | In hóa đơn/Phiếu nhập | Cho phép in hóa đơn bán hàng cho khách hoặc in phiếu nhập kho nội bộ để đối soát dữ liệu thực tế. | Trung bình
+
+
+--- TABLE 7 ---
+ID Yêu cầu | Loại yêu cầu | Mô tả chi tiết
+NFR1 | Hiệu suất (Performance) | - Thuật toán tìm kiếm lô hàng theo FIFO khi thanh toán/xuất kho phải xử lý dưới 2 giây.- Thời gian tải dữ liệu cho Dashboard cảnh báo HSD < 3 giây ngay cả khi dữ liệu có hàng nghìn bản ghi lô hàng.
+NFR2 | Tính khả dụng (Usability) | - Giao diện phải trực quan, dễ dùng cho nhân viên bán hàng và nhân viên kho.- Các nút bấm (Nhập/Xuất), bộ chọn ngày (Datepicker) phải được thiết kế to, dễ thao tác trên cả máy POS.- Bảng điều khiển sử dụng mã màu rõ ràng (Đỏ/Cam/Xanh) để cảnh báo tình trạng thực phẩm.
+NFR3 | Độ tin cậy và Toàn vẹn dữ liệu (Reliability & Data Integrity) | - Hệ thống tự động kiểm tra ràng buộc dữ liệu: Ngày hết hạn khi nhập kho bắt buộc phải lớn hơn hoặc bằng Ngày sản xuất và Ngày hiện tại.- Không cho phép xuất kho với số lượng âm hoặc lớn hơn tổng tồn kho hiện có.
+NFR4 | Bảo mật (Security) | - Bắt buộc đăng nhập để sử dụng. Mật khẩu phải được mã hóa một chiều (hashing) trước khi lưu vào CSDL.- Các dữ liệu nhạy cảm (Báo cáo hao hụt, doanh thu, xóa sửa phiếu) chỉ được phép truy cập bởi tài khoản Quản lý (Admin).
+NFR5 | Khả năng tương thích (Compatibility) | - Hệ thống thiết kế trên nền tảng Web-based, chạy ổn định trên các trình duyệt phổ biến (Google Chrome, Microsoft Edge, Safari).- Giao diện Responsive, hiển thị tốt trên cả màn hình PC của Quản lý và máy POS của Nhân viên.
+NFR6 | Khả năng bảo trì và Mở rộng (Maintainability & Scalability) | - Mã nguồn được cấu trúc theo mô hình rõ ràng (Ví dụ: kiến trúc MVC hoặc 3-Layer) để dễ dàng nâng cấp.- Kiến trúc CSDL Lô hàng (Batch) được thiết kế mở, cho phép dễ dàng tích hợp thêm chức năng quét mã vạch (Barcode/QR) để truy xuất nguồn gốc trong tương lai.
+
+
+--- TABLE 8 ---
+Tên Use Case | Đăng nhập hệ thống
+Mã Use Case | UC-01
+Tác nhân chính | Quản lý (Admin), Nhân viên
+Mô tả ngắn | Người dùng xác thực danh tính để truy cập hệ thống với quyền hạn phù hợp.
+Tiền điều kiện | Hệ thống đang chạy. Người dùng chưa đăng nhập.
+Hậu điều kiện | Người dùng được cấp quyền truy cập tương ứng với vai trò của mình.
+Luồng sự kiện chính | 1. Người dùng truy cập địa chỉ hệ thống trên trình duyệt.2. Hệ thống hiển thị màn hình đăng nhập.3. Người dùng nhập tên tài khoản và mật khẩu rồi nhấn Đăng nhập.4. Hệ thống kiểm tra thông tin trong cơ sở dữ liệu.5. Hệ thống xác định vai trò (Admin hoặc Nhân viên).6. Hệ thống chuyển hướng đến giao diện chính tương ứng với vai trò.
+Luồng ngoại lệ | 4a. Tên tài khoản hoặc mật khẩu không đúng: hệ thống hiển thị thông báo lỗi, cho phép thử lại.4b. Sau 5 lần sai liên tiếp: hệ thống khóa tài khoản tạm thời và thông báo đến Quản lý.
+
+
+--- TABLE 9 ---
+Tên Use Case | Nhập kho – Tạo lô hàng mới
+Mã Use Case | UC-02
+Tác nhân chính | Nhân viên kho
+Mô tả ngắn | Nhân viên tạo phiếu nhập kho, gắn thông tin lô hàng để theo dõi hạn sử dụng.
+Tiền điều kiện | Nhân viên đã đăng nhập. Sản phẩm đã có trong danh mục hệ thống.
+Hậu điều kiện | Lô hàng mới được tạo với Batch ID duy nhất. Tổng tồn kho được cập nhật.
+Luồng sự kiện chính | 1. Nhân viên chọn chức năng Nhập kho từ menu.2. Nhân viên tìm kiếm và chọn sản phẩm cần nhập.3. Nhân viên điền: Số lượng, Ngày sản xuất (NSX), Ngày hết hạn (HSD).4. Hệ thống kiểm tra: HSD >= NSX và HSD >= Ngày hiện tại.5. Nhân viên xác nhận lưu phiếu nhập.6. Hệ thống sinh Mã Lô hàng (Batch ID), lưu phiếu và cộng dồn tồn kho.7. Hệ thống hiển thị thông báo nhập kho thành công.
+Luồng ngoại lệ | 4a. HSD < NSX hoặc HSD < ngày hiện tại: hệ thống từ chối và hiển thị lỗi ngày không hợp lệ.2a. Sản phẩm chưa có trong danh mục: nhân viên phải thêm sản phẩm mới trước khi nhập kho.
+
+
+--- TABLE 10 ---
+Tên Use Case | Xuất kho tự động theo FIFO
+Mã Use Case | UC-03
+Tác nhân chính | Nhân viên bán hàng
+Mô tả ngắn | Nhân viên lập hóa đơn bán hàng; hệ thống tự động trừ tồn kho từ lô có HSD gần nhất.
+Tiền điều kiện | Nhân viên đã đăng nhập. Sản phẩm còn tồn kho với ít nhất một lô chưa hết hạn.
+Hậu điều kiện | Tồn kho giảm đúng số lượng xuất. Lịch sử xuất kho được ghi nhận. Hóa đơn được tạo.
+Luồng sự kiện chính | 1. Nhân viên chọn chức năng Bán hàng / Xuất kho.2. Nhân viên chọn sản phẩm và nhập số lượng cần xuất.3. Hệ thống kiểm tra: số lượng yêu cầu <= tổng tồn kho hiện có.4. Hệ thống tự động tìm lô có HSD gần nhất (FIFO/FEFO) và trừ số lượng.5. Nếu lô đầu tiên không đủ, hệ thống tiếp tục trừ tự động sang lô kế tiếp.6. Nhân viên xác nhận; hệ thống lưu hóa đơn và cập nhật tồn kho.
+Luồng ngoại lệ | 3a. Số lượng yêu cầu > tổng tồn kho: hệ thống từ chối và thông báo số lượng tồn hiện có.4a. Tất cả lô còn lại đã hết hạn: hệ thống không cho xuất bán, yêu cầu chuyển sang quy trình xuất hủy.
+
+
+--- TABLE 11 ---
+Mã UC | Tên Use Case
+UC-01 | Đăng nhập hệ thống    Tác nhân: Quản lý, Nhân viên
+UC-02 | Quản lý danh mục sản phẩm (Thêm/Sửa/Xóa)    Tác nhân: Quản lý
+UC-03 | Nhập kho – Tạo lô hàng mới (gắn NSX, HSD)    Tác nhân: Nhân viên kho
+UC-04 | Xuất kho tự động theo thuật toán FIFO    Tác nhân: Nhân viên bán hàng
+UC-05 | Xem Dashboard cảnh báo Hạn sử dụng    Tác nhân: Quản lý, Nhân viên
+UC-06 | Xử lý hàng hết hạn – Xuất hủy    Tác nhân: Nhân viên kho, Quản lý
+UC-07 | Xem báo cáo tồn kho & hao hụt    Tác nhân: Quản lý
+UC-08 | Quản lý tài khoản nhân viên    Tác nhân: Quản lý
+
+
+--- TABLE 12 ---
+Tên Use Case | Nhập kho – Tạo lô hàng mới
+Mã Use Case | UC-03
+Tác nhân chính | Nhân viên kho
+Mức | 2
+Người chịu trách nhiệm | Nhân viên kho
+Tiền điều kiện | Nhân viên đã đăng nhập. Sản phẩm đã có trong danh mục hệ thống.
+Đảm bảo tối thiểu | CSDL sẽ không có sự thay đổi nào (hệ thống trở lại trạng thái trước khi nhập).
+Đảm bảo thành công | Một lô hàng mới được tạo với Batch ID duy nhất. Tổng tồn kho sản phẩm được cộng dồn.
+Kích hoạt | Nhân viên chọn chức năng Nhập kho từ menu.
+Chuỗi sự kiện chính | 1. Hệ thống hiển thị form Nhập kho.2. Nhân viên tìm kiếm và chọn sản phẩm.3. Nhân viên điền: Số lượng, Ngày sản xuất (NSX), Ngày hết hạn (HSD).4. Hệ thống kiểm tra: HSD >= NSX và HSD >= Ngày hiện tại.5. Nhân viên xác nhận lưu.6. Hệ thống tự động sinh Mã Lô hàng (Batch ID), cộng dồn tồn kho.7. Hệ thống thông báo nhập kho thành công.
+Ngoại lệ | 4a. HSD < NSX hoặc HSD < ngày hiện tại: hệ thống từ chối, hiển thị lỗi "Ngày hết hạn không hợp lệ".2a. Sản phẩm chưa có trong danh mục: hệ thống yêu cầu thêm sản phẩm trước.
+
+
+--- TABLE 13 ---
+Tên Use Case | Xuất kho tự động theo FIFO
+Mã Use Case | UC-04
+Tác nhân chính | Nhân viên bán hàng
+Mức | 2
+Người chịu trách nhiệm | Nhân viên bán hàng
+Tiền điều kiện | Nhân viên đã đăng nhập. Sản phẩm còn tồn kho với ít nhất một lô chưa hết hạn.
+Đảm bảo tối thiểu | CSDL sẽ không có sự thay đổi nào.
+Đảm bảo thành công | Tồn kho giảm đúng số lượng. Hệ thống tự động ưu tiên trừ từ lô có HSD gần nhất. Hóa đơn được tạo và lịch sử xuất kho được ghi nhận.
+Kích hoạt | Nhân viên chọn chức năng Bán hàng / Xuất kho.
+Chuỗi sự kiện chính (thuật toán FIFO) | 1. Nhân viên chọn sản phẩm và nhập số lượng cần xuất (Q).2. Hệ thống kiểm tra: Q <= tổng tồn kho hiện có.3. Hệ thống thực thi thuật toán FIFO: Lấy danh sách lô còn tồn kho, SẮP XẾP TĂNG DẦN theo HSD. Duyệt lần lượt từng lô: nếu lô đủ số lượng thì trừ hết từ lô này; nếu không đủ thì trừ hết rồi chuyển sang lô kế tiếp. Lặp đến khi đủ Q.4. Nhân viên xác nhận.5. Hệ thống lưu hóa đơn và cập nhật tồn kho tất cả các lô liên quan.
+Ngoại lệ | 2a. Q > tổng tồn kho: hệ thống từ chối và thông báo số lượng tồn hiện có.3a. Tất cả lô đã hết hạn: hệ thống không cho xuất bán, yêu cầu chuyển sang quy trình Xuất hủy (UC-06).
+
+
+--- TABLE 14 ---
+Tên Use Case | Xem Dashboard cảnh báo Hạn sử dụng
+Mã Use Case | UC-05
+Tác nhân chính | Quản lý, Nhân viên
+Mức | 1
+Tiền điều kiện | Người dùng đã đăng nhập thành công.
+Đảm bảo thành công | Hiển thị toàn bộ lô hàng phân loại theo màu: Đỏ (quá hạn – cần xuất hủy ngay), Cam (sắp hết hạn trong <= 3 ngày – cần dán tem giảm giá), Xanh (còn hạn an toàn).
+Kích hoạt | Ngay sau khi đăng nhập thành công.
+Chuỗi sự kiện chính | 1. Hệ thống tự động tải dữ liệu tất cả lô hàng còn tồn kho.2. So sánh HSD từng lô với ngày hiện tại và phân loại màu.3. Hiển thị danh sách theo mã màu trực quan.4. Người dùng nhấn vào lô để xem chi tiết và ra quyết định xử lý.
+Ngoại lệ | Không có lô hàng nào trong kho: hệ thống hiển thị "Kho hiện tại trống".
+
+
+--- TABLE 15 ---
+Tên Use Case | Xuất hủy hàng hết hạn
+Mã Use Case | UC-06
+Tác nhân chính | Nhân viên kho, Quản lý
+Mức | 2
+Tiền điều kiện | Có ít nhất một lô hàng đánh dấu Đỏ (quá hạn) trên Dashboard.
+Đảm bảo thành công | Lô hàng quá hạn được xóa khỏi tồn kho. Lịch sử xuất hủy ghi vào báo cáo hao hụt.
+Kích hoạt | Người dùng chọn lô quá hạn từ Dashboard và chọn "Xuất hủy".
+Chuỗi sự kiện chính | 1. Người dùng chọn lô hàng Đỏ từ Dashboard.2. Chọn chức năng Xuất hủy.3. Hệ thống yêu cầu xác nhận và nhập lý do hủy.4. Người dùng xác nhận.5. Hệ thống cập nhật tồn kho lô về 0 và ghi vào báo cáo hao hụt.
+Ngoại lệ | Người dùng hủy thao tác: hệ thống không thay đổi dữ liệu.
+
+
+--- TABLE 16 ---
+Lớp (Class) | Thuộc tính chính | Quan hệ
+SanPham | MaSP, TenSP, DonViTinh, GiaBan, MoTa | 1 SanPham – n LoHang
+LoHang (Batch) | MaLo, MaSP, SoLuong, NgaySanXuat (NSX), NgayHetHan (HSD), NgayNhapKho, TrangThai | Lớp trung tâm; liên kết ChiTietNhap, ChiTietBan
+PhieuNhapKho | MaPhieu, NgayNhap, MaNhanVien, GhiChu | 1 PhieuNhapKho – n ChiTietNhap
+ChiTietNhap | MaPhieu, MaLo, SoLuong | Liên kết PhieuNhapKho và LoHang
+HoaDonBanHang | MaHoaDon, NgayBan, MaNhanVien, TongTien | 1 HoaDon – n ChiTietBan
+ChiTietBan | MaHoaDon, MaLo, SoLuong, DonGia | Ghi nhận từng lô bị trừ theo FIFO
+NhanVien | MaNV, HoTen, TenDangNhap, MatKhau_hash, VaiTro | Tác nhân tạo PhieuNhap, HoaDon
+
+
+--- TABLE 17 ---
+Trạng thái | Điều kiện chuyển đổi | Hành động hệ thống
+[Bắt đầu] | Nhân viên kho xác nhận Nhập kho | Tạo Batch ID, lưu NSX & HSD, TrangThai = "Còn hạn"
+Còn hạn – An toàn (Xanh) | HSD - Ngày hôm nay > 3 ngày | Hiển thị màu Xanh, cho phép xuất bán
+Sắp hết hạn (Cam) | 0 < HSD - Ngày hôm nay <= 3 ngày | Hiển thị màu Cam, gợi ý dán tem giảm giá
+Quá hạn (Đỏ) | HSD < Ngày hôm nay | Hiển thị màu Đỏ, khóa xuất bán thông thường
+Đã xuất hết | SoLuong = 0 (FIFO trừ dần) | Xóa khỏi Dashboard, lưu lịch sử giao dịch
+Đã xuất hủy | Quản lý/NV xác nhận Xuất hủy | SoLuong = 0, ghi vào báo cáo hao hụt
+
+
+--- TABLE 18 ---
+Lô hàng | HSD | Tồn kho ban đầu | Sau khi FIFO xuất 12 kg
+L001 | 22/03/2026 | 5 kg | 0 kg (trừ hết – HSD gần nhất)
+L002 | 25/03/2026 | 10 kg | 3 kg (trừ thêm 7 kg)
+L003 | 30/03/2026 | 8 kg | 8 kg (không cần trừ)
+
+
+--- TABLE 19 ---
+Bước | Từ | Đến | Thông điệp / Hành động
+1 | NhanVienBanHang | FormBanHang | Chọn sản phẩm, nhập số lượng Q
+2 | FormBanHang | XuatKhoService | xuatKho(maSP, Q)
+3 | XuatKhoService | BatchRepository | getLoHangTheoFIFO(maSP): SELECT ... ORDER BY HSD ASC
+4 | BatchRepository | XuatKhoService | Trả về danh sách lô sắp xếp theo HSD tăng dần
+5 | XuatKhoService | [self] | Thực thi vòng lặp FIFO, tính {MaLo, SoLuongTru} cho từng lô
+6 | XuatKhoService | BatchRepository | capNhatTonKho(danhSachLoTru) – transaction
+7 | XuatKhoService | HoaDonRepository | taoHoaDon(chiTietXuat)
+8 | XuatKhoService | FormBanHang | Trả về kết quả: Success + danh sách lô đã xuất
+9 | FormBanHang | NhanVienBanHang | Hiển thị "Xuất kho thành công. Hóa đơn: HD-xxxx"
+
+
+--- TABLE 20 ---
+Bước | Từ | Đến | Thông điệp / Hành động
+1 | NhanVienKho | FormNhapKho | Chọn sản phẩm, điền NSX, HSD, số lượng
+2 | FormNhapKho | NhapKhoService | nhapKho(maSP, soLuong, NSX, HSD)
+3 | NhapKhoService | [self] | Kiểm tra: HSD >= NSX và HSD >= NgayHomNay
+4 | NhapKhoService | [self] | Tạo BatchID tự động (UUID / auto-increment)
+5 | NhapKhoService | BatchRepository | luuLoHang(batch): INSERT INTO LoHang...
+6 | NhapKhoService | FormNhapKho | Trả về: Success + BatchID vừa tạo
+7 | FormNhapKho | NhanVienKho | "Nhập kho thành công. Mã lô: BATCH-xxxx"
+
+
+--- TABLE 21 ---
+Thành phần (Component) | Mô tả chức năng
+Giao diện Web (Frontend) | Màn hình đăng nhập, Dashboard HSD (mã màu Đỏ/Cam/Xanh), Form Nhập/Xuất kho, Báo cáo hao hụt
+Dịch vụ nghiệp vụ (Business Service Layer) | XuatKhoService – thực thi thuật toán FIFO; NhapKhoService; DashboardService phân loại màu; BaoCaoService
+Tầng truy cập dữ liệu (Repository Layer) | BatchRepository, SanPhamRepository, HoaDonRepository, NhanVienRepository
+Cơ sở dữ liệu (Database) | Bảng LoHang (Batch) là trung tâm; liên kết SanPham, HoaDon, NhanVien
+Hệ thống cảnh báo tự động (Scheduler) | Job chạy định kỳ mỗi ngày, so sánh HSD và cập nhật màu trạng thái lô hàng trên Dashboard
+
+
+--- TABLE 22 ---
+STT | Mã TC | Tên chức năng | Dữ liệu đầu vào | Các bước thực hiện | Kết quả mong đợi | Kết quả thực tế | Pass/Fail
+1 | TC-01 | Thêm Lô hàng mới | Mã Lô: LO_005NSX: 01/04/2026HSD: 30/04/2026SL: 50 Kg | 1. Điền thông tin vào form "Nhập lô hàng mới".2. Kích nút "Lưu Phiếu Nhập". | Hiển thị thông báo "Nhập kho thành công". Bảng LoHang dưới SQL cập nhật thêm 1 dòng. | Đúng như mong đợi | Pass
+2 | TC-02 | Validate thời gian nhập kho | NSX: 10/04/2026HSD: 05/04/2026 | 1. Chọn chức năng "Nhập kho".2. Nhập HSD nhỏ hơn NSX.3. Kích nút "Lưu". | Hệ thống hiển thị hộp thoại báo lỗi màu đỏ: "HSD không được nhỏ hơn NSX", từ chối lưu vào DB. | Đúng như mong đợi | Pass
+3 | TC-03 | Tự động chặn Đếm Ngày Âm | Lô hàng có HSD là 01/03/2026 (Ngày test: 04/04/2026) | 1. Khởi động Web.2. Quan sát bảng Hàng Quá Hạn. | Số ngày còn lại hiển thị "0" (Không bị âm). Lô hàng bị khóa, nằm ở bảng Đỏ (Quá hạn). | Đúng như mong đợi | Pass
+4 | TC-04 | Tự động tính Giá Sale (Cận Date) | Lô Rau muống (Giảm 50%), Giá gốc 10.000đ. HSD còn 5 ngày. | 1. Đẩy 1 lô hàng xuống mốc cận date (< 14 ngày)2. Tải lại trang chủ. | Giá thực tế tự động hiển thị giá Sale lũy tiến.Ví dụ: Rau muống (giảm 50%)còn 5 ngày → PhanTramSaleThucTe = 50% × (1 + 9/14) = 82.14% → giới hạn80% → Giá Sale = 10.000 × 20% = 2.000đ. | Đúng như mong đợi | Pass
+5 | TC-05 | Hiển thị Đơn vị tính | Sản phẩm: Thịt heo, Cà chua | 1. Đăng nhập thành công.2.Xem danh sách tồn kho. | Tên sản phẩm hiển thị kèm theo Đơn vị tính được lấy từ DB: Cà chua (Kg), Rau (Bó). | Đúng như mong đợi | Pass
+6 | TC-06 | Xuất kho (FEFO/FIFO) | Khách mua: 10 Kg Cà chua | 1. Tại form Xuất Kho, chọn "Cà chua".2. Nhập SL: 10.3. Kích nút "Thanh Toán". | Tự tìm lô cà chua có HSD gần nhất để trừ số lượng. Thông báo xuất thành công. | Đúng như mong đợi | Pass
+7 | TC-07 | Xuất kho - Vượt quá tồn kho | Khách mua: 200 Kg (Tồn kho thực tế của các lô an toàn chỉ có 100) | 1. Tại form Xuất Kho, chọn sản phẩm.2. Nhập SL lớn hơn tổng tồn.3. Kích nút "Thanh Toán". | Giao dịch bị hủy. Cảnh báo: "Lỗi: Kho không đủ hàng an toàn để xuất". | Đúng như mong đợi | Pass
+8 | TC-08 | Xử lý Hủy hàng (Không Xóa) | Chọn lô hàng LO_001 đang bị Quá Hạn (Bảng Đỏ) | 1. Tại lô hàng Đỏ, kích nút "Xuất Hủy".2. Chọn OK xác nhận. | Lô hàng biến mất khỏi kho hiển thị. Dưới CSDL bảng LoHang cập nhật TrangThai = 'Đã Hủy' (Không dùng lệnh DELETE). | Đúng như mong đợi | Pass
+9 | TC-09 | Ghi nhận Báo cáo Hủy hàng | Vừa thực hiện thao tác Hủy ở TC-08 | 1.Mở CSDL SQL Server.2. SELECT *FROM PhieuXuat | Tạo thành công 1 record Phiếu Xuất mang nhãn LoaiPhieu = 'Hủy Hàng', giá trị = 0đ (Không tính vào doanh thu). | Đúng như mong đợi | Pass
+10 | TC-10 | Validate đơn vị tính khi xuất kho | Sản phẩm: Nước mắm (Chai).Nhập SL: 5.5 | 1. Tại form Xuất kho, chọn "Nước mắm Phú Quốc".2. Nhập số lượng: 5.5.3. Kích nút "Thanh Toán". | Hệ thống từ chối giao dịch. Cảnh báo: "Đơn vị Chai chỉ cho phép nhập số nguyên!" | Đúng như mong đợi | Pass
+
+

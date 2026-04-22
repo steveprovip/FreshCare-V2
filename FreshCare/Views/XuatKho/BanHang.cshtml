@@ -1,0 +1,309 @@
+@model XuatKhoViewModel
+@{ ViewData["Title"] = "Xuất kho - Bán hàng"; }
+
+<h4 class="section-title"><i class="fas fa-upload me-2"></i>Xuất Kho — Bán Hàng (FEFO)</h4>
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="card card-fc">
+            <div class="card-body">
+                <form asp-action="ThanhToan" method="post" id="formBanHang">
+                    @Html.AntiForgeryToken()
+
+                    <!-- Bảng xuất nhiều mặt hàng -->
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h6 class="fw-bold mb-0"><i class="fas fa-list me-1"></i>Danh sách mặt hàng xuất bán</h6>
+                            <button type="button" class="btn btn-sm btn-outline-success" id="btnThemDong">
+                                <i class="fas fa-plus me-1"></i>Thêm mặt hàng
+                            </button>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-bordered" id="tblXuatHang">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th style="width:30%">Sản phẩm <span class="text-danger">*</span></th>
+                                        <th style="width:12%">Số lượng <span class="text-danger">*</span></th>
+                                        <th style="width:18%">Xuất theo ĐVT / Hệ số</th>
+                                        <th style="width:15%">Tồn kho an toàn</th>
+                                        <th style="width:15%">Giá bán gốc</th>
+                                        <th style="width:15%">Ước tính</th>
+                                        <th style="width:5%">Xóa</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tbodyXuatHang">
+                                    <tr class="xuat-row" data-index="0">
+                                        <td>
+                                            <select name="DanhSachXuat[0].MaSP" class="form-select select2-row" required>
+                                                <option value="">-- Chọn sản phẩm --</option>
+                                                @foreach (var sp in Model.DanhSachSanPham)
+                                                {
+                                                    <option value="@sp.MaSP">
+                                                        @sp.TenSP (@sp.DonViTinh)
+                                                    </option>
+                                                }
+                                            </select>
+                                        </td>
+                                        <td><input name="DanhSachXuat[0].SoLuong" type="number" step="0.01" min="0.01" class="form-control txt-soluong" required /></td>
+                                        <td>
+                                            <div class="input-group input-group-sm mb-1">
+                                                <input name="DanhSachXuat[0].DonViQuyDoi" class="form-control" placeholder="ĐVT..." title="Đơn vị xuất (vd: Vỉ, Thùng)" />
+                                                <span class="input-group-text bg-light">x</span>
+                                                <input name="DanhSachXuat[0].HeSoQuyDoi" type="number" step="0.01" min="1" class="form-control txt-heso" value="1" title="Hệ số về ĐVT gốc" />
+                                            </div>
+                                            <small class="text-muted" style="font-size:0.7rem;">Gốc: <span class="badge bg-info lbl-dvt">---</span></small>
+                                        </td>
+                                        <td><strong class="text-success lbl-tonkho">---</strong></td>
+                                        <td><span class="lbl-giaban">---</span></td>
+                                        <td><strong class="text-danger lbl-thanhtien">---</strong></td>
+                                        <td class="text-center"><button type="button" class="btn btn-sm btn-outline-danger btn-xoa-dong" title="Xóa dòng"><i class="fas fa-trash"></i></button></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Ghi chú & Lệnh -->
+                    <div class="row">
+                        <div class="col-md-8">
+                            <label class="form-label fw-semibold"><i class="fas fa-sticky-note me-1"></i>Ghi chú hóa đơn</label>
+                            <textarea asp-for="GhiChu" class="form-control" rows="2" placeholder="Ghi chú thêm (không bắt buộc)"></textarea>
+                        </div>
+                        <div class="col-md-4 d-flex align-items-end gap-2">
+                            <a href="/Home/Index" class="btn btn-outline-secondary btn-lg flex-fill">
+                                <i class="fas fa-arrow-left me-1"></i>Hủy
+                            </a>
+                            <button type="submit" class="btn btn-fc-primary btn-lg flex-fill">
+                                <i class="fas fa-cash-register me-2"></i>Thanh Toán
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-3">
+    <!-- Hướng dẫn & FEFO -->
+    <div class="col-md-6">
+        <div class="card card-fc h-100">
+            <div class="card-header bg-light">
+                <h6 class="mb-0"><i class="fas fa-cogs me-2 text-primary"></i>Thuật toán xuất kho FEFO</h6>
+            </div>
+            <div class="card-body">
+                <p class="small mb-2"><strong>First Expired, First Out</strong></p>
+                <ol class="small mb-0">
+                    <li>Tìm các lô hàng còn tồn (chưa quá hạn)</li>
+                    <li>Sắp xếp theo HSD tăng dần ưu tiên xuất từ lô sắp hết hạn nhất</li>
+                    <li>Tự động kích hoạt <strong class="text-danger">Giá Giảm Lũy Tiến</strong> nếu lô đó đang Cận Date.</li>
+                    <li>Hệ thống tự động chặn xuất hàng quá hạn và chặn xuất vượt tồn kho.</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Quét mã vạch -->
+    <div class="col-md-6">
+        <div class="card card-fc h-100">
+            <div class="card-header bg-light">
+                <h6 class="mb-0"><i class="fas fa-barcode me-2 text-primary"></i>Quét mã vạch nhanh</h6>
+            </div>
+            <div class="card-body">
+                <div class="input-group">
+                    <input type="text" id="txtMaVach" class="form-control" placeholder="Quét hoặc nhập mã vạch sản phẩm..." />
+                    <button type="button" class="btn btn-outline-primary" id="btnQuetMa"><i class="fas fa-search me-1"></i>Tìm</button>
+                </div>
+                <small class="text-muted mt-2 d-block">Mỗi lần quét thành công sẽ tự động thêm mặt hàng vào danh sách thanh toán.</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    var rowIndex = 1;
+    var optionsHtml = $('#tbodyXuatHang tr:first select').html();
+
+    initSelect2Row($('#tbodyXuatHang tr:first select'));
+
+    $('#btnThemDong').on('click', function() {
+        addNewRow();
+    });
+
+    function addNewRow(selectedMaSP) {
+        var html = `<tr class="xuat-row" data-index="${rowIndex}">
+            <td>
+                <select name="DanhSachXuat[${rowIndex}].MaSP" class="form-select select2-row" required>
+                    ${optionsHtml}
+                </select>
+            </td>
+            <td><input name="DanhSachXuat[${rowIndex}].SoLuong" type="number" step="0.01" min="0.01" class="form-control txt-soluong" required /></td>
+            <td>
+                <div class="input-group input-group-sm mb-1">
+                    <input name="DanhSachXuat[${rowIndex}].DonViQuyDoi" class="form-control" placeholder="ĐVT..." />
+                    <span class="input-group-text bg-light">x</span>
+                    <input name="DanhSachXuat[${rowIndex}].HeSoQuyDoi" type="number" step="0.01" min="1" class="form-control txt-heso" value="1" />
+                </div>
+                <small class="text-muted" style="font-size:0.7rem;">Gốc: <span class="badge bg-info lbl-dvt">---</span></small>
+            </td>
+            <td><strong class="text-success lbl-tonkho">---</strong></td>
+            <td><span class="lbl-giaban">---</span></td>
+            <td><strong class="text-danger lbl-thanhtien">---</strong></td>
+            <td class="text-center"><button type="button" class="btn btn-sm btn-outline-danger btn-xoa-dong" title="Xóa dòng"><i class="fas fa-trash"></i></button></td>
+        </tr>`;
+        
+        $('#tbodyXuatHang').append(html);
+        var newSelect = $(`#tbodyXuatHang tr[data-index="${rowIndex}"] select`);
+        initSelect2Row(newSelect);
+        
+        if (selectedMaSP) {
+            newSelect.val(selectedMaSP).trigger('change');
+        }
+        rowIndex++;
+    }
+
+    function initSelect2Row(el) {
+        el.select2({
+            theme: 'bootstrap-5',
+            placeholder: 'Gõ tên sản phẩm để tìm...',
+            allowClear: true,
+            width: '100%'
+        });
+    }
+
+    $(document).on('click', '.btn-xoa-dong', function() {
+        if ($('#tbodyXuatHang tr').length <= 1) {
+            alert('Phải giữ ít nhất 1 dòng!');
+            return;
+        }
+        $(this).closest('tr').remove();
+        calcTotal();
+    });
+
+    $(document).on('change', '.select2-row', function() {
+        var row = $(this).closest('tr');
+        var maSP = $(this).val();
+        
+        if(!maSP) {
+            resetRow(row);
+            return;
+        }
+
+        // Gọi API lấy tồn kho và giá
+        $.get('/XuatKho/GetTonKho', { maSP: maSP }, function(data) {
+             if (data.success) {
+                 row.find('.lbl-dvt').text(data.donViTinh);
+                 row.find('.lbl-tonkho').text(data.tonKho.toLocaleString('en-US') + ' ' + data.donViTinh);
+                 row.data('giaban', data.giaBan);
+                 row.find('.lbl-giaban').text(data.giaBan.toLocaleString('vi-VN') + 'đ');
+                 
+                 var inputSL = row.find('.txt-soluong');
+                 if (data.donViTinh === 'Kg') {
+                     inputSL.attr('step', '0.01').attr('min', '0.01');
+                 } else {
+                     inputSL.attr('step', '1').attr('min', '1');
+                     var val = parseFloat(inputSL.val());
+                     if (val && val % 1 !== 0) inputSL.val(Math.floor(val));
+                 }
+                 
+                 // Đặt max tồn kho để chặn nhập bậy (Client side)
+                 inputSL.attr('max', data.tonKho);
+                 calcTotalRow(row);
+             } else {
+                 resetRow(row);
+             }
+        });
+    });
+
+    $(document).on('input', '.txt-soluong, .txt-heso', function() {
+        var row = $(this).closest('tr');
+        var sl = parseFloat(row.find('.txt-soluong').val()) || 0;
+        var heso = parseFloat(row.find('.txt-heso').val()) || 1;
+        var tongSlGoc = sl * heso;
+        var max = parseFloat(row.find('.txt-soluong').attr('max')) || 0; // max theo đvt gốc
+        
+        if(tongSlGoc > max && max > 0) {
+            alert('Lỗi: Tổng số lượng xuất sau quy đổi (' + tongSlGoc + ') vượt quá tồn kho an toàn (' + max + ')!');
+            row.find('.txt-soluong').val(1);
+            row.find('.txt-heso').val(1);
+        }
+        calcTotalRow(row);
+    });
+
+    function resetRow(row) {
+        row.find('.lbl-dvt').text('---');
+        row.find('.lbl-tonkho').text('---');
+        row.find('.lbl-giaban').text('---');
+        row.find('.lbl-thanhtien').text('---');
+        row.data('giaban', 0);
+        row.find('.txt-soluong').removeAttr('max');
+        calcTotal();
+    }
+
+    function calcTotalRow(row) {
+        var sl = parseFloat(row.find('.txt-soluong').val()) || 0;
+        var heso = parseFloat(row.find('.txt-heso').val()) || 1;
+        var gia = parseFloat(row.data('giaban')) || 0;
+        var tt = sl * heso * gia;
+        row.find('.lbl-thanhtien').text(tt > 0 ? tt.toLocaleString('vi-VN') + 'đ' : '---');
+        calcTotal();
+    }
+
+    function calcTotal() {
+        // Có thể tính tổng bill tại đây nếu cần hiển thị
+    }
+
+    $('#btnQuetMa').on('click', function() {
+        var maVach = $('#txtMaVach').val().trim();
+        if (!maVach) return;
+        
+        $.get('/SanPham/TimTheoMaVach', { maVach: maVach }, function(data) {
+            if (data.success) {
+                addNewRow(data.maSP);
+                $('#txtMaVach').val('').addClass('is-valid');
+                setTimeout(function() { $('#txtMaVach').removeClass('is-valid'); }, 2000);
+            } else {
+                $('#txtMaVach').addClass('is-invalid');
+                setTimeout(function() { $('#txtMaVach').removeClass('is-invalid'); }, 2000);
+            }
+        });
+    });
+
+    $('#txtMaVach').on('keypress', function(e) {
+        if (e.which === 13) { e.preventDefault(); $('#btnQuetMa').click(); }
+    });
+
+    // Validate Submit
+    $('#formBanHang').on('submit', function(e) {
+        var valid = true;
+        var errMSG = "";
+        
+        $('#tbodyXuatHang tr').each(function() {
+            var input = $(this).find('.txt-soluong');
+            var dvt = $(this).find('.lbl-dvt').text();
+            var sl = parseFloat(input.val()) || 0;
+            var tonkho = parseFloat(input.attr('max')) || 0;
+            var maSP = $(this).find('.select2-row').val();
+            
+            if(!maSP) {
+                valid = false; errMSG = "Vui lòng chọn sản phẩm."; return false;
+            }
+            if (sl <= 0) {
+                valid = false; errMSG = "Số lượng phải > 0."; return false;
+            }
+            if(dvt !== 'Kg' && sl % 1 !== 0) {
+                valid = false; errMSG = "Hàng đóng gói (hộp/khay) không được nhập số thập phân."; return false;
+            }
+            if(sl > tonkho) {
+                valid = false; errMSG = "Sản phẩm đang vượt tồn kho cho phép."; return false;
+            }
+        });
+
+        if (!valid) {
+            e.preventDefault();
+            alert(errMSG);
+        }
+    });
+</script>
+}

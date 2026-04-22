@@ -1,0 +1,8 @@
+ĐÁNH GIÁ TRẠNG THÁI HỆ THỐNG HIỆN TẠI (SAU KHI KIỂM TRA)
+Qua quá trình rà soát mã nguồn (đặc biệt tại thư mục Controllers), hệ thống phần mềm FreshCare đã được triển khai xuất sắc và tuân thủ chặt chẽ các yêu cầu báo cáo ban đầu:
+- Hoạt động chuẩn xác theo kiến trúc MVC trên ASP.NET Core, trích xuất dữ liệu bằng ADO.NET thuần (SqlCommand, SqlDataReader).
+- Thuật toán vòng lặp FEFO (Hết hạn trước xuất trước) tự động phân bổ xuất kho: Quét danh sách lô bằng lệnh ORDER BY HanSuDung ASC, trừ kho lô cũ nhất.
+- Tính năng phần trăm Giảm giá cận date đã tích hợp thành công, tính toán dựa theo quy tắc tịnh tiến ngày thực tế.
+- Nhận diện phân loại luồng dữ liệu rõ ràng giữa lệnh 'Bán hàng' và 'Hủy hàng'. Xóa bỏ hoàn toàn lệnh DELETE trong SQL Server để tránh đứt gãy giao dịch, thay bằng cơ chế cập nhật TrangThai là 'Đã Hủy'.
+- Các thuật toán chặn sai sót người dùng như: số lượng thập phân ứng với Đơn vị tính hợp lý (Kg), số ngày bị âm... đều được check an toàn.
+Kết luận: Hệ thống sẵn sàng ở mức độ chuyên nghiệp cao và có khả năng chống chịu dữ liệu tốt.

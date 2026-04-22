@@ -1,0 +1,959 @@
+using FreshCare.Helpers;
+using FreshCare.Models;
+using FreshCare.Models.ViewModels;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Data.SqlClient;
+
+namespace FreshCare.Controllers
+{
+    /// <summary>
+    /// XuatKhoController - Xuất kho theo thuật toán FEFO & Hủy hàng
+    /// Luật #11: FEFO bằng ORDER BY HanSuDung ASC
+    /// Luật #12: Phân loại phiếu "Bán Hàng" và "Hủy Hàng"
+    /// Luật #5: Không sử dụng DELETE
+    /// </summary>
+    public class XuatKhoController : Controller
+    {
+        private readonly string _connectionString;
+
+        public XuatKhoController(string connectionString)
+        {
+            _connectionString = connectionString;
+        }
+
+        // GET: /XuatKho/BanHang
+        public IActionResult BanHang()
+        {
+            if (HttpContext.Session.GetInt32("MaNV") == null)
+                return RedirectToAction("DangNhap", "TaiKhoan");
+
+            var model = new XuatKhoViewModel
+            {
+                DanhSachSanPham = LayDanhSachSanPhamConTon()
+            };
+            return View(model);
+        }
+
+        /// <summary>
+        /// POST: /XuatKho/ThanhToan
+        /// THUẬT TOÁN FEFO (First Expired, First Out) - Luật #11
+        /// Hỗ trợ bán nhiều mặt hàng cùng lúc trên 1 hóa đơn
+        /// ORDER BY HanSuDung ASC → ưu tiên xuất lô hết hạn sớm nhất
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult ThanhToan(XuatKhoViewModel model)
+        {
+            int maNV = HttpContext.Session.GetInt32("MaNV") ?? 0;
+            int maPhieuXuatResult = 0;
+
+            // Xây dựng danh sách items: hỗ trợ cả xuất đơn (cũ) và xuất nhiều (mới)
+            var danhSachItems = new List<XuatKhoItem>();
+            if (model.DanhSachXuat != null && model.DanhSachXuat.Any(x => x.MaSP > 0))
+            {
+                danhSachItems = model.DanhSachXuat.Where(x => x.MaSP > 0 && x.SoLuong > 0).ToList();
+            }
+            else if (model.MaSP > 0 && model.SoLuong > 0)
+            {
+                // Backward compatible: xuất đơn
+                danhSachItems.Add(new XuatKhoItem
+                {
+                    MaSP = model.MaSP,
+                    SoLuong = model.SoLuong
+                });
+            }
+
+            if (!danhSachItems.Any())
+            {
+                TempData["Error"] = "Lỗi: Vui lòng thêm ít nhất một mặt hàng!";
+                return RedirectToAction("BanHang");
+            }
+
+            try
+            {
+                using (var conn = DatabaseHelper.GetConnection(_connectionString))
+                {
+                    conn.Open();
+
+                    // === BƯỚC 1: Kiểm tra tổng tồn kho + đơn vị tính cho TỪNG mặt hàng ===
+                    foreach (var item in danhSachItems)
+                    {
+                        if (item.HeSoQuyDoi > 0)
+                        {
+                            item.SoLuong = item.SoLuong * item.HeSoQuyDoi;
+                        }
+                        
+                        // Kiểm tra tồn kho an toàn
+                        string sqlCheckTon = @"SELECT ISNULL(SUM(SoLuongTon), 0) 
+                                               FROM LoHang 
+                                               WHERE MaSP = @MaSP AND SoLuongTon > 0 
+                                                     AND TrangThai NOT IN (N'Quá Hạn', N'Đã Hủy')";
+                        decimal tongTon;
+                        using (var cmd = new SqlCommand(sqlCheckTon, conn))
+                        {
+                            cmd.Parameters.AddWithValue("@MaSP", item.MaSP);
+                            tongTon = Convert.ToDecimal(cmd.ExecuteScalar());
+                        }
+
+                        if (item.SoLuong > tongTon)
+                        {
+                            // Lấy tên SP để thông báo rõ ràng
+                            string tenSP = "";
+                            using (var cmd = new SqlCommand("SELECT TenSP FROM SanPham WHERE MaSP = @MaSP", conn))
+                            {
+                                cmd.Parameters.AddWithValue("@MaSP", item.MaSP);
+                                tenSP = cmd.ExecuteScalar()?.ToString() ?? "";
+                            }
+                            TempData["Error"] = $"Lỗi: \"{tenSP}\" không đủ tồn kho an toàn! Tồn hiện có: {tongTon:N2}";
+                            return RedirectToAction("BanHang");
+                        }
+
+                        // Luật #10: Kiểm tra đơn vị tính
+                        string donViTinh = "";
+                        using (var cmdDVT = new SqlCommand("SELECT DonViTinh FROM SanPham WHERE MaSP = @MaSP", conn))
+                        {
+                            cmdDVT.Parameters.AddWithValue("@MaSP", item.MaSP);
+                            donViTinh = cmdDVT.ExecuteScalar()?.ToString() ?? "";
+                        }
+
+                        if (donViTinh != "Kg" && item.SoLuong != Math.Floor(item.SoLuong))
+                        {
+                            TempData["Error"] = $"Lỗi: Đơn vị \"{donViTinh}\" chỉ cho phép nhập số nguyên!";
+                            return RedirectToAction("BanHang");
+                        }
+                    }
+
+                    // === BƯỚC 2: Transaction — Tạo hóa đơn + FEFO cho từng mặt hàng ===
+                    using (var transaction = conn.BeginTransaction())
+                    {
+                        try
+                        {
+                            // Tạo 1 phiếu xuất chung (Luật #12: LoaiPhieu = "Bán Hàng")
+                            string sqlPhieu = @"INSERT INTO PhieuXuat (NgayXuat, MaNV, LoaiPhieu, TongTien, GhiChu)
+                                                OUTPUT INSERTED.MaPhieuXuat
+                                                VALUES (GETDATE(), @MaNV, N'Bán Hàng', 0, @GhiChu)";
+                            int maPhieuXuat;
+                            using (var cmd = new SqlCommand(sqlPhieu, conn, transaction))
+                            {
+                                cmd.Parameters.AddWithValue("@MaNV", maNV);
+                                cmd.Parameters.AddWithValue("@GhiChu", (object?)model.GhiChu ?? DBNull.Value);
+                                maPhieuXuat = Convert.ToInt32(cmd.ExecuteScalar());
+                            }
+
+                            decimal tongTienHoaDon = 0;
+
+                            // Duyệt từng mặt hàng → chạy FEFO riêng
+                            foreach (var item in danhSachItems)
+                            {
+                                // Lấy danh sách lô theo FEFO (Luật #11)
+                                string sqlFEFO = @"SELECT MaLo, SoLuongTon, HanSuDung
+                                                   FROM LoHang
+                                                   WHERE MaSP = @MaSP AND SoLuongTon > 0 
+                                                         AND TrangThai NOT IN (N'Quá Hạn', N'Đã Hủy')
+                                                   ORDER BY HanSuDung ASC, NgayNhapKho ASC";
+
+                                var danhSachLo = new List<(int MaLo, decimal SoLuongTon, DateTime HanSuDung)>();
+                                using (var cmd = new SqlCommand(sqlFEFO, conn, transaction))
+                                {
+                                    cmd.Parameters.AddWithValue("@MaSP", item.MaSP);
+                                    using (var reader = cmd.ExecuteReader())
+                                    {
+                                        while (reader.Read())
+                                        {
+                                            danhSachLo.Add((
+                                                Convert.ToInt32(reader["MaLo"]),
+                                                Convert.ToDecimal(reader["SoLuongTon"]),
+                                                Convert.ToDateTime(reader["HanSuDung"])
+                                            ));
+                                        }
+                                    }
+                                }
+
+                                // Lấy giá bán và % sale
+                                decimal giaBan = 0, phanTramSale = 0;
+                                string sqlGia = @"SELECT sp.GiaBan, dm.PhanTramSale
+                                                  FROM SanPham sp 
+                                                  INNER JOIN DanhMuc dm ON sp.MaDanhMuc = dm.MaDanhMuc
+                                                  WHERE sp.MaSP = @MaSP";
+                                using (var cmd = new SqlCommand(sqlGia, conn, transaction))
+                                {
+                                    cmd.Parameters.AddWithValue("@MaSP", item.MaSP);
+                                    using (var reader = cmd.ExecuteReader())
+                                    {
+                                        if (reader.Read())
+                                        {
+                                            giaBan = Convert.ToDecimal(reader["GiaBan"]);
+                                            phanTramSale = Convert.ToDecimal(reader["PhanTramSale"]);
+                                        }
+                                    }
+                                }
+
+                                // VÒNG LẶP TRỪ KHO FEFO
+                                decimal soLuongConLai = item.SoLuong;
+                                decimal tongTienItem = 0;
+
+                                foreach (var lo in danhSachLo)
+                                {
+                                    if (soLuongConLai <= 0) break;
+
+                                    // Luật #8: Tính giá sale LŨY TIẾN cho lô cận date
+                                    string trangThaiLo = DatabaseHelper.PhanLoaiTrangThai(lo.HanSuDung);
+                                    decimal donGiaXuat = giaBan;
+                                    if (trangThaiLo == "Cận Date" && phanTramSale > 0)
+                                    {
+                                        int soNgayConLai = (lo.HanSuDung.Date - DateTime.Now.Date).Days;
+                                        if (soNgayConLai < 0) soNgayConLai = 0;
+                                        decimal factor = (decimal)(14 - soNgayConLai) / 14m;
+                                        decimal actualSale = phanTramSale * (1m + factor);
+                                        if (actualSale > 80m) actualSale = 80m;
+                                        actualSale = Math.Round(actualSale, 2);
+                                        donGiaXuat = giaBan * (100 - actualSale) / 100;
+                                    }
+
+                                    decimal soLuongTru;
+                                    if (lo.SoLuongTon >= soLuongConLai)
+                                    {
+                                        soLuongTru = soLuongConLai;
+                                        soLuongConLai = 0;
+                                    }
+                                    else
+                                    {
+                                        soLuongTru = lo.SoLuongTon;
+                                        soLuongConLai -= lo.SoLuongTon;
+                                    }
+
+                                    // Cập nhật SoLuongTon
+                                    string sqlUpdateLo = "UPDATE LoHang SET SoLuongTon = SoLuongTon - @SoLuongTru WHERE MaLo = @MaLo";
+                                    using (var cmd = new SqlCommand(sqlUpdateLo, conn, transaction))
+                                    {
+                                        cmd.Parameters.AddWithValue("@SoLuongTru", soLuongTru);
+                                        cmd.Parameters.AddWithValue("@MaLo", lo.MaLo);
+                                        cmd.ExecuteNonQuery();
+                                    }
+
+                                    // Ghi chi tiết xuất
+                                    string sqlChiTiet = @"INSERT INTO ChiTietXuat (MaPhieuXuat, MaLo, SoLuong, DonGia)
+                                                          VALUES (@MaPhieuXuat, @MaLo, @SoLuong, @DonGia)";
+                                    using (var cmd = new SqlCommand(sqlChiTiet, conn, transaction))
+                                    {
+                                        cmd.Parameters.AddWithValue("@MaPhieuXuat", maPhieuXuat);
+                                        cmd.Parameters.AddWithValue("@MaLo", lo.MaLo);
+                                        cmd.Parameters.AddWithValue("@SoLuong", soLuongTru);
+                                        cmd.Parameters.AddWithValue("@DonGia", donGiaXuat);
+                                        cmd.ExecuteNonQuery();
+                                    }
+
+                                    tongTienItem += soLuongTru * donGiaXuat;
+                                }
+
+                                tongTienHoaDon += tongTienItem;
+                            }
+
+                            // Cập nhật tổng tiền hóa đơn
+                            string sqlUpdatePhieu = "UPDATE PhieuXuat SET TongTien = @TongTien WHERE MaPhieuXuat = @MaPhieuXuat";
+                            using (var cmd = new SqlCommand(sqlUpdatePhieu, conn, transaction))
+                            {
+                                cmd.Parameters.AddWithValue("@TongTien", tongTienHoaDon);
+                                cmd.Parameters.AddWithValue("@MaPhieuXuat", maPhieuXuat);
+                                cmd.ExecuteNonQuery();
+                            }
+
+                            transaction.Commit();
+                            maPhieuXuatResult = maPhieuXuat;
+
+                            TempData["Success"] = $"Xuất kho thành công! Hóa đơn: HD-{maPhieuXuat:D4} ({danhSachItems.Count} mặt hàng). Tổng tiền: {tongTienHoaDon:N0}đ";
+                        }
+                        catch
+                        {
+                            transaction.Rollback();
+                            throw;
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = "Lỗi xuất kho: " + ex.Message;
+            }
+
+            // Nếu xuất thành công → chuyển sang trang hóa đơn để In
+            if (maPhieuXuatResult > 0)
+                return RedirectToAction("ChiTiet", new { id = maPhieuXuatResult });
+
+            return RedirectToAction("BanHang");
+        }
+
+        // AJAX: Lấy thông tin tồn kho + giá bán cho mặt hàng (realtime)
+        [HttpGet]
+        public IActionResult GetTonKho(int maSP)
+        {
+            try
+            {
+                using (var conn = DatabaseHelper.GetConnection(_connectionString))
+                {
+                    conn.Open();
+                    // Tồn kho an toàn (loại trừ Quá Hạn, Đã Hủy)
+                    decimal tonKho = 0;
+                    string sqlTon = @"SELECT ISNULL(SUM(SoLuongTon), 0) 
+                                      FROM LoHang 
+                                      WHERE MaSP = @MaSP AND SoLuongTon > 0 
+                                            AND TrangThai NOT IN (N'Quá Hạn', N'Đã Hủy')";
+                    using (var cmd = new SqlCommand(sqlTon, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@MaSP", maSP);
+                        tonKho = Convert.ToDecimal(cmd.ExecuteScalar());
+                    }
+
+                    // Thông tin SP + giá
+                    string donViTinh = "";
+                    decimal giaBan = 0;
+                    string sqlSP = @"SELECT sp.DonViTinh, sp.GiaBan 
+                                     FROM SanPham sp WHERE sp.MaSP = @MaSP";
+                    using (var cmd = new SqlCommand(sqlSP, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@MaSP", maSP);
+                        using (var reader = cmd.ExecuteReader())
+                        {
+                            if (reader.Read())
+                            {
+                                donViTinh = reader["DonViTinh"].ToString()!;
+                                giaBan = Convert.ToDecimal(reader["GiaBan"]);
+                            }
+                        }
+                    }
+
+                    return Json(new { success = true, tonKho, donViTinh, giaBan });
+                }
+            }
+            catch
+            {
+                return Json(new { success = false });
+            }
+        }
+
+        // GET: /XuatKho/HuyThuCong
+        public IActionResult HuyThuCong()
+        {
+            if (HttpContext.Session.GetInt32("MaNV") == null)
+                return RedirectToAction("DangNhap", "TaiKhoan");
+
+            var model = new XuatKhoViewModel
+            {
+                DanhSachSanPham = LayDanhSachSanPhamConTon()
+            };
+            return View(model);
+        }
+
+        /// <summary>
+        /// POST: /XuatKho/XacNhanHuyThuCong
+        /// Hủy hàng tùy chọn độ lớn số lượng không cần thiết hết hạn.
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult XacNhanHuyThuCong(XuatKhoViewModel model)
+        {
+            int maNV = HttpContext.Session.GetInt32("MaNV") ?? 0;
+            int maPhieuXuatResult = 0;
+
+            var danhSachItems = new List<XuatKhoItem>();
+            if (model.DanhSachXuat != null && model.DanhSachXuat.Any(x => x.MaSP > 0))
+            {
+                danhSachItems = model.DanhSachXuat.Where(x => x.MaSP > 0 && x.SoLuong > 0).ToList();
+            }
+            else if (model.MaSP > 0 && model.SoLuong > 0)
+            {
+                danhSachItems.Add(new XuatKhoItem { MaSP = model.MaSP, SoLuong = model.SoLuong });
+            }
+
+            if (!danhSachItems.Any())
+            {
+                TempData["Error"] = "Vui lòng chọn ít nhất một mặt hàng để xuất hủy/trả!";
+                return RedirectToAction("HuyThuCong");
+            }
+
+            try
+            {
+                using (var conn = DatabaseHelper.GetConnection(_connectionString))
+                {
+                    conn.Open();
+
+                    // TRỤC KIỂM TRA SỐ LƯỢNG KHO (GIỐNG BÁN HÀNG)
+                    foreach (var item in danhSachItems)
+                    {
+                        if (item.HeSoQuyDoi > 0) item.SoLuong = item.SoLuong * item.HeSoQuyDoi;
+                        
+                        string sqlCheckTon = @"SELECT ISNULL(SUM(SoLuongTon), 0) FROM LoHang 
+                                               WHERE MaSP = @MaSP AND SoLuongTon > 0 AND TrangThai != N'Đã Hủy'";
+                        decimal tongTon;
+                        using (var cmd = new SqlCommand(sqlCheckTon, conn))
+                        {
+                            cmd.Parameters.AddWithValue("@MaSP", item.MaSP);
+                            tongTon = Convert.ToDecimal(cmd.ExecuteScalar());
+                        }
+
+                        if (item.SoLuong > tongTon)
+                        {
+                            string tenSP = "";
+                            using (var cmd = new SqlCommand("SELECT TenSP FROM SanPham WHERE MaSP = @MaSP", conn))
+                            {
+                                cmd.Parameters.AddWithValue("@MaSP", item.MaSP);
+                                tenSP = cmd.ExecuteScalar()?.ToString() ?? "";
+                            }
+                            TempData["Error"] = $"Lỗi: \"{tenSP}\" không đủ tồn kho để hủy! Tồn hiện có: {tongTon:N2}";
+                            return RedirectToAction("HuyThuCong");
+                        }
+                    }
+
+                    // TẠO PHIẾU XUẤT HỦY (transaction)
+                    using (var transaction = conn.BeginTransaction())
+                    {
+                        try
+                        {
+                            string sqlPhieu = @"INSERT INTO PhieuXuat (NgayXuat, MaNV, LoaiPhieu, TongTien, GhiChu)
+                                                OUTPUT INSERTED.MaPhieuXuat
+                                                VALUES (GETDATE(), @MaNV, N'Hủy Hàng', 0, @GhiChu)";
+                            int maPhieuXuat;
+                            using (var cmd = new SqlCommand(sqlPhieu, conn, transaction))
+                            {
+                                cmd.Parameters.AddWithValue("@MaNV", maNV);
+                                cmd.Parameters.AddWithValue("@GhiChu", (object?)model.GhiChu ?? DBNull.Value);
+                                maPhieuXuat = Convert.ToInt32(cmd.ExecuteScalar());
+                            }
+                            
+                            decimal tongGiaTriThatThoat = 0;
+
+                            // FEFO XUẤT HỦY
+                            foreach (var item in danhSachItems)
+                            {
+                                string sqlFEFO = @"SELECT MaLo, SoLuongTon, HanSuDung FROM LoHang
+                                                   WHERE MaSP = @MaSP AND SoLuongTon > 0 AND TrangThai != N'Đã Hủy'
+                                                   ORDER BY HanSuDung ASC, NgayNhapKho ASC";
+
+                                var danhSachLo = new List<(int MaLo, decimal SoLuongTon, DateTime HanSuDung)>();
+                                using (var cmd = new SqlCommand(sqlFEFO, conn, transaction))
+                                {
+                                    cmd.Parameters.AddWithValue("@MaSP", item.MaSP);
+                                    using (var reader = cmd.ExecuteReader())
+                                    {
+                                        while (reader.Read())
+                                        {
+                                            danhSachLo.Add(( Convert.ToInt32(reader["MaLo"]), Convert.ToDecimal(reader["SoLuongTon"]), Convert.ToDateTime(reader["HanSuDung"]) ));
+                                        }
+                                    }
+                                }
+
+                                decimal giaGoc = 0;
+                                string sqlGia = "SELECT GiaBan FROM SanPham WHERE MaSP = @MaSP";
+                                using (var cmd = new SqlCommand(sqlGia, conn, transaction))
+                                {
+                                    cmd.Parameters.AddWithValue("@MaSP", item.MaSP);
+                                    giaGoc = Convert.ToDecimal(cmd.ExecuteScalar() ?? 0);
+                                }
+
+                                decimal soLuongConLai = item.SoLuong;
+                                foreach (var lo in danhSachLo)
+                                {
+                                    if (soLuongConLai <= 0) break;
+                                    decimal soLuongTru = (lo.SoLuongTon >= soLuongConLai) ? soLuongConLai : lo.SoLuongTon;
+                                    soLuongConLai -= soLuongTru;
+
+                                    string sqlUpdateLo = "UPDATE LoHang SET SoLuongTon = SoLuongTon - @SoLuongTru WHERE MaLo = @MaLo";
+                                    // Nết hết sạch thì Cập nhật thành Đã huỷ? Không cần vì bán hàng cũng vậy, chỉ set tồn = 0 (trừ Huỷ Lô hẳn mới cập nhật TrangThai ='Đã Hủy')
+                                    using (var cmd = new SqlCommand(sqlUpdateLo, conn, transaction))
+                                    {
+                                        cmd.Parameters.AddWithValue("@SoLuongTru", soLuongTru);
+                                        cmd.Parameters.AddWithValue("@MaLo", lo.MaLo);
+                                        cmd.ExecuteNonQuery();
+                                    }
+
+                                    string sqlChiTiet = @"INSERT INTO ChiTietXuat (MaPhieuXuat, MaLo, SoLuong, DonGia)
+                                                          VALUES (@MaPhieuXuat, @MaLo, @SoLuong, 0)";
+                                    using (var cmd = new SqlCommand(sqlChiTiet, conn, transaction))
+                                    {
+                                        cmd.Parameters.AddWithValue("@MaPhieuXuat", maPhieuXuat);
+                                        cmd.Parameters.AddWithValue("@MaLo", lo.MaLo);
+                                        cmd.Parameters.AddWithValue("@SoLuong", soLuongTru);
+                                        cmd.ExecuteNonQuery();
+                                    }
+
+                                    tongGiaTriThatThoat += soLuongTru * giaGoc;
+                                }
+                            }
+                            
+                            transaction.Commit();
+                            maPhieuXuatResult = maPhieuXuat;
+                            TempData["Success"] = $"Xuất hủy thành công! Mã phiếu: HD-{maPhieuXuat:D4}. Ghi nhận thất thoát: {tongGiaTriThatThoat:N0}đ";
+                        }
+                        catch
+                        {
+                            transaction.Rollback();
+                            throw;
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = "Lỗi xuất hủy: " + ex.Message;
+            }
+
+            if (maPhieuXuatResult > 0)
+                return RedirectToAction("ChiTiet", new { id = maPhieuXuatResult });
+
+            return RedirectToAction("HuyThuCong");
+        }
+
+        /// <summary>
+        /// POST: /XuatKho/HuyHang - Xuất hủy hàng hết hạn
+        /// Luật #5: Không DELETE, cập nhật trạng thái → "Đã Hủy"
+        /// Luật #12: LoaiPhieu = "Hủy Hàng"
+        /// </summary>
+        [HttpPost]
+        public IActionResult HuyHang(int maLo)
+        {
+            int maNV = HttpContext.Session.GetInt32("MaNV") ?? 0;
+
+            try
+            {
+                using (var conn = DatabaseHelper.GetConnection(_connectionString))
+                {
+                    conn.Open();
+                    using (var transaction = conn.BeginTransaction())
+                    {
+                        try
+                        {
+                            // Lấy thông tin lô hàng
+                            decimal soLuongHuy = 0;
+                            decimal giaBanGoc = 0;
+                            string sqlLo = @"SELECT lh.SoLuongTon, sp.GiaBan
+                                             FROM LoHang lh 
+                                             INNER JOIN SanPham sp ON lh.MaSP = sp.MaSP
+                                             WHERE lh.MaLo = @MaLo";
+                            using (var cmd = new SqlCommand(sqlLo, conn, transaction))
+                            {
+                                cmd.Parameters.AddWithValue("@MaLo", maLo);
+                                using (var reader = cmd.ExecuteReader())
+                                {
+                                    if (reader.Read())
+                                    {
+                                        soLuongHuy = Convert.ToDecimal(reader["SoLuongTon"]);
+                                        giaBanGoc = Convert.ToDecimal(reader["GiaBan"]);
+                                    }
+                                }
+                            }
+
+                            // Tạo phiếu xuất loại "Hủy Hàng" (Luật #12)
+                            string sqlPhieu = @"INSERT INTO PhieuXuat (NgayXuat, MaNV, LoaiPhieu, TongTien, GhiChu)
+                                                OUTPUT INSERTED.MaPhieuXuat
+                                                VALUES (GETDATE(), @MaNV, N'Hủy Hàng', 0, N'Xuất hủy lô hàng quá hạn')";
+                            int maPhieuXuat;
+                            using (var cmd = new SqlCommand(sqlPhieu, conn, transaction))
+                            {
+                                cmd.Parameters.AddWithValue("@MaNV", maNV);
+                                maPhieuXuat = Convert.ToInt32(cmd.ExecuteScalar());
+                            }
+
+                            // Ghi chi tiết xuất hủy (giá = 0 vì hủy)
+                            string sqlChiTiet = @"INSERT INTO ChiTietXuat (MaPhieuXuat, MaLo, SoLuong, DonGia)
+                                                  VALUES (@MaPhieuXuat, @MaLo, @SoLuong, 0)";
+                            using (var cmd = new SqlCommand(sqlChiTiet, conn, transaction))
+                            {
+                                cmd.Parameters.AddWithValue("@MaPhieuXuat", maPhieuXuat);
+                                cmd.Parameters.AddWithValue("@MaLo", maLo);
+                                cmd.Parameters.AddWithValue("@SoLuong", soLuongHuy);
+                                cmd.ExecuteNonQuery();
+                            }
+
+                            // Luật #5: Cập nhật trạng thái → "Đã Hủy", SoLuongTon = 0
+                            string sqlUpdate = "UPDATE LoHang SET SoLuongTon = 0, TrangThai = N'Đã Hủy' WHERE MaLo = @MaLo";
+                            using (var cmd = new SqlCommand(sqlUpdate, conn, transaction))
+                            {
+                                cmd.Parameters.AddWithValue("@MaLo", maLo);
+                                cmd.ExecuteNonQuery();
+                            }
+
+                            transaction.Commit();
+
+                            TempData["Success"] = $"Đã xuất hủy lô LO-{maLo:D4}. Giá trị thất thoát: {soLuongHuy * giaBanGoc:N0}đ";
+                        }
+                        catch
+                        {
+                            transaction.Rollback();
+                            throw;
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = "Lỗi hủy hàng: " + ex.Message;
+            }
+
+            return RedirectToAction("Index", "Home");
+        }
+
+        // POST: /XuatKho/HuyHangLoat - Xuất hủy nhiều lô hàng cùng lúc
+        [HttpPost]
+        public IActionResult HuyHangLoat(List<int> maLoList)
+        {
+            if (maLoList == null || maLoList.Count == 0)
+            {
+                TempData["Error"] = "Vui lòng chọn ít nhất một lô hàng để hủy!";
+                return RedirectToAction("Index", "Home");
+            }
+
+            int maNV = HttpContext.Session.GetInt32("MaNV") ?? 0;
+            decimal tongGiaTriThatThoat = 0;
+            int soLoHuy = 0;
+
+            try
+            {
+                using (var conn = DatabaseHelper.GetConnection(_connectionString))
+                {
+                    conn.Open();
+                    using (var transaction = conn.BeginTransaction())
+                    {
+                        try
+                        {
+                            // Tạo 1 phiếu xuất chung loại "Hủy Hàng"
+                            string sqlPhieu = @"INSERT INTO PhieuXuat (NgayXuat, MaNV, LoaiPhieu, TongTien, GhiChu)
+                                                OUTPUT INSERTED.MaPhieuXuat
+                                                VALUES (GETDATE(), @MaNV, N'Hủy Hàng', 0, N'Xuất hủy lô hàng hàng loạt')";
+                            int maPhieuXuat;
+                            using (var cmd = new SqlCommand(sqlPhieu, conn, transaction))
+                            {
+                                cmd.Parameters.AddWithValue("@MaNV", maNV);
+                                maPhieuXuat = Convert.ToInt32(cmd.ExecuteScalar());
+                            }
+
+                            // Xử lý từng lô được chọn
+                            foreach (int maLo in maLoList)
+                            {
+                                decimal soLuongHuy = 0;
+                                decimal giaBanGoc = 0;
+                                string sqlLo = @"SELECT lh.SoLuongTon, sp.GiaBan
+                                                 FROM LoHang lh 
+                                                 INNER JOIN SanPham sp ON lh.MaSP = sp.MaSP
+                                                 WHERE lh.MaLo = @MaLo AND lh.SoLuongTon > 0";
+                                using (var cmd = new SqlCommand(sqlLo, conn, transaction))
+                                {
+                                    cmd.Parameters.AddWithValue("@MaLo", maLo);
+                                    using (var reader = cmd.ExecuteReader())
+                                    {
+                                        if (reader.Read())
+                                        {
+                                            soLuongHuy = Convert.ToDecimal(reader["SoLuongTon"]);
+                                            giaBanGoc = Convert.ToDecimal(reader["GiaBan"]);
+                                        }
+                                    }
+                                }
+
+                                if (soLuongHuy > 0)
+                                {
+                                    // Ghi chi tiết xuất hủy
+                                    string sqlChiTiet = @"INSERT INTO ChiTietXuat (MaPhieuXuat, MaLo, SoLuong, DonGia)
+                                                          VALUES (@MaPhieuXuat, @MaLo, @SoLuong, 0)";
+                                    using (var cmd = new SqlCommand(sqlChiTiet, conn, transaction))
+                                    {
+                                        cmd.Parameters.AddWithValue("@MaPhieuXuat", maPhieuXuat);
+                                        cmd.Parameters.AddWithValue("@MaLo", maLo);
+                                        cmd.Parameters.AddWithValue("@SoLuong", soLuongHuy);
+                                        cmd.ExecuteNonQuery();
+                                    }
+
+                                    // Cập nhật trạng thái
+                                    string sqlUpdate = "UPDATE LoHang SET SoLuongTon = 0, TrangThai = N'Đã Hủy' WHERE MaLo = @MaLo";
+                                    using (var cmd = new SqlCommand(sqlUpdate, conn, transaction))
+                                    {
+                                        cmd.Parameters.AddWithValue("@MaLo", maLo);
+                                        cmd.ExecuteNonQuery();
+                                    }
+
+                                    tongGiaTriThatThoat += (soLuongHuy * giaBanGoc);
+                                    soLoHuy++;
+                                }
+                            }
+
+                            transaction.Commit();
+                            TempData["Success"] = $"Đã xuất hủy {soLoHuy} lô hàng ({string.Join(", ", maLoList.Select(x => "LO-" + x.ToString("D4")))}). Tổng thất thoát: {tongGiaTriThatThoat:N0}đ";
+                        }
+                        catch
+                        {
+                            transaction.Rollback();
+                            throw;
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = "Lỗi hủy hàng loạt: " + ex.Message;
+            }
+
+            return RedirectToAction("Index", "Home");
+        }
+
+        // GET: /XuatKho/LichSu
+        public IActionResult LichSu()
+        {
+            if (HttpContext.Session.GetInt32("MaNV") == null)
+                return RedirectToAction("DangNhap", "TaiKhoan");
+
+            var list = new List<PhieuXuat>();
+            try
+            {
+                using (var conn = DatabaseHelper.GetConnection(_connectionString))
+                {
+                    conn.Open();
+                    string sql = @"SELECT px.MaPhieuXuat, px.NgayXuat, px.LoaiPhieu, px.TongTien, px.GhiChu, nv.HoTen AS TenNhanVien,
+                                          (SELECT STRING_AGG(sp2.TenSP, N', ') 
+                                           FROM ChiTietXuat ct2 
+                                           INNER JOIN LoHang lh2 ON ct2.MaLo = lh2.MaLo 
+                                           INNER JOIN SanPham sp2 ON lh2.MaSP = sp2.MaSP 
+                                           WHERE ct2.MaPhieuXuat = px.MaPhieuXuat) AS TenMatHang
+                                   FROM PhieuXuat px
+                                   INNER JOIN NhanVien nv ON px.MaNV = nv.MaNV
+                                   ORDER BY px.NgayXuat DESC";
+                    using (var cmd = new SqlCommand(sql, conn))
+                    using (var reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            list.Add(new PhieuXuat
+                            {
+                                MaPhieuXuat = Convert.ToInt32(reader["MaPhieuXuat"]),
+                                NgayXuat = Convert.ToDateTime(reader["NgayXuat"]),
+                                LoaiPhieu = reader["LoaiPhieu"].ToString()!,
+                                TongTien = Convert.ToDecimal(reader["TongTien"]),
+                                GhiChu = reader["GhiChu"]?.ToString(),
+                                TenNhanVien = reader["TenNhanVien"].ToString(),
+                                TenMatHang = reader["TenMatHang"]?.ToString()
+                            });
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = "Lỗi: " + ex.Message;
+            }
+
+            return View(list);
+        }
+
+        // AJAX: Lấy tồn kho theo sản phẩm (Luật #14)
+        [HttpGet]
+        public IActionResult LayTonKho(int maSP)
+        {
+            try
+            {
+                using (var conn = DatabaseHelper.GetConnection(_connectionString))
+                {
+                    conn.Open();
+                    string sql = @"SELECT ISNULL(SUM(SoLuongTon), 0) AS TongTon
+                                   FROM LoHang
+                                   WHERE MaSP = @MaSP AND SoLuongTon > 0 
+                                         AND TrangThai NOT IN (N'Quá Hạn', N'Đã Hủy')";
+                    using (var cmd = new SqlCommand(sql, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@MaSP", maSP);
+                        var ton = Convert.ToDecimal(cmd.ExecuteScalar());
+
+                        // Lấy đơn vị tính
+                        string sqlDVT = "SELECT DonViTinh FROM SanPham WHERE MaSP = @MaSP";
+                        using (var cmd2 = new SqlCommand(sqlDVT, conn))
+                        {
+                            cmd2.Parameters.AddWithValue("@MaSP", maSP);
+                            var dvt = cmd2.ExecuteScalar()?.ToString() ?? "";
+                            return Json(new { success = true, tongTon = ton, donViTinh = dvt });
+                        }
+                    }
+                }
+            }
+            catch { }
+            return Json(new { success = false });
+        }
+
+        private List<SanPham> LayDanhSachSanPhamConTon()
+        {
+            var list = new List<SanPham>();
+            try
+            {
+                using (var conn = DatabaseHelper.GetConnection(_connectionString))
+                {
+                    conn.Open();
+                    string sql = @"SELECT DISTINCT sp.MaSP, sp.TenSP, sp.DonViTinh, sp.GiaNhap, sp.GiaBan
+                                   FROM SanPham sp
+                                   INNER JOIN LoHang lh ON sp.MaSP = lh.MaSP
+                                   WHERE sp.TrangThai = N'HoatDong' AND lh.SoLuongTon > 0
+                                         AND lh.TrangThai NOT IN (N'Quá Hạn', N'Đã Hủy')
+                                   ORDER BY sp.TenSP";
+                    using (var cmd = new SqlCommand(sql, conn))
+                    using (var reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            list.Add(new SanPham
+                            {
+                                MaSP = Convert.ToInt32(reader["MaSP"]),
+                                TenSP = reader["TenSP"].ToString()!,
+                                DonViTinh = reader["DonViTinh"].ToString()!,
+                                GiaNhap = Convert.ToDecimal(reader["GiaNhap"]),
+                                GiaBan = Convert.ToDecimal(reader["GiaBan"])
+                            });
+                        }
+                    }
+                }
+            }
+            catch { }
+            return list;
+        }
+        //xem chi tiet hoa don
+        public IActionResult ChiTiet(int id)
+        {
+            var model = new ChiTietPhieuXuatViewModel();
+
+            try
+            {
+                using (var conn = DatabaseHelper.GetConnection(_connectionString))
+                {
+                    conn.Open();
+
+                    // 1. Lấy thông tin phiếu xuất
+                    string sqlPhieu = @"SELECT px.MaPhieuXuat, px.NgayXuat, px.LoaiPhieu, px.TongTien,
+                                       nv.HoTen
+                                FROM PhieuXuat px
+                                INNER JOIN NhanVien nv ON px.MaNV = nv.MaNV
+                                WHERE px.MaPhieuXuat = @Id";
+
+                    using (var cmd = new SqlCommand(sqlPhieu, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@Id", id);
+                        using (var reader = cmd.ExecuteReader())
+                        {
+                            if (reader.Read())
+                            {
+                                model.MaPhieuXuat = Convert.ToInt32(reader["MaPhieuXuat"]);
+                                model.NgayXuat = Convert.ToDateTime(reader["NgayXuat"]);
+                                model.LoaiPhieu = reader["LoaiPhieu"].ToString();
+                                model.TongTien = Convert.ToDecimal(reader["TongTien"]);
+                                model.TenNhanVien = reader["HoTen"].ToString();
+                            }
+                        }
+                    }
+
+                    // 2. Lấy chi tiết
+                    string sqlChiTiet = @"SELECT ct.MaLo, sp.TenSP, ct.SoLuong, ct.DonGia
+                                 FROM ChiTietXuat ct
+                                 INNER JOIN LoHang lh ON ct.MaLo = lh.MaLo
+                                 INNER JOIN SanPham sp ON lh.MaSP = sp.MaSP
+                                 WHERE ct.MaPhieuXuat = @Id";
+
+                    using (var cmd = new SqlCommand(sqlChiTiet, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@Id", id);
+                        using (var reader = cmd.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                model.DanhSachChiTiet.Add(new ChiTietItem
+                                {
+                                    MaLo = Convert.ToInt32(reader["MaLo"]),
+                                    TenSanPham = reader["TenSP"].ToString(),
+                                    SoLuong = Convert.ToDecimal(reader["SoLuong"]),
+                                    DonGia = Convert.ToDecimal(reader["DonGia"])
+                                });
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = ex.Message;
+            }
+
+            return View(model);
+        }
+
+        // GET: /XuatKho/InTongHopNgay?ngay=2026-04-12
+        public IActionResult InTongHopNgay(DateTime? ngay)
+        {
+            if (HttpContext.Session.GetInt32("MaNV") == null)
+                return RedirectToAction("DangNhap", "TaiKhoan");
+
+            DateTime ngayIn = ngay ?? DateTime.Today;
+            var model = new TongHopXuatNgayViewModel { Ngay = ngayIn };
+
+            try
+            {
+                using (var conn = DatabaseHelper.GetConnection(_connectionString))
+                {
+                    conn.Open();
+
+                    // Lấy tất cả phiếu xuất trong ngày
+                    string sqlPhieu = @"SELECT px.MaPhieuXuat, px.NgayXuat, px.LoaiPhieu, px.TongTien, nv.HoTen
+                                        FROM PhieuXuat px
+                                        INNER JOIN NhanVien nv ON px.MaNV = nv.MaNV
+                                        WHERE CAST(px.NgayXuat AS DATE) = @Ngay
+                                        ORDER BY px.NgayXuat ASC";
+                    var danhSachPhieu = new List<ChiTietPhieuXuatViewModel>();
+                    using (var cmd = new SqlCommand(sqlPhieu, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@Ngay", ngayIn.Date);
+                        using (var reader = cmd.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                danhSachPhieu.Add(new ChiTietPhieuXuatViewModel
+                                {
+                                    MaPhieuXuat = Convert.ToInt32(reader["MaPhieuXuat"]),
+                                    NgayXuat = Convert.ToDateTime(reader["NgayXuat"]),
+                                    LoaiPhieu = reader["LoaiPhieu"].ToString(),
+                                    TongTien = Convert.ToDecimal(reader["TongTien"]),
+                                    TenNhanVien = reader["HoTen"].ToString()
+                                });
+                            }
+                        }
+                    }
+
+                    // Lấy chi tiết cho từng phiếu
+                    foreach (var phieu in danhSachPhieu)
+                    {
+                        string sqlCT = @"SELECT ct.MaLo, sp.TenSP, ct.SoLuong, ct.DonGia
+                                         FROM ChiTietXuat ct
+                                         INNER JOIN LoHang lh ON ct.MaLo = lh.MaLo
+                                         INNER JOIN SanPham sp ON lh.MaSP = sp.MaSP
+                                         WHERE ct.MaPhieuXuat = @Id";
+                        using (var cmd = new SqlCommand(sqlCT, conn))
+                        {
+                            cmd.Parameters.AddWithValue("@Id", phieu.MaPhieuXuat);
+                            using (var reader = cmd.ExecuteReader())
+                            {
+                                while (reader.Read())
+                                {
+                                    phieu.DanhSachChiTiet.Add(new ChiTietItem
+                                    {
+                                        MaLo = Convert.ToInt32(reader["MaLo"]),
+                                        TenSanPham = reader["TenSP"].ToString(),
+                                        SoLuong = Convert.ToDecimal(reader["SoLuong"]),
+                                        DonGia = Convert.ToDecimal(reader["DonGia"])
+                                    });
+                                }
+                            }
+                        }
+                    }
+
+                    model.DanhSachPhieu = danhSachPhieu;
+                    model.TongTien = danhSachPhieu.Sum(p => p.TongTien);
+                }
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = "Lỗi: " + ex.Message;
+            }
+
+            return View(model);
+        }
+    }
+}

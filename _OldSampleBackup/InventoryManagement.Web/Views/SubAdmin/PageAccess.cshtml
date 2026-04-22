@@ -1,0 +1,77 @@
+﻿@model IEnumerable<InventoryManagement.Repository.PageCategoryVM>  
+
+@{
+    ViewData["Title"] = "Page Access";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+@section Styles {
+    <style>
+        .data-table { text-align: left }
+        .data-table th { background-color: #fff; color: #4f4f4f; padding-left: 20px }
+        .data-table td { padding-left: 20px }
+    </style>
+}
+
+<div class="container">
+    <h4 class="page-header mb-3">Page Access</h4>
+
+    <div class="card card-body">
+        <div id="table-container">
+            @foreach (var item in Model)
+            {
+            <table class="data-table table table-sm table-bordered nowrap">
+                <thead>
+                    <tr>
+                        <th><strong><i class="fas fa-angle-right"></i> @item.Category</strong></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var link in item.Links)
+                    {
+                        <tr>
+                            <td>
+                                <input type="checkbox" @(link.IsAssign ? "checked" : "") data-role="@link.RoleName" value="@link.LinkId" class="form-check-input" id="@link.LinkId"><label class="form-check-label" for="@link.LinkId">@link.Title</label>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>       
+            }
+        </div>
+
+        <input id="btnAssign" value="Assign" type="button" class="btn peach-gradient btn-rounded" />
+    </div>
+</div>
+
+
+@section Scripts {
+    <script>
+        //Assign Click event to Button.
+        const btnAssign = document.getElementById("btnAssign");
+        btnAssign.addEventListener("click", function(evt) {
+            evt.preventDefault();
+            this.disabled = true;
+
+            var links = [];
+            $(".data-table input[type=checkbox]:checked").each(function(i, element) {
+                links[i] = { LinkId: parseInt(this.value), RoleName: $(this).data("role") };
+            });
+
+            $.ajax({
+                url: '/SubAdmin/PostLinks',
+                type: "POST",
+                data: { regId:'@Context.Request.RouteValues["id"]', links},
+                success: response=> {
+                    this.disabled = false;
+
+                    if (response) location.href = `/SubAdmin/List`;
+                },
+                error: function(error) {
+                    console.log(error);
+                }
+            });
+        });
+    </script>
+}
+

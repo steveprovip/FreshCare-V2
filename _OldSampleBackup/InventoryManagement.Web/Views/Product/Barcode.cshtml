@@ -1,0 +1,97 @@
+﻿
+@{
+    ViewData["Title"] = "Barcode";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+@section Styles{
+    <link href="~/css/barcode.css?v=.02" rel="stylesheet" />
+}
+
+<div class="m-3">
+    <h4 class="mb-3 page-header d-print-none">Barcode</h4>
+
+    <div class="card card-body pb-0 mb-3 d-print-none">
+        <form id="formCode">
+            <div class="form-row">
+                <div class="col-lg-3">
+                    <div class="md-form">
+                        <input id="inputNumberOfCode" type="number" class="form-control" value="40" min="1" max="280" required />
+                        <label for="inputNumberOfCode">Number of barcode</label>
+                    </div>
+                </div>
+                <div class="col-lg-3">
+                    <div class="md-form">
+                        <input id="inputBarWidth" type="number" value="1" step="0.01" class="form-control" min="0" max="3" required />
+                        <label for="inputBarWidth">Bar width</label>
+                    </div>
+                </div>
+                <div class="col-lg-3">
+                    <div class="md-form">
+                        <input id="inputHeight" type="number" class="form-control" value="30" step="0.01" min="0" max="120" required />
+                        <label for="inputHeight">Barcode Height</label>
+                    </div>
+                </div>
+                <div class="col-lg-3 text-right">
+                    <div class="md-form">
+                        <button id="btnBarcode" class="btn btn-rounded peach-gradient btn-sm">Generate <i class="fas fa-qrcode ml-1"></i></button>
+                        <a onclick="window.print()" class="btn-floating btn-sm btn-elegant m-0"><i class="fas fa-print" aria-hidden="true"></i></a>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+    <div id="code-container"></div>
+</div>
+
+@section Scripts{
+    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.0/dist/JsBarcode.all.min.js"></script>
+    <script>
+        const getRandom = function (index) {
+            const rand = (Math.random() * 99.25);
+            return Math.floor(((rand * index) * Math.random()) + Date.now()).toString().slice(1);
+        }
+
+        const generateBarcode = function (evt) {
+            evt.preventDefault();
+
+            const codeContainer = document.getElementById('code-container');
+            const inputNumberOfCode = +document.getElementById('inputNumberOfCode').value;
+            const inputBarWidth = +document.getElementById('inputBarWidth').value;
+            const inputHeight = +document.getElementById('inputHeight').value;
+            const fragment = document.createDocumentFragment();
+            codeContainer.innerHTML = '';
+
+            for (let i = 0; i < inputNumberOfCode; i++) {
+                const canvas = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+                canvas.classList.add('barcode');
+
+                const contain = document.createElement("div");
+                contain.classList.add('svg-container');
+                contain.appendChild(canvas);
+
+                fragment.appendChild(contain);
+            }
+
+            //append the canvas in DOM
+            codeContainer.appendChild(fragment);
+
+            const canvasContainer = document.querySelectorAll('.barcode');
+            const options = {
+                format: "EAN13",
+                lineColor: "#000",
+                height: inputHeight,
+                width: inputBarWidth,
+                fontOptions: "bold"
+            }
+
+            canvasContainer.forEach((element, index) => {
+                JsBarcode(element, getRandom(index), options);
+            }); 
+        }
+
+        //selectors
+        const formCode = document.getElementById('formCode');
+        formCode.addEventListener('submit', generateBarcode);
+    </script>
+}

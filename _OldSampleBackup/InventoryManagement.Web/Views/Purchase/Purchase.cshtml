@@ -1,0 +1,322 @@
+﻿
+@{
+    ViewData["Title"] = "Purchase";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+@section Styles{
+    <style>
+        table tr td p { margin-bottom: 0; color: #777 }
+       
+        #showAddedCode {display: flex;flex-wrap: wrap; }
+        .code {cursor: pointer}
+        #showAddedCode .code-delete { color: #fff; margin: 5px; cursor: pointer }
+        #btnAddToList{display: none}
+
+        #payment-area li strong { font-size: 17px; }
+        #inputDiscount, #inputPaid, #inputPurchaseDate, #inputMemoNumber { display: inline-block; border-radius: 50px; text-align: right; color: #000; }
+        .list-group-item { padding: .75rem 0; }
+        .has-error { border: 2px solid #ff0000 }
+        .remove { color: #ff0707; cursor: pointer; font-size: 15px; }
+        .stock { padding: .18rem .5rem; }
+
+        #product-code-body span > i { font-size: .8rem }
+        #vendor-info li { font-size: 17px; line-height: 2.5; }
+        #vendor-info li:first-child { border-top: 0 }
+        #vendor-info li:last-child { border-bottom: 0 }
+        #vendor-info i { color: #8a8383 }
+
+        /*phone number error*/
+        #errorMessage { display: none }
+    </style>
+}
+
+<div class="m-md-3">
+    <h4 class="mb-3 page-header">Purchase</h4>
+
+    <section class="card card-body">
+        <form id="cart-form">
+            <div class="form-row">
+                <div class="col-lg-3">
+                    <div class="md-form">
+                        <select id="ParentId" searchable="Search here.." asp-items="ViewBag.ParentId" class="mdb-select" required>
+                            <option value="" disabled selected>Select Category</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="col-lg-3">
+                    <div class="md-form">
+                        <select id="selectProductId" searchable="Search here.." class="mdb-select product-select" required>
+                            <option value="" disabled selected>Brand and Model</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="col-lg-3">
+                    <div class="md-form">
+                        <input id="inputPurchasePrice" class="form-control" step="0.01" type="number" required />
+                        <label for="inputPurchasePrice">Purchase Price</label>
+                    </div>
+                </div>
+
+                <div class="col-lg-3">
+                    <div class="md-form">
+                        <input id="inputSellingPrice" class="form-control" step="0.01" type="number" required />
+                        <label for="inputSellingPrice">Selling Price</label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="col-lg-3">
+                    <div class="md-form">
+                        <input id="inputWarranty" class="form-control" type="text" />
+                        <label for="inputWarranty">Warranty</label>
+                    </div>
+                </div>
+
+                <div class="col-lg-4">
+                    <div class="md-form">
+                        <input id="inputDescription" class="form-control" type="text" />
+                        <label for="inputDescription">Description</label>
+                    </div>
+                </div>
+                <div class="col-lg-3">
+                    <div class="md-form">
+                        <input id="inputNote" class="form-control" type="text" />
+                        <label for="inputNote">Note</label>
+                    </div>
+                </div>
+                <div class="col-lg-2 text-right">
+                    <div class="md-form pt-1">
+                        <button type="submit" class="btn btn-sm btn-blue-grey btn-rounded"><i class="far fa-qrcode pr-2"></i>Add&nbspCode</button>
+                    </div>
+                    <label id="product-error" class="red-text d-block"></label>
+                </div>
+            </div>
+        </form>
+    </section>
+
+    <section class="card card-body mt-3">
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th><strong>Category</strong></th>
+                        <th><strong>Brand and Model</strong></th>
+                        <th><strong>Purchase&nbspPrice</strong></th>
+                        <th><strong>Selling&nbspPrice</strong></th>
+                        <th><strong>Warranty</strong></th>
+                        <th><strong>Stock</strong></th>
+                        <th style="width:50px"><strong>Remove</strong></th>
+                    </tr>
+                </thead>
+                <tbody id="tbody"></tbody>
+            </table>
+        </div>
+    </section>
+
+    <section class="my-4">
+        <div class="row">
+            <div class="col-lg-6 mb-3">
+                <div class="card card-body">
+                    <div class="d-flex">
+                        <div class="flex-grow-1">
+                            <div class="md-form">
+                                <input placeholder="Find Vendor" type="text" id="inputFindVendor" class="form-control" autocomplete="off" />
+                            </div>
+                        </div>
+
+                        <div>
+                            <a id="vendorAddClick" data-url="/Vendor/Create" class="btn btn-floating amber accent-4 mt-3" title="Add New" data-toggle="modal">
+                                <i class="fal fa-user-plus ml-1"></i>
+                            </a>
+                        </div>
+                    </div>
+                    <ul id="vendor-info" class="list-group list-group-flush"></ul>
+                    <input type="hidden" id="vendorId" />
+                </div>
+            </div>
+
+            <div class="col-lg-6">
+                <div class="card card-body">
+                    <form id="formPayment">
+                        <ul class="list-group list-group-flush" id="payment-area">
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <strong>Total Purchase Price</strong>
+                                <strong>৳<span id="totalPrice"></span></strong>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <strong>Discount</strong>
+                                <div class="flex-1 ml-3">
+                                    <input placeholder="Discount" id="inputDiscount" step="0.01" type="number" min="0" class="form-control" />
+                                </div>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center green-text">
+                                <strong>Total Payable</strong>
+                                <strong>৳<span id="totalPayable"></span></strong>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <strong>Total Paid</strong>
+                                <div class="flex-1 ml-3">
+                                    <input placeholder="Paid Amount" id="inputPaid" step="0.01" type="number" min="0" class="form-control" />
+                                </div>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center orange-text">
+                                <strong>Total Due</strong>
+                                <strong>৳<span id="totalDue"></span></strong>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <strong>Payment Method</strong>
+                                <div class="flex-1 ml-3">
+                                    <select id="selectPaymentMethod" asp-items="ViewBag.Account" class="mdb-select" style="position: absolute; top: 1rem; left: 0px; height: 0px; width: 0px; opacity: 0; padding: 0px; pointer-events: none; display: inline!important;">
+                                        <option value="" selected>[ SELECT ]</option>
+                                    </select>
+                                </div>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <strong>Memo Number</strong>
+                                <div class="flex-1 ml-3">
+                                    <input placeholder="Memo Number" id="inputMemoNumber" type="text" class="form-control text-left" required />
+                                </div>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <strong>Purchase Date</strong>
+                                <div class="flex-1 ml-3">
+                                    <input placeholder="Purchase Date" id="inputPurchaseDate" type="text" class="form-control datepicker text-center" />
+                                </div>
+                            </li>
+                        </ul>
+
+                        <div class="mt-4 text-center">
+                            <i id="vendor-error" class="mt-2 text-center red-text"></i>
+                            <button type="submit" id="btnPurchase" class="btn peach-gradient btn-rounded btn-block mt-0">PURCHASE</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+
+
+<!-- insert product Code Modal -->
+<div class="modal fade right" id="modalInsetCode" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-full-height modal-right modal-notify modal-success" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <p class="heading lead">Add Product Code</p>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true" class="white-text">×</span>
+                </button>
+            </div>
+
+            <div class="modal-body">
+                <form id="formAddCode">
+                    <div class="md-form mt-0 mb-2">
+                        <input id="inputProductCode" autocomplete="off" class="form-control" type="text" required />
+                        <label for="inputProductCode">Product Code</label>
+                        <i id="code-exist-error" class="text-danger"></i>
+                        <small class="d-block">Click on code to remove</small>
+                    </div>
+                </form>
+
+                <div id="showAddedCode"></div>
+            </div>
+
+            <div class="modal-footer justify-content-center">
+                <button id="btnCheckProduct" type="button" class="btn btn-rounded btn-warning" title="click to check, double click to cart">
+                    check product
+                </button>
+                <button id="btnAddToList" type="button" class="btn btn-rounded btn-success" title="click to check, double click to cart">
+                   Add Product To List
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- vendor Insert Modal -->
+<div class="modal fade" id="InsertModal" tabindex="-1" role="dialog" aria-hidden="true"></div>
+
+<!--code details Modal  -->
+<div class="modal fade" id="codeDetailsModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-notify" role="document">
+        <div class="modal-content">
+            <div class="modal-header deep-orange darken-1">
+                <strong class="heading lead">Product Details</strong>
+
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true" class="white-text">&times;</span>
+                </button>
+            </div>
+
+            <div class="modal-body">
+                <div class="text-center">
+                    <h4 class="mb-1 font-weight-bold"><strong id="category"></strong></h4>
+                </div>
+                <ul class="striped list-unstyled mb-0">
+                    <li id="receipt"></li>
+                    <li id="purchase"></li>
+                    <li><strong>Code:</strong><span id="productCode"></span></li>
+                    <li><strong>Brand and Model:</strong><span id="productName"></span></li>
+                    <li><strong>Purchase Price:</strong><span id="purchasePrice"></span></li>
+                    <li><strong>Selling Price:</strong><span id="sellingPrice"></span></li>
+                    <li><strong>Warranty:</strong><span id="warranty"></span></li>
+                    <li><strong>Description:</strong><span id="description"></span></li>
+                    <li><strong>Note:</strong><span id="note"></span></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div>
+    <audio id="audio" src="~/audio/buzz.mp3"></audio>
+</div>
+
+@section Scripts {
+    <partial name="_UnobtrusiveAjaxPartial" />
+    <script>
+        const formCode = document.getElementById('modalInsetCode');
+
+        // on product code submit
+        formCode.addEventListener('click', evt => {
+            const element = evt.target;
+            const onCode = element.classList.contains("code");
+            if (!onCode) return;
+
+            const url = '/Product/FindProductDetailsByCode'
+            const param = { params: { code: element.innerText } };
+
+            axios.get(url, param).then(res => {
+                appendData(res.data)
+            }).catch(err => console.log(err))
+        })
+
+        //append data
+        function appendData(product) {
+            document.getElementById('category').textContent = product.ProductCatalogName;
+            document.getElementById('productCode').textContent = product.ProductCode;
+            document.getElementById('productName').textContent = product.ProductName;
+            document.getElementById('purchasePrice').textContent = product.PurchasePrice.toFixed(2);
+            document.getElementById('sellingPrice').textContent = product.SellingPrice.toFixed(2);
+            document.getElementById('warranty').textContent = product.Warranty;
+            document.getElementById('description').textContent = product.Description;
+            document.getElementById('note').textContent = product.Note;
+
+            const bill = document.getElementById('receipt');
+            const purchase = document.getElementById('purchase');
+
+            product.SellingId ? bill.innerHTML = `<strong class="green-text">Bill No: </strong><a target="_blank" href="/Selling/SellingReceipt/${product.SellingId}">#${product.SellingSn}</a>` : bill.innerHTML = '';
+            purchase.innerHTML = `<a target="_blank" href="/Purchase/PurchaseReceipt/${product.PurchaseId}">Purchase Details <i class="fal fa-long-arrow-right"></i></a>`;
+            
+            $("#codeDetailsModal").modal("show");
+        }
+    </script>
+    <script src="~/page-js/product-purchase.js?v=3.3.2"></script>
+}
+

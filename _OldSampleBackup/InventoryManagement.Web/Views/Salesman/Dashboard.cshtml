@@ -1,0 +1,147 @@
+﻿
+@{
+    ViewData["Title"] = "Dashboard";
+    Layout = "~/Views/Shared/_SalesmanLayout.cshtml";
+}
+@section Styles{
+    <style>
+        body { background-color: #fff; }
+    </style>   
+}
+
+<div class="m-md-3">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h4 class="page-header">Dashboard</h4>
+            <p class="mb-0">Wallet: @ViewBag.Balance</p>
+        </div>
+        <form id="formReceipt">
+            <div class="md-form input-group m-0">
+                <input name="BillNo" type="text" placeholder="Enter Bill No." class="form-control" required>
+                <div class="input-group-append">
+                    <button id="btnFind" class="btn btn-md btn-danger m-0 px-3" type="submit">Find Due Bill</button>
+                </div>
+            </div>
+        </form>
+    </div> 
+    
+    <h5 class="font-weight-bold">Cash Transaction Log</h5>
+    <div class="card card-body">
+        <table id="data-table" class="table table-sm table-bordered">
+            <thead>
+            <tr>
+                <th><strong>Amount</strong></th>
+                <th><strong>Description</strong></th>
+                <th><strong>Receive Date</strong></th>
+            </tr>
+            </thead>
+        </table>  
+    </div>
+</div>
+
+@section scripts{
+    <script>
+        $(function() {
+            dataTable.filter = [];
+            dataTable.filter.push({ Field: "RegistrationId", Value: "@ViewBag.RegistrationId", Operand: 0 });
+            dataTable.getData();
+        });
+
+        //get data
+        var dataTable = {
+            table: null,
+            filter: null,
+            init: function () {
+                dataTable.table = $("#data-table").DataTable({
+                    processing: true,
+                    serverSide: true,
+                    dom: '<"row"<"col-sm-6"Bl><"col-sm-6"f>><"row"<"col-sm-12"<tr>>><"row"<"col-sm-5"i><"col-sm-7"p>>',
+                    buttons: dataTable.button,
+                    language: { infoFiltered: "" },
+                    ajax: {
+                        url: "/SubAdmin/CashReceiveRecords",
+                        type: "POST",
+                        data: function (d) {
+                            d.filters = dataTable.filter;
+                        }
+                    },
+                    columns:
+                        [
+                            { data: "CollectionAmount", "render": dataTable.addSign },
+                            { data: "Description" },
+                            { data: "InsertDate", "render": function (data) { return moment.utc(data).local().format('DD MMM YYYY') } }
+                        ],
+                    columnDefs: [
+                        { 'className': "text-right", "targets": [0] },
+                        { 'className': "text-left", "targets": [1] }
+                    ],
+                    order: [[2, 'desc']]
+                });
+            },
+            operand: {
+                Equal: 0,
+                NotEqual: 1,
+                GreaterThan: 2,
+                LessThan: 3,
+                GreaterThanOrEqual: 4,
+                LessThanOrEqual: 5,
+                Contains: 6,
+                StartsWith: 7,
+                EndsWith: 8
+            },
+            getData: function () {
+                dataTable.table ? dataTable.table.ajax.reload() : dataTable.init();
+            },
+            addSign: function (data) { return `${data}/-` },
+            button: {
+                buttons: [
+                    {
+                        extend: 'print',
+                        text: '<i class="fa fa-print"></i> Print',
+                        title: '',
+                        exportOptions: {
+                            //columns: [0,1] //Column value those print
+
+                        },
+                        customize: function (win) {
+                            $(win.document.body).prepend(`<nav class="mb-3 navbar peach-gradient"><a class="navbar-brand ml-1"><span>Zephyr</span> IT</a></nav><h3 class="h3-responsive">${$('h4').text()}</h3>`);
+                        },
+                        autoPrint: true
+                    }
+                ],
+                dom: {
+                    button: {
+                        className: 'btn btn-dark btn-rounded btn-sm my-0'
+                    }
+                }
+            }
+        }
+
+        //find bill
+        const formReceipt = document.getElementById("formReceipt");
+        formReceipt.addEventListener("submit",
+            function(evt) {
+                evt.preventDefault();
+                this.btnFind.disabled = true;
+
+                $.ajax({
+                    url: '/Selling/FindDueBill',
+                    type: "POST",
+                    data: { billNo: this.BillNo.value},
+                    success: response => {
+                        if (response.IsSuccess) {
+                            location.href = `/Selling/DueCollection/${response.Data}`;
+                            return;
+                        }
+
+                        this.btnFind.disabled = false;
+                        $.notify(response.Message, response.IsSuccess ? "success" : "error");
+                    },
+                    error: error => {
+                        console.log(error);
+                        this.btnFind.disabled = false;
+                    }
+                });
+            });
+    </script>
+}

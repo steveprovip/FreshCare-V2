@@ -1,0 +1,26 @@
+﻿@model FreshCare.Models.SanPham
+
+<h2>Sửa sản phẩm</h2>
+
+<form method="post">
+    <input type="hidden" asp-for="MaSP" />
+
+    <div>
+        <label>Tên sản phẩm</label>
+        <input asp-for="TenSP" class="form-control" />
+    </div>
+
+    <div>
+        <label>Đơn vị tính</label>
+        <input asp-for="DonViTinh" class="form-control" />
+    </div>
+
+    <div>
+        <label>Giá bán</label>
+        <input asp-for="GiaBan" class="form-control" />
+    </div>
+
+    <br />
+    <button type="submit">Lưu</button>
+    <a href="/SanPham">Quay lại</a>
+</form>

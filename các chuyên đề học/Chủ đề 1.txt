@@ -1,0 +1,237 @@
+Chủ đề 1: Tổng quan về công nghệ phần mềm 
+Giới thiệu tổng quan về Công nghệ phần mềm (SE) Một số khái niệm cơ bản Sự khác biệt giữa SE và các lĩnh vực nghiên cứu khác Các trách nhiệm đạo đức và nghề nghiệp Nhân tố con người và sự phân hóa nghề nghiệp trong SE 
+Mục tiêu cần đạt được: 
+Hiểu được vấn đề của xã hội, kinh tế và môi trường trong ngành công nghệ thông tin, đặc biệt là lĩnh vực công nghệ phần mềm. 
+Hiểu được sự tác động của ngành phần mềm đối với xã hội. 
+Hiểu được bức tranh tổng quan về SE (từ khi SE hình thành cho đến nay, các thành tựu nghiên cứu đạt được qua từng giai đoạn phát triển). Nắm được các khái niệm cơ bản về SE. 
+Xác định các vị trí công việc khi tham gia vào một dự án phát triển phần mềm và các yêu cầu công việc, trách nhiệm, đạo đức nghề nghiệp, các kỹ năng cần trang bị đối với từng vị trí tương ứng. 
+Từ đó có kế hoạch tự học hỏi mở rộng các kiến thức chuyên ngành đáp ứng nhu cầu nghề nghiệp trong tương lai. 
+
+1.1 Giới thiệu tổng quan về Công nghệ phần mềm (SE) 
+SE nhìn dưới góc độ lịch sử có thể chia thành các giai đoạn như sau [7]: 
+1945-1965: Nguồn gốc 
+1946: máy tính điện tử (computer) được phát minh. 
+1947: Ra mắt ngôn ngữ lập trình bậc thấp Assembly. 
+1948: Ra mắt phần mềm chương trình máy tính đầu tiên, được viết bởi Tom Kilburn, chạy trên máy tính Manchester Baby, nhằm tính hệ số cao nhất của số nguyên $2^{18} = 262,144$. 
+1950: Máy tính được thương mại hoá, phần mềm bắt đầu được đầu tư phát triển. 
+1955+: Các ngôn ngữ lập trình mới (mức cao hơn - gần con người hơn) xuất hiện: Autocode (1954, bởi các ĐH của Manchester, Cambridge và London); Fortran (1954-1958, bởi John Backus); Lips (1958-1960, bởi John McCarthy), Combol (1959, bởi CODASYL), Basic (1963, được viết bởi ĐH Dartmouth).... 
+1960: Thất bại về phát triển phần mềm (chương trình nhỏ, chủ yếu là tính toán chuyên dụng (xử lý số, theo lô); quản lý rời rạc, thiết kế phần mềm chưa được chú trọng lập trình tuần tự...). 
+Phát triển phần mềm gặp nhiều vấn đề ở giai đoạn này như: 
+Nhiều dự án chạy vượt ngân sách và tiến độ. Ví dụ: hệ điều hành OS/360 (là dự án lớn đầu tiên - 1000 lập trình viên) dự án kéo dài hàng thập kỷ từ những năm 1960, cuối cùng đã tạo ra một trong những hệ thống phần mềm phức tạp nhất vào thời điểm đó, Fred Brooks tuyên bố rằng ông đã mắc sai lầm hàng triệu đô la khi không phát triển một kiến trúc mạch lạc trước khi bắt đầu phát triển hệ thống này. 
+Thiệt hại về tài sản: Các lỗi phần mềm có thể gây ra thiệt hại về tài sản. Bảo mật phần mềm kém cho phép tin tặc đánh cắp danh tính, gây tốn kém thời gian, tiền bạc và danh tiếng. 
+Sự sống và cái chết: Lỗi phần mềm có thể gây chết người. Một số hệ thống nhúng được sử dụng trong các máy xạ trị đã thất bại thảm hại đến mức chúng sử dụng các liều bức xạ gây chết người bệnh. Nổi tiếng nhất trong số những thất bại này là sự cố Therac-25. Peter G. Neumann đã lưu giữ một danh sách về các sự cố và thảm họa của phần mềm đương thời, xem tại [8]. 
+1965-1970s: Khủng hoảng PM, SE được đề xướng hình thành 1965: Khủng hoảng phần mềm Nối tiếp các thất bại năm 1960, phát triển phần mềm tiếp tục gặp thất bại: 
+Phát triển phần mềm không bắt cùng nhịp với sự tiến bộ về công nghệ phần cứng. 
+Nhu cầu ứng dụng công nghệ thông tin trong mọi lĩnh vực đời sống, kinh tế, văn hoá xã hội ngày càng tăng, đòi hỏi phần mềm ngày càng nhiều, ngày càng lớn và trở nên phức tạp bao phủ mọi lĩnh vực kinh tế, đời sống và các hoạt động xã hội, dẫn đến thực trạng: Phần mềm không đáp ứng nhu cầu. 
+Các sản phẩm phần mềm không đáp ứng kịp các yêu cầu của người sử dụng. 
+Phần mềm tiềm ẩn nhiều rủi ro khi sử dụng, nhiều lỗi, chất lượng không đảm bảo (tiêu chí chất lượng giai đoạn này: chạy nhanh, giải được bài toán lớn (dùng bộ nhớ hiệu quả) vì công nghệ sử dụng giai đoạn này là Bóng điện tử (tính toán chậm, bộ nhớ nhỏ)). 
+Dự án kéo dài, thiệt hại về tài sản, lợi nhuận thu được thấp, ... Cụ thể [30]: 
+6 dự án triển khai thì 2 dự án thất bại 
+Trung bình thời gian thực hiện bị kéo dài 50% (cá biệt lên tới 200-300%) 
+Các dự án lớn dễ bị thất bại 
+3/4 các hệ thống lớn có lỗi khi thực thi 
+Quá trình phân tích yêu cầu (5% công sức): Để lại 55% lỗi, có 18% phát hiện được 
+Quá trình thiết kế (25% công sức): Để lại 30% lỗi, có 10% phát hiện được 
+Quá trình mã hóa, kiểm thử và bảo trì: Để lại 15% lỗi, có 72% phát hiện được 
+Chi phí cho phát triển lớn, lợi nhuận thấp 
+Dẫn đến tình trạng khủng hoảng phần mềm trên toàn thế giới. 1968: Hội nghị kỹ thuật phần mềm NATO Để giải quyết vấn đề trên một hội nghị thế giới đã được tổ chức để bàn về cách giải quyết - Hội nghị kỹ thuật phần mềm NATO bàn về vấn đề khủng hoảng phần mềm lần đầu tiên được tổ chức vào năm 1968. Lần thứ hai diễn ra một năm sau đó. Hội nghị đã thiết lập các hướng dẫn, các thực tiễn tốt nhất để phát triển phần mềm. Michael A. Jackson đã xác định nguyên nhân chính gây ra khủng hoảng phần mềm, đó là việc sản xuất phần mềm thiếu chuyên nghiệp theo phương pháp thủ công. Phương pháp này không thích hợp cho việc phát triển các sản phẩm phần mềm lớn và phức tạp. Phương pháp thủ công thể hiện như sau: 
+Làm theo cảm tính: Dựa vào kinh nghiệm, không có phương pháp đủ tốt 
+Phương tiện thô sơ. Chủ yếu là ngôn ngữ lập trình bậc thấp 
+Làm đơn lẻ: Do một hoặc một số cá nhân thực hiện 
+Khắc phục khủng hoảng phần mềm: Xây dựng phần mềm theo công nghệ công nghiệp hóa quá trình sản xuất phần mềm. Từ đó Khái niệm công nghệ phần mềm được đưa ra. Và từ đó công nghệ phần mềm thực sự trở thành một ngành nghiên cứu không thể thiếu được trong lĩnh vực CNTT Để đáp ứng đòi hỏi của phát triển phần mềm cần có lý thuyết, kỹ thuật, phương pháp, công cụ đủ tốt để điều khiển tiến trình phát triển hệ thống phần mềm. Công nghệ phần mềm nhằm nghiên cứu tất cả các khía cạnh liên quan đến việc sản xuất các sản phẩm phần mềm chuyên nghiệp. Nó liên quan tới lý thuyết, quy trình, phương pháp và công cụ cần để phát triển phần mềm. Mục tiêu của công nghệ phần mềm: Sản xuất phần mềm độc lập, đúng hạn, phù hợp kinh phí và đáp ứng mọi yêu cầu người sử dụng. Để xây dựng hệ thống phần mềm tốt ta cần [5] 
+Xác định đúng đắn tiến trình phát triển phần mềm: Các pha của hoạt động Sản phẩm của mỗi pha 
+Phương pháp và kỹ thuật áp dụng trong từng pha và mô hình hóa sản phẩm của chúng 
+Công cụ phát sinh ra sản phẩm 
+1970s: Lập trình có cấu trúc hướng thủ tục Những năm 1970 là thời kỳ mà SE bắt đầu phát triển khi các ý tưởng, ngôn ngữ và phần cứng mới được giới thiệu. Thành tựu nổi bật nhất đạt được ở giai đoạn này là phương pháp lập trình có cấu trúc ra đời. Phần mềm thường là sản phẩm đa nhiệm, đa người dùng. Các hoạt động xử lý dữ liệu dạng số, ký tự, theo lô và thời gian thực. Giai đoạn này cũng xuất hiện hình thức lưu trữ dữ liệu trực tuyến (cơ sở dữ liệu). Công nghệ bán dẫn được sử dụng (tính toán nhanh hơn, bộ nhớ lớn). Các tiêu chí đánh giá phần mềm giai đoạn này thường là: tính nhanh, giải bài toán lớn, nhiều người dùng, dễ bảo trì sửa lỗi, thích nghi. 
+1970 - Pascal, một ngôn ngữ lập trình cấu trúc (lệnh cấu trúc, chương trình có cấu trúc, cấu trúc dữ liệu,...) được giới thiệu. Ngôn ngữ này được thiết kế bởi Nicklaus Wirth. 
+1970+ - SQL (IBM) được công bố. 
+1972 - Dennis MacAlistair Ritchie bắt đầu phát triển ngôn ngữ lập trình C. Từ đó, C đã được phát triển và trở thành một trong những ngôn ngữ lập trình phổ biến. Hệ điều hành Unix do Ritchie và Ken Thompson phát triển ra mắt lần đầu tiên (1973). 
+1975 - Máy tính PC đầu tiên xuất hiện (phục vụ chủ yếu cho doanh nghiệp) 
+1980s: Kết thúc khủng hoảng phần mềm, phân tích & thiết kế cấu trúc hoàn thiện, LT HĐT ra đời Những năm 1980 tiếp tục có những thay đổi lớn trong ngành và tình trạng khủng hoảng phần mềm bắt đầu kết thúc. Các ngôn ngữ và công cụ mới bắt đầu xuất hiện hướng tới kỹ thuật tốt hơn - phát triển phần mềm hướng đối tượng. 
+1980 - Ngôn ngữ lập trình Ada ra mắt, được thiết kế bởi Jean Ichbiah 
+1982 - Các công cụ CASE bắt đầu xuất hiện trên thị trường nhằm nâng cao chất lượng của phần mềm, giảm chi phí và thời gian phát triển sản phẩm. 
+1985 - Ngôn ngữ lập trình C++ (Bjarne Stroustrup) lần đầu tiên được ra mắt. C++ hỗ trợ cả 2 biểu đồ lập trình hướng đối tượng và hướng thủ tục. C++ liên tục được cập nhật và trở thành một trong các ngôn ngữ được sử dụng phổ biến hiện nay. 
+1987 - Perl được phát triển bởi Larry Wall, là một ngôn ngữ kịch bản Unix đa mục đích để tạo sinh và xử lý các báo cáo dễ dàng hơn. 
+1989 - Các công ty bắt đầu cung cấp quyền truy cập vào internet quyền truy cập chủ yếu được cấp cho các nhà khoa học và trong quân đội. 
+1990s: Kỷ nguyên internet; Các quy trình phần mềm phát triển mạnh Thập kỷ này có nhiều bước tiến lớn trong ngành như Lập trình hướng đối tượng bắt đầu trở nên phổ biến. Internet ra mắt và phát triển mạnh; một số cách tiếp cận phát triển phần mềm được ra đời: 
+1990 - Tim Berners-Lee phát triển WorldWideWeb trình duyệt web đầu tiên và tạo ra HTTP, HTML, các trang web đầu tiên. “Dữ liệu lớn - Big Data” bắt đầu phát triển. 
+1991 - Ngôn ngữ lập trình Python ra mắt lần đầu tiên, và hiện nay đã trở thành một trong những ngôn ngữ lập trình phổ biến nhất. Phát triển ứng dụng nhanh (RAD) ra đời 
+1994: PHP (Danish-Canadian) ra mắt, là một ngôn ngữ kịch bản đa mục tiêu, hướng tới phát triển các website động. Phương pháp phát triển hệ thống động (DSDM) hình thành. 
+1995 - Ngôn ngữ lập trình Java (James Gosling) được phát hành. Java là ngôn ngữ được sử dụng phổ biến nhất với tên gọi "Viết một lần, chạy mọi nơi", JavaScript ra đời và được sử dụng phổ biến trong lập trình web. Mô hình phần mềm Scrum ra mắt. 
+1996 - Học viện Công nghệ Rochester giới thiệu chương trình cử nhân đầu tiên về kỹ thuật phần mềm. 
+1997 - C#, VB.Net & ASP.Net (Microsoft) được trình diện trong thế giới lập trình. 
+1998 - Trường Sau đại học Hải quân Hoa Kỳ cung cấp chương trình tiến sĩ đầu tiên về kỹ thuật phần mềm. RUP (IBM, 1998) 
+1999 - Kent Beck giới thiệu XP, một kiểu phát triển phần mềm linh hoạt (Agile) được thiết kế để đáp ứng nhanh chóng các yêu cầu thay đổi của người dùng. 
+2000s: Các quy trình PM linh hoạt, gọn nhẹ (Light Weight Methodologies) Thiết kế với các ngôn ngữ không còn được chú trọng, giai đoạn này tập trung vào (1) hoàn thiện & cải tiến những gì đã đạt được trong hai thập kỷ trước; (2) xây dựng các quy trình phần mềm linh hoạt, gọn nhẹ, đáp ứng tốt hơn các yêu cầu thay đổi của khách hàng, tăng hiệu suất và tính tiện ích của quy trình. Lập trình trí tuệ nhân tạo bắt đầu được quan tâm. 
+2001 - Tuyên ngôn phát triển phần mềm Agile được xuất bản. Nó bao gồm các giá trị và nguyên tắc của phát triển phần mềm Agile, tập trung vào việc phát triển thông qua nỗ lực hợp tác của các nhóm chức năng chéo và khách hàng. 
+2006 - Scrum bản đầy đủ bắt đầu được sử dụng phổ biến. Scrum - một quy trình nhanh sử dụng khuôn khổ lặp đi lặp lại và gia tăng để phát triển phần mềm phức tạp, được giới thiệu bởi Ken Schwaber và Mike Beedle. Phương pháp này đã xuất hiện từ năm 1995 nhưng chỉ bắt đầu được sử dụng rộng rãi ở những năm 2000. 
+2009: Ngôn ngữ lập trình GO ra mắt, được thiết kế bởi các kỹ sư của Google nhằm tạo ra phần mềm đáng tin cậy và hiệu quả sử dụng cách tiếp cận phát triển gọn nhẹ. Go cũng sử dụng một tập hợp các gói để quản lý phụ thuộc một cách hiệu quả. Rất nhiều các tổ chức sử dụng Go như Google, Cloudflare, Dropbox, MongoDB, Netflix, SoundCloud, Twitch và Uber. 
+2010s: Điện toán đám mây; Cách thức training; Lập trình mobile đa nền tảng Trọng tâm của giai đoạn này hướng tới công nghệ điện toán đám mây và phát triển phần mềm hướng dịch vụ. Việc giải quyết nhu cầu về nguồn lực kỹ sư phần mềm với phong cách học tập mới cũng được chú trọng. Các quy trình phần mềm linh hoạt tiếp tục được phát triển như SAFE, LESS (Large-Scale Scrum) & DevOps Framework. Các ngôn ngữ lập trình đa nền tảng, lập trình mobile ra đời và phát triển mạnh mẽ. 
+2010 - Điện toán đám mây bắt đầu phát triển, dẫn đến nhu cầu về phần mềm dưới dạng dịch vụ tăng và tạo ra hướng đi mới cho các kỹ sư SE. 
+2011 - Các bootcamps mã hóa bắt đầu phát triển. Trong vòng chưa đầy 8 năm, khoảng 95 bootcamps được giới thiệu. Bootcamps là một cách để giảng dạy công nghệ mới nhất theo một chương trình chuyên sâu được thiết kế để giúp sinh viên đáp ứng nhu cầu nghề nghiệp. 
+Các ngôn ngữ lập trình đa nền tảng, lập trình mobile ra đời và phát triển mạnh mẽ: 
+Kotlin (2011) ngôn ngữ lập trình mới cho JVM, đa nền tảng, hiện đại, được thiết kế bởi công ty phát triển phần mềm JetBrains, giúp phát triển các ứng dụng di động Android nhanh hơn, hiệu quả hơn, mã nguồn an toàn, khách hàng hài lòng hơn. Kotlin đã được gần 60% các nhà phát triển Android chuyên nghiệp sử dụng. 
+Dart (2013) ngôn ngữ mã nguồn mở được phát triển bởi Google, là một ngôn ngữ tối ưu client hỗ trợ tạo các ứng dụng chạy nhanh trên mọi nền tảng (mobile, desktop và Web platform.....). 
+Swift (2014, Chris Lattner et al.) được giới thiệu tại hội thảo của Apple năm 2014. Swift hỗ trợ nhiều biểu đồ lập trình, là ngôn ngữ lập trình trực quan, tiềm lực cho các hệ điều hành iOS, iPadOS, macOS, tvOS, and watchOS. 
+2020s: Xu hướng các công nghệ mới [9] Thời kỳ này, trọng tâm hướng tới phát triển các công nghệ như trí tuệ nhân tạo (AI), thực tế ảo (VR), thực tế ảo tăng cường (AR), và các công nghệ khác.... 
+Công nghệ Internet of things (IOT): Những năm 2020, theo thống kê, số lượng người dùng các thiết bị như smartphone, laptop, TV thông minh, PC ... có thể lên tới 21 tỷ. IOT hướng tới việc xây dựng các hệ thống bảo mật, an ninh kết nối, hình thành và xử lý dữ liệu lớn (big data), tăng cường khả năng tự động hóa, phân tích số liệu lớn và lập trình điều khiển luồng dữ liệu thời gian thực. 
+Công nghệ xác thực không cần mật khẩu: Mật khẩu đã được sử dụng để xác thực trong một thời gian quá dài. Vì vậy theo các chuyên gia bảo mật, mật khẩu không còn được xem là cách xác thực “rất an toàn” nữa. Ngày nay, xác thực không mật khẩu đang dần trở nên phổ biến, ví dụ: xác thực thông qua nhận dạng khuôn mặt, sinh trắc học. 
+Thực tại ảo: Thực tế ảo (Virtual Reality - VR) và thực tế ảo tăng cường (Augmented Reality - AR) đang ngày càng trở nên phổ biến. Ngày nay VR & AR không chỉ tập trung vào lĩnh vực giải trí và phát triển ứng dụng game, trên thực tế, lực lượng quốc phòng của một số quốc gia cũng đang nghiên cứu và cố gắng tận dụng tối đa hai công nghệ AR và VR cho việc huấn luyện quân sự. 
+Tự động hóa quy trình bằng robot: Tự động hóa quy trình bằng robot (RPA) nhằm tăng năng suất hoạt động, giảm bớt những công đoạn thủ công trong quy trình làm việc. RPA hướng tới lập trình tự động hóa hoàn toàn quy trình làm việc sản xuất bằng robot cho các tổ chức, doanh nghiệp. 
+Công nghệ AI: Công nghệ AI & xử lý Big Data đã và đang được áp dụng trong nhiều doanh nghiệp, mang lại những lợi ích vượt trội. Ngoài ra, các công nghệ hiện đại như tìm kiếm bằng giọng nói, nhận dạng giọng nói,... cũng đang dần trở nên phổ biến.
+1.2. 
+Một số khái niệm cơ bản 
+1.2.1 Phần cứng Là các thiết bị, cấu kiện mang tính vật lý có thể tiếp xúc bằng tay được như máy in, ổ đĩa, máy quét, các mạch tích hợp...... 
+1.2.2 Phần mềm Nghĩa đơn giản nhất của phần mềm là chương trình chứa các dòng lệnh chỉ thị cho máy tính thực hiện một công việc nào đó [1]. Theo nghĩa hoàn thiện hơn, phần mềm được xem là một sản phẩm bao gồm ba phần: (1) Các chương trình máy tính đơn lẻ: 
+Các file mã nguồn 
+Các file mã máy (file text): mã nguồn sau khi dịch và đóng gói (2) Dữ liệu: 
+Cấu trúc làm việc (bộ nhớ trong): các cấu trúc dữ liệu 
+Cấu trúc lưu trữ (bộ nhớ ngoài): cơ sở dữ liệu/ file dữ liệu (3) Các tài liệu liên quan: 
+Tài liệu hướng dẫn sử dụng (dành cho người dùng cuối) 
+Tài liệu tham khảo kỹ thuật (dành cho người bảo trì phần mềm) 
+Tài liệu phát triển (dành cho nhà phát triển) 
+Ngoài ra cần một Website cung cấp các thông tin về sản phẩm phần mềm & các bản cập nhật mới nhất về phần mềm. 
+Đặc trưng của phần mềm: 
+Không mòn cũ nhưng thoái hoá theo thời gian 
+Khó lắp ráp từ các mẫu có sẵn 
+Phức tạp, khó hiểu, vô hình (để hiểu phải tư duy, hình dung vì không nhìn thấy) 
+Thay đổi là bản chất của phần mềm (khác sản phẩm khác, thay đổi để tạo phiên bản mới phải thực hiện trên chính phiên bản hiện tại) 
+Phát triển theo nhóm. 
+Vai trò của phần mềm: Các phần mềm máy tính ngày nay đóng vai trò quan trọng trong mọi lĩnh vực đời sống, kinh tế, xã hội của mọi quốc gia trên thế giới. Cụ thể: Các phần mềm là “linh hồn” của các hệ thống máy tính. Chúng đóng vai trò nền tảng cho mọi hoạt động trong đời sống, kinh tế, xã hội, và các hoạt động vui chơi giải trí Nền kinh tế của các quốc gia phụ thuộc rất nhiều vào các sản phẩm phần mềm. Ví dụ: 
+Thu, chi từ phần mềm chiếm đáng kể trong tổng GNP của mọi quốc gia: 
+2006 ấn độ xuất gần 30 tỉ USD phần mềm 
+Thế giới có 7 triệu kỹ sư IT tạo ra 600 tỉ $/năm 
+Chi phí cho phần mềm năm 2000 lên tới 770 tỉ 
+Phần mềm sai hỏng, kinh tế tổn thất lớn: 
+Vệ tinh Ariane 5 hỏng do lỗi phần mềm (1996) thiệt hại 500 triệu $. 
+Các website dừng hoạt động 1 ngày có thể gây mất hàng triệu $. 
+Phần mềm tạo nên sự khác biệt giữa các tổ chức, cá nhân về phong cách làm việc và năng suất lao động (Hình 1.4). Ngày càng nhiều nghiệp vụ được phần mềm điều khiển, trợ giúp nhằm tăng năng suất lao động và sự hiệu quả trong công việc. Ví dụ: phần mềm trợ giúp bán hàng tại các siêu thị, hỗ trợ giáo dục đào tạo trực tuyến, thảo luận, hội nghị trực tuyến, tự động hoá dây chuyền sản xuất,... 
+Phân loại phần mềm: Phần mềm có thể được phân loại theo 3 tiêu chí (Hình 1.5): 
+Theo mức độ hoàn thiện của sản phẩm 
+Theo chức năng thực hiện của sản phẩm 
+Theo lĩnh vực nghiệp vụ mà phần mềm hỗ trợ 
+1) Phân loại theo mức độ hoàn thiện Phần mềm được phân loại theo mức độ hoàn thiện tăng dần: (i) phần mềm là chương trình, (ii) phần mềm là sản phẩm và (iii) phần mềm là hệ thống. Tính phức tạp của phần mềm cũng tăng nhanh (9 lần) theo mức độ hoàn thiện: từ chương trình -> sản phẩm -> hệ thống (Hình 1.6). 
+Chương trình: Người viết chương trình đồng thời cũng là người dùng chương trình đó. Thường không có tài liệu đính kèm và không kiểm thử đầy đủ. 
+Sản phẩm: Nhiều người viết, nhiều người dùng. Cần có các tài liệu đính kèm. Cần được kiểm thử đầy đủ trước khi bàn giao đến người dùng. 
+Hệ thống: Tích hợp nhiều phần mềm cộng thêm yếu tố phần cứng liên quan đến môi trường vận hành. Thường lớn, độ phức tạp cao, đầy đủ tài liệu và phải được kiểm thử đầy đủ trước khi đưa vào thực tế vận hành. 
+2) Phân loại theo chức năng thực hiện Tuỳ theo các chức năng mà phần mềm cung cấp, chúng ta có thể phân chia phần mềm thành các loại như sau: 
+Phần mềm hệ thống: Thường cung cấp các chức năng: Điều hành hoạt động máy tính, thiết bị và chương trình (OS....); Cung cấp các tiện ích (tổ chức tệp tin, nén, dọn ổ đĩa......) 
+Phần mềm nghiệp vụ: Thường cung cấp các chức năng hỗ trợ các hoạt động nghiệp vụ, ví dụ: quản lý thư viện, quản lý điểm, quản lý nhân sự.... Có số lượng lớn, đa dạng và thường được chia làm 2 loại theo cách thức phát triển: 
+Sản phẩm đặt hàng: sản xuất theo đơn đặt hàng đáp ứng các yêu cầu đặc thù riêng của khách hàng. 
+Sản phẩm chung (sản phẩm đại trà, thị trường ngách - phát triển để bán rộng rãi trên thị trường): cần xây dựng đảm bảo đáp ứng các yêu cầu chung của thị trường người dùng. Sự phân loại này ngày càng trở nên mờ nhạt, vì nhiều công ty phần mềm hiện nay thường bắt đầu từ các sản phẩm chung (dòng sản phẩm) và tùy biến chúng theo các yêu cầu của khách hành riêng lẻ để trở thành sản phẩm theo đơn đặt hàng. 
+Phần mềm công cụ (CASE tools): Thường cung cấp các tính năng hỗ trợ cho các hoạt động trong SE. Ví dụ: các phần mềm ngôn ngữ lập trình, trình biên dịch, gỡ rối, hỗ trợ phân tích, thiết kế; quản lý dự án; kiểm thử và các môi trường tích hợp phát triển ứng dụng (IDE) như Netbean, Eclipse, Visual Studio. 
+3) Phân loại theo lĩnh vực ứng dụng Phân loại theo lĩnh vực nghiệp vụ mà phần mềm hỗ trợ, chúng ta có thể chia phần mềm thành các loại như sau: 
+Phần mềm hệ thống: điều khiển các thiết bị phần cứng; làm nền tảng/môi trường để vận hành các phần mềm khác. Ví dụ: các hệ điều hành, các tiện ích quản lý tệp tin, dọn ổ đĩa,... 
+Phần mềm thời gian thực: thu thập, xử lý các dữ liệu thời gian thực. Ví dụ: phần mềm truyền phát tín hiệu vệ tinh, đo nhiệt độ, chất lượng không khí ... 
+Phần mềm nghiệp vụ: xử lý các thông tin nghiệp vụ, hỗ trợ kinh doanh, thương mại.... 
+Phần mềm khoa học kỹ thuật: Mô phỏng các hiện tượng vật lý, hoá học, phản ứng hạt nhân... Thường dùng trong các ngành khoa học, phục vụ nghiên cứu, thí nghiệm. 
+Phần mềm nhúng: còn được xem là một hệ lập trình chuyên biệt được lắp đặt trên các thiết bị phần cứng cố định để điều khiển, xử lý các tác vụ cụ thể trên thiết bị. Ví dụ: hệ thống giao thông thông minh, giải pháp công IoT/máy móc, thiết bị thông minh như máy ảnh kỹ thuật số, lò vi ba, máy photocopy, máy in Laser, máy FAX, máy giặt, các bảng quảng cáo sử dụng hệ thống đèn LED.... Ngoài ba tiêu chí phân loại trên đây, phần mềm còn có thể được phân loại dựa trên các chính sách phát triển của sản phẩm như: phần mềm tự do/nguồn mở, phần mềm đóng (được đóng gói, có bản quyền chống vi phạm)...... 
+Tiêu chí đánh giá chất lượng phần mềm: Chất lượng phần mềm đóng vai trò quan trọng trong sự thành công của Công nghệ phần mềm. Mô hình chất lượng phần mềm đầu tiên được đề xuất bởi McCall (1977) gồm 11 yếu tố và được nhóm thành 3 loại tập trung vào 3 khía cạnh quan trọng của phần mềm tạo lên cây chất lượng/tam giác chất lượng (xem Hình 1.7): (1) Các đặc tính vận hành của phần mềm (Product Operation); (2) Khả năng chịu được sự thay đổi của phần mềm (Product Revision); và (3) Khả năng thích nghi với môi trường mới (Product Transition). Thời kỳ này, các tiêu chí đánh giá chất lượng phần mềm chưa được chuẩn hoá. Tiếp theo mô hình chất lượng của McCall đã xuất hiện nhiều mô hình chất lượng biến thể khác mở rộng từ mô hình McCall’s như của Evans&Marciniak’s; Deutsc& Willis’s... Mô hình chất lượng được chuẩn hoá đầu tiên xuất hiện trong bộ chuẩn IEEE 1061. Ngày nay, để đánh giá chất lượng phần mềm, chúng ta thường sử dụng các tiêu chí được mô tả trong Bộ chuẩn ISO/IEC 9126. Đây là bộ chuẩn mô tả các thuộc tính chất lượng chính của phần mềm cần đạt được như mô tả trong Hình 1.8. 
+1.2.3. Công nghệ Công nghệ là cách thức hay phương pháp để làm một việc gì đó có thể là cụ thể hoặc trừu tượng, có áp dụng các thành tựu của khoa học và được thực hiện một cách có bài bản, hệ thống. Mọi công nghệ đều thường đề cập đến việc sản xuất một sản phẩm theo quy trình. Một quy trình (process) thường quy định: Ai (Who); Làm gì (What); Làm khi nào (When); và Làm như thế nào (How) để đạt tới mục đích mong muốn. 
+1.2.4 Công nghệ phần mềm Công nghệ phần mềm là một công nghệ liên quan đến tất cả các khía cạnh của quy trình phát triển một sản phẩm phần mềm như: sản xuất ntn? đánh giá, đảm bảo chất lượng, quản lý ra sao?...... Quy trình phần mềm có thể là quy trình phát triển mới sản phẩm hoặc quy trình nâng cấp một phần mềm đang tồn tại. Nó mô tả đầy đủ các hoạt động cần thiết để chuyển đổi phần mềm từ mức khái niệm (tập yêu cầu khách hàng) đến mức vận hành (hệ thống phần mềm hoàn chỉnh, đóng gói). Ngoài cách thức định nghĩa SE qua khái niệm Công nghệ, SE còn có thể định nghĩa như sau: 
+Theo định nghĩa của Fritz Bauer: “Công nghệ phần mềm là sự thiết lập và sử dụng các nguyên tắc khoa học nhằm mục đích tạo ra các sản phẩm phần mềm một cách kinh tế mà các sản phẩm phần mềm lại hoạt động một cách hiệu quả và tin cậy trên các máy tính” 
+Theo quan điểm của các nhà nghiên cứu, SE ngày nay có thể xem như một mô hình gồm 4 tầng (xem Hình 1.9). "SE có thể xem như một mô hình gồm 4 tầng: tầng quy trình, tầng phương pháp, tầng công cụ và tầng chất lượng hướng tới mục tiêu xây dựng các sản phẩm phần mềm đáp ứng các yêu cầu người dùng, đảm bảo chất lượng không vượt quá kinh phí, thời hạn cho trước" 
+Tầng chất lượng (Quality): Liên quan đến các nguyên tắc về đảm bảo chất lượng phần mềm. Cung cấp các cơ chế đảm bảo tính an toàn, an ninh của sản phẩm. Tầng này cũng tập trung vào những vấn đề liên quan đến khả năng bảo trì và khả năng sử dụng của sản phẩm. 
+Tầng quy trình (Process): Liên quan tới các vấn đề về quản trị phát triển phần mềm như lập kế hoạch, quản trị chất lượng, tiến độ, chi phí, mua bán sản phẩm phụ, cấu hình phần mềm, quản trị sự thay đổi, quản trị nhân sự (trong môi trường làm việc nhóm); chuyển giao, đào tạo, và xây dựng các tài liệu cần thiết. 
+Tầng phương pháp (Method): Tập trung vào việc phát triển các cách thức, công nghệ, kỹ thuật cụ thể cho các công đoạn phát triển và bảo trì phần mềm. Các phương pháp xây dựng cần dựa trên những nguyên lý chung áp dụng cho tất cả các lĩnh vực công nghệ khác, kể cả các hoạt động mô hình hoá và kỹ thuật mô tả. 
+Tầng công cụ (Tool): Tập trung xây dựng các công cụ, phương tiện hỗ trợ tự động hoặc bán tự động cho các tầng còn lại của mô hình (tầng phương pháp, tầng quy trình và tầng đảm bảo chất lượng). Lưu ý: Từ mô hình trên ta thấy, SE không chỉ đề cập đến từng tầng riêng lẻ mà còn tới cả cách thức phối hợp các tầng, phối hợp các công nghệ, phương pháp và công cụ theo một quy trình nghiêm ngặt để tạo ra các sản phẩm phần mềm có chất lượng, đáp ứng yêu cầu, không vượt quá kinh phí, thời hạn cho trước. 
+1.2.5 Quy trình phần mềm, vòng đời phần mềm Quy trình phần mềm là một tập hợp các hoạt động có cấu trúc, được thực hiện theo trình tự nhất định (song song, tuần tự) nhằm xây dựng mới hoặc nâng cấp phần mềm đang tồn tại. Quy trình phần mềm còn được biết với tên gọi "vòng đời phát triển phần mềm" (SDLC) [4]. Một quy trình cụ thể phải trả lời được câu hỏi: Làm gì? Khi nào làm? Ai làm? Làm như thế nào? Làm bằng gì? Ở đâu? Kết quả? Tiêu chí đánh giá. Như vậy, mỗi quy trình phần mềm thường có các đặc trưng: (1) Có cấu trúc nhất định (công việc gì, trình tự ra sao, sử dụng phương pháp, công cụ gì, ai làm); (2) Gắn với dự án cụ thể, & (3) Các thành phẩm & sản phẩm cuối cùng cần xây dựng và bàn giao. Một quy trình phần mềm thường chia thành các giai đoạn chính như sau (xem Hình 1.10): 
+Phân tích, xác định yêu cầu: Thu thập, hiểu yêu cầu từ phía đối tác/khách hàng 
+Phát triển: Thiết kế và cài đặt chương trình 
+Thẩm định: kiểm thử đánh giá xem phần mềm có đáp ứng các yêu cầu của khách hàng không, có thoả mãn các tiêu chí chất lượng không. 
+Tiến hóa phần mềm: Thay đổi phần mềm để đáp ứng các yêu cầu thay đổi (người dùng, môi trường). 
+Cũng có thể nhìn quy trình phần mềm dưới góc độ vòng đời phần mềm gồm 4 giai đoạn: WHAT, HOW, BUILD, USE và các nhóm nguyên tắc bổ sung gồm: Đảm bảo chất lượng, Quản lý dự án như mô tả trong Hình 1.11. LƯU Ý: Những loại phần mềm khác nhau sẽ cần những quy trình phát triển khác nhau. Ví dụ, hệ thống thời gian thực yêu cầu phải xây dựng bản đặc tả hệ thống trước khi chuyển sang giai đoạn xây dựng. Tuy nhiên, với phần mềm thương mại điện tử, cho phép người phát triển vừa đặc tả vừa xây dựng chương trình một cách đồng thời, phần mềm hiện nay cũng có thể được tạo bằng cách mở rộng hoặc sửa đổi từ hệ thống đang tồn tại hoặc bằng cách cấu hình và tích hợp các thành phần có sẵn của các hệ thống hoặc phần mềm khác. -> Lựa chọn sử dụng quy trình phù hợp sẽ mang lại những lợi ích nhất định cho việc triển khai dự án phần mềm cụ thể. 
+1.2.6. Mô hình quy trình phần mềm Mô hình quy trình phần mềm là một thể hiện đơn giản của một quy trình phần mềm nhìn từ góc độ cụ thể. Ví dụ: mô hình thác nước, mô hình mẫu thử, mô hình xoắn ốc, mô hình RUP, RAD,... 
+1.2.7 Phương pháp Công nghệ phần mềm Phương pháp công nghệ phần mềm là cách tiếp cận chi tiết, có cấu trúc chỉ ra cách thức giúp phát triển phần mềm một cách dễ dàng, đảm bảo chất lượng và chi phí hiệu quả. Mỗi phương pháp thường bao gồm: 
+Các mô hình hệ thống, 
+Các ký pháp: Ký hiệu dùng trong các mô hình, 
+Các quy tắc luật: chỉ ra các ràng buộc được áp dụng cho các mô hình hệ thống, ví dụ: mọi thực thể trong mô hình hệ thống phải có một tên duy nhất...... 
+Các hướng dẫn áp dụng phương pháp. Ví dụ: Phương pháp phát triển phần mềm hướng chức năng; Phương pháp phát triển phần mềm hướng đối tượng; Phương pháp phát triển phần mềm hướng dịch vụ..... 
+1.2.8 CASE (Computer-Aided Software Engineering) CASE là các sản phẩm phần mềm nhằm mục đích hỗ trợ tự động hoặc bán tự động cho các hoạt động trong quy trình phần mềm. Có ba loại CASE (xem Hình 1.12): 
+Upper-CASE: Hỗ trợ các giai đoạn đầu của quy trình phần mềm như lập kế hoạch, phân tích và thiết kế. 
+Lower-CASE: Hỗ trợ các giai đoạn tiếp theo như cài đặt, kiểm thử, bảo trì 
+Integrated CASE: Hỗ trợ mọi giai đoạn trong vòng đời phần mềm (WHAT, HOW, BUILD, USE) 
+Ngoài ra có thể phân loại CASE theo mức độ hoàn thiện (xem Hình 1.13) gồm: 
+CASEs là Tools: hỗ trợ các hoạt động cụ thể trong vòng đời của phần mềm. 
+CASEs là Workbenches: phối hợp hai hoặc nhiều công cụ tập trung vào giai đoạn cụ thể của vòng đời phần mềm 
+CASEs là Environments: phối hợp hai hoặc nhiều công cụ hoặc nhiều bàn làm việc và hỗ trợ vòng đời phần mềm hoàn chỉnh 
+1.2.9 Chi phí của công nghệ phần mềm? Chi phí của một hệ thống phần mềm thường gồm: (1) chi phí phần cứng; (2) chi phí phần mềm. Chi phí phần mềm thường lớn hơn chi phí phần cứng, đặc biệt với những sản phẩm lớn, phức tạp, thời gian sống lâu. Trong chi phí phần mềm, một phần lớn là dành cho bảo trì, thường gấp nhiều lần so với chi phí phát triển sản phẩm lần đầu (ví dụ, xem Hình 1.14); Ví dụ về phân bố chi phí phần mềm những năm 1990s (xem Hình 1.15) Chi phí phần mềm thường biến đổi tuỳ thuộc vào các yếu tố như: 
+Loại ứng dụng được triển khai (là đơn giản hay phức tạp); 
+Các yêu cầu đặt ra (nhiều, ít, cao, thấp); 
+Mức độ hoàn thiện cao hay thấp; 
+Năng lực của tổ chức phần mềm (nhân lực, công cụ, công nghệ, kỹ năng có được); 
+Quy trình phần mềm, phương pháp, công cụ sử dụng. Ví dụ: Hình 1.16; Hình 1.17; & Hình 1.18 chỉ ra % phân bố chi phí phát triển sử dụng các quy trình phần mềm thác nước, phát triển lặp và phát triển dựa trên cấu phần.
+1.3 Các lĩnh vực nghiên cứu liên quan đến SE
+Các lĩnh vực nghiên cứu liên quan đến Công nghệ phần mềm [computing curricula 11/2004 -ACM, AIS, IEEE] được biểu diễn như Hình 1.19. Trong đó: Mỗi lĩnh vực tính toán được giới hạn bằng một vùng biên có mầu sắc như sau: 
+CS: Khoa học máy tính 
+IS: Hệ thống thông tin 
+IT: Công nghệ thông tin 
+SE: Công nghệ phần mềm 
+Từ sơ đồ biểu diễn trên ta thấy, Công nghệ phần mềm chiếm một phần lớn ở trung tâm, đây chính là lý do tại sao SE lại là một ngành nghiên cứu phức tạp và quan trọng.
+1.4 Các trách nhiệm đạo đức và nghề nghiệp 
+Để trở thành một kỹ sư phần mềm chuyên nghiệp, ngoài kiến thức về chuyên môn và kinh nghiệm, chúng ta cần tuân thủ các quy tắc về chuẩn mực đạo đức và ứng xử nghề nghiệp được thiết lập bởi cộng đồng chuyên môn. Các chuẩn mực này được sử dụng như là thước đo năng lực kỹ thuật đối với kỹ sư phần mềm và là cơ sở cho việc được công nhận, cấp giấy phép, điều kiện được ra nhập cộng đồng kỹ sư SE chuyên nghiệp.
+1.4.1 Các quy định về trách nhiệm, ứng xử nghề nghiệp 
+Cần mặt: Tôn trọng các thông tin bị mặt và sự cần mặt của người lao động, của khách hàng bất chấp có hay không bản hợp đồng về sự sự cần mặt được ký kết.
+Năng lực: Không được xuyên tạc năng lực của mình, phải biết chấp nhận những công việc nào là vượt quá khả năng của mình.
+Các quyền sở hữu trí tuệ: Cần nắm vững các luật hiện thời về sở hữu trí tuệ như các bằng sáng chế, bản quyền. Họ cần đảm bảo rằng các quyền sở hữu trí tuệ của khách hàng và của người lao động được bảo vệ.
+Không được lạm dụng máy tính của người khác: Các kỹ sư phần mềm không được sử dụng các kỹ năng nghề nghiệp của mình để dùng sai máy tính của người khác. Việc lạm dụng máy tính giới hạn từ những hành động không đáng kể như chơi game trên MT người dùng đến những hành động nghiêm trọng như reo rắc virus trên MT của người khác.
+Kỹ sư SE vi phạm các quy định về trách nhiệm và ứng xử nghề nghiệp có thể bị phạt (theo quy định) và có thể bị tước bỏ giấy phép công nhân sự chuyên nghiệp.
+1.4.2 Tập các chuẩn mực về đạo đức Năm 1999, Hội đồng Hiệp hội máy tính & Hiệp hội kỹ sư điện và điện tử (ACM& IEEE) đã phê duyệt tập các chuẩn mực quy tắc về đạo đức đối với các kỹ sư SE. Tập chuẩn mực này gồm 8 chuẩn mực ở dạng ngắn và dạng dài: 
+Xã hội (Public): Kỹ sư phần mềm luôn làm việc vì lợi ích xã hội.
+Khách hàng và người lao động (Client and employer): Kỹ sư phần mềm có thái độ làm việc đảm bảo tối đa lợi ích của khách hàng và của người lao động, bên cạnh việc đảm bảo lợi ích xã hội.
+Sản phẩm (Product): Kỹ sư phần mềm đảm bảo phần mềm của họ cũng sửa đổi (nâng cấp) phần mềm có liên quan đạt chuẩn chuyên môn cao nhất có thể.
+Phán xét (Judgment): Kỹ sư phần mềm đảm bảo giá trị đạo đức của bản thân và tính độc lập trong các phán xét chuyên môn của mình.
+Quản lý (Management): Các nhà quản lý và lãnh đạo công nghệ phần mềm cần cam kết công khai ủng hộ và đẩy mạnh việc quản lý tuân theo các chuẩn mực đạo đức trong phát triển và quản lý chất lượng phần mềm.
+Nghề nghiệp (Profession): Kỹ sư phần mềm biết quảng bá các giá trị đạo đức và tiếng tăm của nghề nghiệp trong công nghệ phần mềm đi liền với các lợi ích xã hội.
+Đồng nghiệp (Colleagues): Kỹ sư phần mềm luôn công bằng và luôn sẵn sàng hỗ trợ đồng nghiệp của mình.
+Bản thân (Self): Kỹ sư phần mềm không ngừng học tập những kiến thức liên quan đến ngành nghề của mình và sẽ luôn quảng bá và đẩy mạnh yếu tố đạo đức trong nghề nghiệp của họ.
+1.4.3 Các vấn đề về pháp lý Các vấn đề pháp lý đáng chú ý liên quan tới kỹ nghệ phần mềm bao gồm các vấn đề liên quan đến: tiêu chuẩn, thương hiệu, bằng sáng chế bản quyền; bí mật kinh doanh; trách nhiệm pháp lý, yêu cầu pháp lý; tuân thủ luật thương mại, và tội phạm công nghệ.
+Các chuẩn Các tiêu chuẩn trong kỹ nghệ phần mềm cung cấp các hướng dẫn cho việc thực hiện các pha trong quy trình phát triển phần mềm. Tiêu chuẩn có chức năng định ra các yêu cầu và hỗ trợ thực hiện các yêu cầu đó khi thực hiện các hoạt động trong SE. Các tiêu chuẩn được xây dựng bằng cách liệt kê các đặc tính tối thiểu của các sản phẩm và quá trình thực hiện. Vì vậy, các doanh nghiệp, tổ chức phần mềm thường áp dụng chúng như là một phần trong chính sách tổ chức của họ. Hơn nữa, việc tuân thủ các tiêu chuẩn là một biện pháp đề phòng các rủi ro liên quan đến pháp lý và tránh khỏi những cáo buộc phi pháp.
+Thương hiệu Một thương hiệu liên quan đến một từ, tên, biểu tượng, hoặc thiết bị được sử dụng trong các giao dịch. Thương hiệu được sử dụng "để chỉ ra nguồn gốc, xuất xứ của hàng hóa". Bảo vệ thương hiệu là bảo vệ tên, logo, hình ảnh, và bao bì của doanh nghiệp. Tổ chức Sở hữu trí tuệ thế giới (WIPO) là cơ quan đặt ra các quy tắc và quy định về thương hiệu, nhãn hiệu hàng hoá. WIPO là cơ quan của Liên Hợp Quốc dành riêng cho việc sử dụng tài sản trí tuệ như một phương pháp thúc đẩy sự đổi mới và sáng tạo.
+Bằng sáng chế Bằng sáng chế bảo vệ các quyền của một nhà sáng chế trong việc tạo ra và bán các ý tưởng của mình. Một bằng sáng chế bao gồm một tập hợp các đặc quyền được cấp bởi một chính phủ có chủ quyền cho một cá nhân/ nhóm cá nhân/ tổ chức trong một khoảng thời gian nhất định. Tài liệu để được cấp bằng sáng chế đòi hỏi phải được ghi chép một cách cẩn thận trong quá trình dẫn đến các sáng chế. Các nhà sáng chế có thể thuê các đại diện sáng chế (luật sư đại diện) bảo vệ các quyền lợi hợp pháp của mình được quy định trong luật bản quyền. Lưu ý rằng, nếu sáng chế được thực hiện trong một hợp đồng SE, chủ sở hữu có thể thuộc về tổ chức phần mềm hoặc khách hàng hoặc các tổ chức phối hợp, chứ không phải thuộc về các kỹ sư phần mềm.
+Bản quyền Bản quyền là thuật ngữ pháp lý mô tả quyền của người sáng tạo đối với các sản phẩm, tác phẩm văn học và nghệ thuật của họ. Bảo vệ bản quyền là tự động cho dù sản phẩm này có được đăng ký hay không. Ngay khi sản phẩm được viết ra, nó đã được bảo vệ.
+Trách nhiệm pháp lý Các kỹ sư phần mềm phải quan tâm với các vấn đề về trách nhiệm trong chuyên môn. Khi cung cấp dịch vụ cho khách hàng hoặc nhà tuyển dụng cần phải tuân thủ các tiêu chuẩn và các quy định chung trong chuyên môn. Do đó, trách nhiệm pháp lý giúp người lao động & người sử dụng lao động tránh khỏi những cáo buộc hoặc thủ tục tố tụng hoặc liên quan đến sơ suất, bất cẩn, hoặc thiếu năng lực.
+Yêu cầu pháp lý Kỹ sư phần mềm phải hoạt động trong phạm vi của các khuôn khổ pháp lý địa phương quốc gia và quốc tế. Các thông tin cơ bản về khuôn khổ luật pháp quốc tế được quy định bởi tổ chức Thương mại quốc tế (WTO).
+Tuân thủ luật thương mại Tất cả kỹ sư phải được nhận thức và tuân thủ những giới hạn được quy định bởi pháp luật về việc nhập, xuất, tái xuất sản phẩm/ dịch vụ và công nghệ; về phân loại, thu hồi giấy phép.
+Tội phạm công nghệ Một số loại tội phạm công nghệ có thể kể đến như gian lận, truy cập trái phép, spam, nội dung khiêu dâm, xúc phạm, đe dọa, quấy rối, trộm cắp dữ liệu cá nhân nhạy cảm hoặc bí mật thương mại, và sử dụng một máy tính để gây thiệt hại hay xâm nhập vào các máy tính khác trong mạng và hệ thống điều khiển tự động ... đều bị xử lý theo quy định của pháp luật hiện hành.
+1.5 Nhân tố con người và sự phân hóa nghề nghiệp trong SE 
+1.3.1. Nhân tố con người trong ngành SE Đối với một sản phần phần mềm, một người không thể hoàn thành mà là kết quả lao động của một nhóm người, gọi là nhóm phát triển phần mềm. Mỗi thành viên trong nhóm cần phải có các kiến thức cần thiết phụ thuộc vào vai trò trong nhóm, không được vị kỷ, thành quả lao động của nhóm được xem như là thành quả chung và phải tuân thủ các quy tắc ứng xử, đạo đức nghề nghiệp.
+Mặc dù đã có rất nhiều các CASE tools ra đời, nhưng tính tự động hoá chưa cao, do đó, con người vẫn là yếu tố trung tâm, đóng vai trò quan trọng trong quy trình triển khai dự án phần mềm.
+1.5.2 Phân loại nghề nghiệp Yêu cầu hiện nay của sự phát triển IT ở Việt nam đòi hỏi cần có những người lao động trong tất cả các ngành kinh tế biết sử dụng IT trong công việc của mình, và đồng thời cần có những người trực tiếp tham gia vào sản xuất, kinh doanh, vận hành quy trình sản xuất sử dụng IT: cần những lao động trực tiếp tạo ra các sản phẩm, hệ thống phần mềm.
+Do vậy, cần có những lớp người lao động sau: 
+Những người biết vận dụng sáng tạo IT vào nghiệp vụ chuyên môn.
+Những người tham gia quản lí và vận hành các hệ thống IT.
+Những người tham gia trực tiếp vào việc phát triển, xây dựng tạo ra các sản phẩm.
+Có nhiều tiêu chí để phân loại nghề nghiệp thuộc IT như: (a) phân loại theo mức độ kinh nghiệm; (b) phân loại theo loại hình công việc.
+a) Phân loại nghề nghiệp theo mức độ kinh nghiệm 
+Sơ cấp: Nhân viên, cán bộ ở mức độ sơ đẳng nhất, làm việc cần có sự giám sát, hướng dẫn trực tiếp. Thời gian làm việc ở vị trí này trung bình khoảng 2 năm có thể chuyển sang mức trung cấp.
+Trung cấp: Nhân viên, cán bộ có thể làm việc độc lập theo đúng chuyên môn. Thời gian trung bình làm việc ở cấp độ này từ 2-5 năm thì có thể chuyển sang mức cao cấp.
+Cao cấp: Cán bộ, nhân viên có trình độ nhất định về công việc và kinh nghiệm tích luỹ, có thể đào tạo, huấn luyện người khác. Những cán bộ có từ 5-7 năm kinh nghiệm và có ít nhất là 3 năm để học các kỹ năng chuyên sâu có thể chuyển sang mức lãnh đạo.
+Lãnh đạo: Làm việc độc lập, kiêm các nhiệm vụ giám sát, còn được gọi là chuyên gia phụ trách dự án.
+Chuyên gia kỹ thuật: Chuyên gia kỹ thuật là người có kinh nghiệm rộng rãi trong nhiều lĩnh vực. Họ có thể làm việc ở các vị trí khác nhau trong quy trình dự án.
+Nhà quản lý: Có kinh nghiệm chuyên môn nghiệp vụ, có nhiều kiến thức, kinh nghiệm về quản lý dự án.
+b) Phân loại nghề nghiệp theo loại hình công việc Phân loại nghề nghiệp theo loại hình công việc được chia thành bốn nhóm ngành: (1) phát triển ứng dụng (2) hỗ trợ ứng dụng (3) chuyên ngành kỹ thuật; (4) Nhân viên và (5) Nhóm nghề khác.
+Phát triển ứng dụng 
+Lập trình viên.
+Kỹ sư phần mềm (phân tích viên, thiết kế viên, người lãnh đạo/ quản lý dự án).
+Kỹ sư tri thức (KE): kỹ sư tri thức tương tự như các kỹ sư phần mềm nhưng được chuyên môn hơn các kỹ năng để xây dựng các hệ thống trí tuệ nhân tạo, hệ tri thức.
+Hỗ trợ ứng dụng 
+Chuyên gia ứng dụng: Tư vấn cho đội dự án về các loại ứng dụng phần mềm cần sử dụng.
+Quản trị dữ liệu: Quản trị cơ sở dữ liệu (DBA), phân tích, thiết kế, xây dựng, bảo lưu, quản lý quyền truy cập vào cơ sở dữ liệu của hệ thống.
+tuệ vào các ứng dụng. Kỹ sư trí tuệ nhân tạo thường có trình độ chuyên môn về AI cao hơn các kỹ sư tri thức.
+Nhà tư vấn: Có sự hiểu biết rộng về mọi vấn đề, có kiến thức và kinh nghiệm thực hành, thực tế về dự án phần mềm. Số năm kinh nghiệm càng cao thì kiến thức tích luỹ càng nhiều.
+Chuyên ngành kỹ thuật 
+Nhà phân tích và kỹ sư truyền thông: Phân tích, thiết kế, đàm phán và/ hoặc lắp đặt các thiết bị và phần mềm truyền thông; có thể làm việc trên mainframe hoặc các mạng truyền thông, kiến thức nền tảng phải có gồm điện tử, kỹ thuật, các ứng dụng truyền thông, khoa học máy tính và các công nghệ truyền thông.
+Chuyên gia về mạng cục bộ: Thiết kế, đi dây, lắp đặt mạng cục bộ; quản lý, duy trì khả năng hoạt động của mạng cục bộ; giám sát tài nguyên cung cấp qua mạng cục bộ, quản lý cấu hình và khắc phục các vấn đề về mạng cục bộ.
+Lập trình viên hệ thống: Cài đặt, bảo dưỡng các hệ điều hành, các ứng dụng hỗ trợ phần mềm, có thể giám sát hàng trăm ứng dụng vận hành trên nền tảng, theo dõi, khắc phục những sự cố liên quan đến phần mềm hệ thống – Đây là một nhiệm vụ quan trọng.
+Chuyên gia hỗ trợ phần mềm: Cài đặt, bảo dưỡng các gói phần mềm được sử dụng đội dự án và bởi khách hàng.
+Nhân viên 
+Chuyên gia bảo mật: Chịu trách nhiệm về các vấn đề liên quan đến bảo mật, an toàn, an ninh của hệ thống, khắc phục, sử lý sự cố về bảo mật.
+Kiểm soát viên: Kiểm tra, giám sát quá trình triển khai dự án so với lịch biểu, lập báo cáo trình lãnh đạo nếu phát hiện vấn đề, rủi ro phát sinh.
+Đào tạo viên: Nắm bắt các công nghệ, công cụ, kiến thức mới và training đội dự án cũng như training khách hàng sử dụng sản phẩm.
+Người viết các chuẩn và tài liệu kỹ thuật: Xác định các công việc cần chuẩn hoá, xây dựng các chính sách, thủ tục chuẩn hoá cho tổ chức phần mềm phù hợp với các quy định chung về nghề nghiệp. Khác với người viết các tài liệu kỹ thuật ở chỗ, người viết tài liệu kỹ thuật thường lấy thông tin về sản phẩm phần mềm/ ứng dụng công nghệ và biên soạn thành tài liệu mô tả về sản phẩm/ứng dụng công nghệ, về các đặc điểm, chức năng, công dụng của chúng.
+Đảm bảo chất lượng (QA): Lập kế hoạch đảm bảo chất lượng dự án, chịu trách nhiệm giám sát, đánh giá và quản lý các vấn đề về chất lượng liên quan đến dự án phần mềm.
+Lập kế hoạch công nghệ: Nắm bắt các xu hướng phát triển công nghệ, tư vấn lựa chọn và áp dụng các công nghệ thích hợp cho tổ dự án.
+Nhóm nghề khác 
+Hỗ trợ sản phẩm: Nhân viên việc với nhóm người dùng cuối (cài đặt, thiết lập cấu hình.....) bán hàng: trực đường dây nóng hỗ trợ khách hàng sử dụng sản phẩm; cần có khả năng giao tiếp tốt.
+Tiếp thị sản phẩm: Tiếp thị sản phẩm, quảng bá sản phẩm, cần có kỹ năng giao tiếp tốt và các kiến thức về tiếp thị, chăm sóc khách hàng.
