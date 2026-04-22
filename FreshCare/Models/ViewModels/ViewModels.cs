@@ -34,11 +34,13 @@ namespace FreshCare.Models.ViewModels
         [Compare("MatKhau", ErrorMessage = "Mật khẩu xác nhận không khớp")]
         public string XacNhanMatKhau { get; set; } = string.Empty;
 
+        [Required(ErrorMessage = "Vui lòng nhập Email để khôi phục mật khẩu khi quên")]
         [EmailAddress(ErrorMessage = "Email không hợp lệ")]
-        public string? Email { get; set; }
+        public string Email { get; set; } = string.Empty;
 
+        [Required(ErrorMessage = "Vui lòng nhập Số điện thoại để khôi phục mật khẩu khi quên")]
         [Phone(ErrorMessage = "Số điện thoại không hợp lệ")]
-        public string? SoDienThoai { get; set; }
+        public string SoDienThoai { get; set; } = string.Empty;
     }
 
     /// <summary>

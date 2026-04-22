@@ -24,7 +24,7 @@
 
                 <p class="text-muted small mb-4">
                     <i class="fas fa-info-circle me-1 text-primary"></i>
-                    Nhập tên đăng nhập cùng với Email <strong>hoặc</strong> Số điện thoại 
+                    Nhập tên đăng nhập cùng với Email <strong>và</strong> Số điện thoại 
                     đã đăng ký để xác minh tài khoản của bạn.
                 </p>
 
@@ -33,7 +33,7 @@
 
                     <div class="mb-3">
                         <label class="form-label fw-semibold">
-                            <i class="fas fa-user me-1 text-secondary"></i>Tên đăng nhập
+                            <i class="fas fa-user me-1 text-secondary"></i>Tên đăng nhập <span class="text-danger">*</span>
                         </label>
                         <input asp-for="TenDangNhap" class="form-control" placeholder="Nhập tên đăng nhập" required />
                         <span asp-validation-for="TenDangNhap" class="text-danger small"></span>
@@ -41,22 +41,18 @@
 
                     <div class="mb-3">
                         <label class="form-label fw-semibold">
-                            <i class="fas fa-envelope me-1 text-secondary"></i>Email (nếu có)
+                            <i class="fas fa-envelope me-1 text-secondary"></i>Email <span class="text-danger">*</span>
                         </label>
-                        <input asp-for="Email" type="email" class="form-control" placeholder="example@email.com" />
-                    </div>
-
-                    <div class="d-flex align-items-center my-3">
-                        <hr class="flex-grow-1">
-                        <span class="px-3 text-muted small">HOẶC</span>
-                        <hr class="flex-grow-1">
+                        <input asp-for="Email" type="email" class="form-control" placeholder="example@email.com" required />
+                        <span asp-validation-for="Email" class="text-danger small"></span>
                     </div>
 
                     <div class="mb-4">
                         <label class="form-label fw-semibold">
-                            <i class="fas fa-phone me-1 text-secondary"></i>Số điện thoại (nếu có)
+                            <i class="fas fa-phone me-1 text-secondary"></i>Số điện thoại <span class="text-danger">*</span>
                         </label>
-                        <input asp-for="SoDienThoai" type="tel" class="form-control" placeholder="0912 345 678" />
+                        <input asp-for="SoDienThoai" type="tel" class="form-control" placeholder="0912 345 678" required />
+                        <span asp-validation-for="SoDienThoai" class="text-danger small"></span>
                     </div>
 
                     <button type="submit" class="btn btn-fc-primary w-100 py-2">

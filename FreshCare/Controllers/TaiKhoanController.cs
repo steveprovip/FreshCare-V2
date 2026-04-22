@@ -157,10 +157,14 @@ namespace FreshCare.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult QuenMatKhau(QuenMatKhauViewModel model)
         {
-            // Bắt buộc nhập ít nhất Email hoặc SĐT
-            if (string.IsNullOrWhiteSpace(model.Email) && string.IsNullOrWhiteSpace(model.SoDienThoai))
+            // Bắt buộc nhập CẢ Email VÀ SĐT để xác minh
+            if (string.IsNullOrWhiteSpace(model.Email))
             {
-                ModelState.AddModelError("", "Vui lòng nhập Email hoặc Số điện thoại để xác minh.");
+                ModelState.AddModelError("Email", "Vui lòng nhập Email để xác minh.");
+            }
+            if (string.IsNullOrWhiteSpace(model.SoDienThoai))
+            {
+                ModelState.AddModelError("SoDienThoai", "Vui lòng nhập Số điện thoại để xác minh.");
             }
 
             if (!ModelState.IsValid) return View(model);
@@ -171,19 +175,17 @@ namespace FreshCare.Controllers
                 {
                     conn.Open();
 
-                    // Tìm tài khoản khớp tên đăng nhập + (Email HOẶC SĐT)
+                    // Tìm tài khoản khớp tên đăng nhập + Email VÀ SĐT đều phải đúng
                     string sql = @"SELECT MaNV, HoTen, TenDangNhap, TrangThai 
                                    FROM NhanVien 
                                    WHERE TenDangNhap = @TenDangNhap
-                                     AND (
-                                           (Email IS NOT NULL AND Email = @Email)
-                                        OR (SoDienThoai IS NOT NULL AND SoDienThoai = @SoDienThoai)
-                                     )";
+                                     AND Email IS NOT NULL AND Email = @Email
+                                     AND SoDienThoai IS NOT NULL AND SoDienThoai = @SoDienThoai";
                     using (var cmd = new SqlCommand(sql, conn))
                     {
                         cmd.Parameters.AddWithValue("@TenDangNhap", model.TenDangNhap);
-                        cmd.Parameters.AddWithValue("@Email", (object?)model.Email ?? DBNull.Value);
-                        cmd.Parameters.AddWithValue("@SoDienThoai", (object?)model.SoDienThoai ?? DBNull.Value);
+                        cmd.Parameters.AddWithValue("@Email", model.Email);
+                        cmd.Parameters.AddWithValue("@SoDienThoai", model.SoDienThoai);
 
                         using (var reader = cmd.ExecuteReader())
                         {
@@ -206,7 +208,7 @@ namespace FreshCare.Controllers
                     }
                 }
 
-                ModelState.AddModelError("", "Thông tin không khớp. Vui lòng kiểm tra lại tên đăng nhập và Email/Số điện thoại.");
+                ModelState.AddModelError("", "Thông tin không khớp. Cả tên đăng nhập, Email và Số điện thoại phải đúng với thông tin đã đăng ký.");
             }
             catch (Exception ex)
             {
@@ -261,13 +263,19 @@ namespace FreshCare.Controllers
             return View(model);
         }
 
-        // them nhan vien moi
+        // thêm nhân viên mới (Admin)
         [HttpPost]
-        public IActionResult AddStaff(string HoTen, string Username, string Password, string ConfirmPassword)
+        public IActionResult AddStaff(string HoTen, string Username, string Password, string ConfirmPassword, string Email, string SoDienThoai)
         {
             if (string.IsNullOrEmpty(HoTen) || string.IsNullOrEmpty(Username) || string.IsNullOrEmpty(Password))
             {
                 TempData["Error"] = "Vui lòng nhập đầy đủ thông tin";
+                return RedirectToAction("QuanLy");
+            }
+
+            if (string.IsNullOrEmpty(Email) || string.IsNullOrEmpty(SoDienThoai))
+            {
+                TempData["Error"] = "Email và Số điện thoại là bắt buộc để nhân viên có thể khôi phục mật khẩu";
                 return RedirectToAction("QuanLy");
             }
 
@@ -297,16 +305,17 @@ namespace FreshCare.Controllers
                         }
                     }
 
-                    // insert
-                    string insertSql = @"INSERT INTO NhanVien (HoTen, TenDangNhap, MatKhau, VaiTro, TrangThai)
-                                 VALUES (@HoTen, @Username, @Password, N'NhanVien', N'HoatDong')";
+                    // insert bao gồm Email và SĐT
+                    string insertSql = @"INSERT INTO NhanVien (HoTen, TenDangNhap, MatKhau, VaiTro, TrangThai, Email, SoDienThoai)
+                                 VALUES (@HoTen, @Username, @Password, N'NhanVien', N'HoatDong', @Email, @SoDienThoai)";
 
                     using (var cmd = new SqlCommand(insertSql, conn))
                     {
                         cmd.Parameters.AddWithValue("@HoTen", HoTen);
-
                         cmd.Parameters.AddWithValue("@Username", Username);
                         cmd.Parameters.AddWithValue("@Password", DatabaseHelper.HashPassword(Password));
+                        cmd.Parameters.AddWithValue("@Email", Email);
+                        cmd.Parameters.AddWithValue("@SoDienThoai", SoDienThoai);
 
                         cmd.ExecuteNonQuery();
                     }

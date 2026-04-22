@@ -91,25 +91,43 @@
                 <div class="modal-body">
                     <!-- ho ten -->
                     <div class="mb-3">
-                        <label>Họ Tên</label>
+                        <label>Họ Tên <span class="text-danger">*</span></label>
                         <input type="text" name="HoTen" class="form-control" required>
                     </div>
                     <!-- Tài khoản -->
                     <div class="mb-3">
-                        <label>Tài khoản</label>
+                        <label>Tài khoản <span class="text-danger">*</span></label>
                         <input type="text" name="Username" class="form-control" required>
                     </div>
 
                     <!-- Mật khẩu -->
                     <div class="mb-3">
-                        <label>Mật khẩu</label>
+                        <label>Mật khẩu <span class="text-danger">*</span></label>
                         <input type="password" name="Password" class="form-control" required minlength="6">
                     </div>
 
                     <!-- Nhập lại mật khẩu -->
                     <div class="mb-3">
-                        <label>Nhập lại mật khẩu</label>
+                        <label>Nhập lại mật khẩu <span class="text-danger">*</span></label>
                         <input type="password" name="ConfirmPassword" class="form-control" required>
+                    </div>
+
+                    <hr>
+                    <p class="text-muted small mb-2">
+                        <i class="fas fa-exclamation-triangle me-1 text-warning"></i>
+                        Bắt buộc để nhân viên có thể khôi phục mật khẩu khi quên.
+                    </p>
+
+                    <!-- Email -->
+                    <div class="mb-3">
+                        <label>Email <span class="text-danger">*</span></label>
+                        <input type="email" name="Email" class="form-control" placeholder="example@email.com" required>
+                    </div>
+
+                    <!-- Số điện thoại -->
+                    <div class="mb-3">
+                        <label>Số điện thoại <span class="text-danger">*</span></label>
+                        <input type="tel" name="SoDienThoai" class="form-control" placeholder="0912 345 678" required>
                     </div>
 
                 </div>
