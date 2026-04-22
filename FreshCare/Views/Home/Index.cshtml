@@ -84,6 +84,7 @@
             </div>
             <div class="card-body p-0">
                 <form id="frmHuyHangLoat" asp-controller="XuatKho" asp-action="HuyHangLoat" method="post">
+                @Html.AntiForgeryToken()
                 <div class="table-responsive">
                     <table class="table table-fc table-hover mb-0" id="tblQuaHan">
                         <thead>
@@ -112,9 +113,14 @@
                                     <td>@lo.NgayNhapKho.ToString("dd/MM/yyyy")</td>
                                     <td><span class="badge bg-danger">@lo.SoNgayConLai ngày</span></td>
                                     <td>
-                                        <a href="/XuatKho/HuyHang?maLo=@lo.MaLo" class="btn btn-sm btn-fc-danger" data-method="post" onclick="event.preventDefault(); if(confirm('Xác nhận xuất hủy lô LO-@lo.MaLo.ToString("D4")?')) { var f = document.createElement('form'); f.method = 'post'; f.action = this.href; document.body.appendChild(f); f.submit(); }">
-                                            <i class="fas fa-trash-alt me-1"></i>Xuất Hủy
-                                        </a>
+                                        <form asp-controller="XuatKho" asp-action="HuyHang" method="post" class="d-inline"
+                                              onsubmit="return confirm('Xác nhận xuất hủy lô LO-@lo.MaLo.ToString("D4")?')">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="maLo" value="@lo.MaLo" />
+                                            <button type="submit" class="btn btn-sm btn-fc-danger">
+                                                <i class="fas fa-trash-alt me-1"></i>Xuất Hủy
+                                            </button>
+                                        </form>
                                     </td>
                                 </tr>
                             }

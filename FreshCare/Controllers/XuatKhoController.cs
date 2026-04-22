@@ -78,7 +78,7 @@ namespace FreshCare.Controllers
                     // === BƯỚC 1: Kiểm tra tổng tồn kho + đơn vị tính cho TỪNG mặt hàng ===
                     foreach (var item in danhSachItems)
                     {
-                        if (item.HeSoQuyDoi > 0)
+                        if (item.HeSoQuyDoi > 1)
                         {
                             item.SoLuong = item.SoLuong * item.HeSoQuyDoi;
                         }
@@ -380,7 +380,7 @@ namespace FreshCare.Controllers
                     // TRỤC KIỂM TRA SỐ LƯỢNG KHO (GIỐNG BÁN HÀNG)
                     foreach (var item in danhSachItems)
                     {
-                        if (item.HeSoQuyDoi > 0) item.SoLuong = item.SoLuong * item.HeSoQuyDoi;
+                        if (item.HeSoQuyDoi > 1) item.SoLuong = item.SoLuong * item.HeSoQuyDoi;
                         
                         string sqlCheckTon = @"SELECT ISNULL(SUM(SoLuongTon), 0) FROM LoHang 
                                                WHERE MaSP = @MaSP AND SoLuongTon > 0 AND TrangThai != N'Đã Hủy'";
@@ -509,8 +509,11 @@ namespace FreshCare.Controllers
         /// Luật #12: LoaiPhieu = "Hủy Hàng"
         /// </summary>
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public IActionResult HuyHang(int maLo)
         {
+            if (HttpContext.Session.GetInt32("MaNV") == null)
+                return RedirectToAction("DangNhap", "TaiKhoan");
             int maNV = HttpContext.Session.GetInt32("MaNV") ?? 0;
 
             try
@@ -594,6 +597,7 @@ namespace FreshCare.Controllers
 
         // POST: /XuatKho/HuyHangLoat - Xuất hủy nhiều lô hàng cùng lúc
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public IActionResult HuyHangLoat(List<int> maLoList)
         {
             if (maLoList == null || maLoList.Count == 0)
@@ -808,9 +812,11 @@ namespace FreshCare.Controllers
             catch { }
             return list;
         }
-        //xem chi tiet hoa don
+        // Xem chi tiết hóa đơn xuất kho
         public IActionResult ChiTiet(int id)
         {
+            if (HttpContext.Session.GetInt32("MaNV") == null)
+                return RedirectToAction("DangNhap", "TaiKhoan");
             var model = new ChiTietPhieuXuatViewModel();
 
             try

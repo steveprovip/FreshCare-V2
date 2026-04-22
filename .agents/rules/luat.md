@@ -22,3 +22,4 @@ trigger: always_on
 18. Thiết kế giao diện bằng Bootstrap 5 và FontAwesome 6.
 19. Hiển thị thông báo bằng TempData dưới dạng Alert (Toast).
 20. Controller phải sử dụng using và try-catch để xử lý lỗi và tránh rò rỉ bộ nhớ.
+21. luôn kiểm tra hệ thống theo chu ISO/IEC 25010 và OWASP Top 10

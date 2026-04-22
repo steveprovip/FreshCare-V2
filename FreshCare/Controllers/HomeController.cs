@@ -6,7 +6,7 @@ using Microsoft.Data.SqlClient;
 
 namespace FreshCare.Controllers
 {
-    /// <summary> alo cường à cường không chối được đâu
+    /// <summary>
     /// HomeController - Dashboard cảnh báo hạn sử dụng
     /// Luật #7: Tự động phân loại Quá hạn (Đỏ), Cận date (Cam), An toàn (Xanh)
     /// Luật #6: Số ngày còn lại >= 0

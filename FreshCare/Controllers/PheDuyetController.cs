@@ -79,6 +79,7 @@ namespace FreshCare.Controllers
 
         // POST: /PheDuyet/Duyet - Chấp nhận yêu cầu
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public IActionResult Duyet(int maYeuCau)
         {
             int maNVDuyet = HttpContext.Session.GetInt32("MaNV") ?? 0;
@@ -178,6 +179,7 @@ namespace FreshCare.Controllers
 
         // POST: /PheDuyet/TuChoi - Từ chối yêu cầu
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public IActionResult TuChoi(int maYeuCau, string? ghiChu)
         {
             int maNVDuyet = HttpContext.Session.GetInt32("MaNV") ?? 0;

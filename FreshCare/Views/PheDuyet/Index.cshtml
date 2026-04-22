@@ -38,6 +38,7 @@
                                 <td><small>@yc.NgayGui.ToString("dd/MM/yyyy HH:mm")</small></td>
                                 <td>
                                     <form asp-action="Duyet" method="post" class="d-inline">
+                                        @Html.AntiForgeryToken()
                                         <input type="hidden" name="maYeuCau" value="@yc.MaYeuCau" />
                                         <button type="submit" class="btn btn-sm btn-success" onclick="return confirm('Xác nhận DUYỆT yêu cầu #@yc.MaYeuCau?')">
                                             <i class="fas fa-check me-1"></i>Duyệt
@@ -87,6 +88,7 @@
                         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                     </div>
                     <form asp-action="TuChoi" method="post">
+                        @Html.AntiForgeryToken()
                         <input type="hidden" name="maYeuCau" value="@yc.MaYeuCau" />
                         <div class="modal-body">
                             <div class="mb-3">

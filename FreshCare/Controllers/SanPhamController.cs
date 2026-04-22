@@ -63,6 +63,8 @@ namespace FreshCare.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult ThemDanhMuc(string tenDanhMuc, decimal phanTramSale)
         {
+            if (HttpContext.Session.GetInt32("MaNV") == null)
+                return RedirectToAction("DangNhap", "TaiKhoan");
             try
             {
                 using (var conn = DatabaseHelper.GetConnection(_connectionString))
@@ -91,6 +93,8 @@ namespace FreshCare.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult SuaDanhMuc(int maDanhMuc, string tenDanhMuc, decimal phanTramSale)
         {
+            if (HttpContext.Session.GetInt32("MaNV") == null)
+                return RedirectToAction("DangNhap", "TaiKhoan");
             try
             {
                 using (var conn = DatabaseHelper.GetConnection(_connectionString))
@@ -379,22 +383,52 @@ namespace FreshCare.Controllers
         // POST: /SanPham/XoaSanPham (Luật #5: Không DELETE, cập nhật trạng thái)
         // Yêu cầu #7: NhanVien xóa -> chờ duyệt
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public IActionResult XoaSanPham(int maSP)
         {
+            if (HttpContext.Session.GetInt32("MaNV") == null)
+                return RedirectToAction("DangNhap", "TaiKhoan");
+
+            int maNV = HttpContext.Session.GetInt32("MaNV") ?? 0;
+            string vaiTro = HttpContext.Session.GetString("VaiTro") ?? "";
+
             try
             {
-                using (var conn = DatabaseHelper.GetConnection(_connectionString))
+                if (vaiTro == "NhanVien")
                 {
-                    conn.Open();
-                    // Luật #5: Không sử dụng DELETE, cập nhật trạng thái
-                    string sql = "UPDATE SanPham SET TrangThai = N'DaXoa' WHERE MaSP = @MaSP";
-                    using (var cmd = new SqlCommand(sql, conn))
+                    // Nhân viên: Gửi yêu cầu chờ duyệt (giống SuaSanPham)
+                    using (var conn = DatabaseHelper.GetConnection(_connectionString))
                     {
-                        cmd.Parameters.AddWithValue("@MaSP", maSP);
-                        cmd.ExecuteNonQuery();
+                        conn.Open();
+                        string sql = @"INSERT INTO YeuCauPheDuyet (MaNV, PhanHe, LoaiChinhSua, MaBanGhi, DuLieuCu, DuLieuMoi, TrangThai)
+                                       VALUES (@MaNV, N'SanPham', N'Xóa', @MaBanGhi, NULL, N'Xóa sản phẩm', N'Chờ Duyệt')";
+                        using (var cmd = new SqlCommand(sql, conn))
+                        {
+                            cmd.Parameters.AddWithValue("@MaNV", maNV);
+                            cmd.Parameters.AddWithValue("@MaBanGhi", maSP);
+                            cmd.ExecuteNonQuery();
+                        }
                     }
+                    LichSuController.GhiLog(_connectionString, maNV, "Gửi yêu cầu xóa SP", $"SP #{maSP}");
+                    TempData["Success"] = "Yêu cầu xóa sản phẩm đã được gửi, chờ Quản lý phê duyệt!";
                 }
-                TempData["Success"] = "Đã xoá sản phẩm (cập nhật trạng thái).";
+                else
+                {
+                    // Admin: Xóa trực tiếp
+                    using (var conn = DatabaseHelper.GetConnection(_connectionString))
+                    {
+                        conn.Open();
+                        // Luật #5: Không sử dụng DELETE, cập nhật trạng thái
+                        string sql = "UPDATE SanPham SET TrangThai = N'DaXoa' WHERE MaSP = @MaSP";
+                        using (var cmd = new SqlCommand(sql, conn))
+                        {
+                            cmd.Parameters.AddWithValue("@MaSP", maSP);
+                            cmd.ExecuteNonQuery();
+                        }
+                    }
+                    LichSuController.GhiLog(_connectionString, maNV, "Xóa sản phẩm", $"SP #{maSP}");
+                    TempData["Success"] = "Đã xoá sản phẩm (cập nhật trạng thái).";
+                }
             }
             catch (Exception ex)
             {
